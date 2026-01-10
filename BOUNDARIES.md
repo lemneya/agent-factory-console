@@ -1,150 +1,146 @@
-# Agent Boundaries - AFC-0 Console Proof of Life
+# Agent Boundaries and Path Ownership
 
-## Overview
-This document defines path ownership for each agent role in the agent-factory-console project.
-Each agent should only modify files within their designated paths unless coordinating with the Orchestrator.
-
----
+This document defines the code ownership boundaries for each agent in the multi-agent development workflow. Agents should only modify files within their owned paths unless coordinating with the path owner.
 
 ## Path Ownership Matrix
 
-### Backend & Database Agent (`agent/backend-db`)
-**Owner:** backend-db
+### Backend & Database Agent (`backend-db`)
 
-| Path | Description |
-|------|-------------|
-| `prisma/` | Prisma schema and migrations |
-| `src/app/api/**` | API route handlers (except auth/webhooks) |
-| `src/lib/db/` | Database utilities and queries |
-| `src/types/` | TypeScript type definitions |
+| Path | Type | Description |
+|------|------|-------------|
+| `prisma/` | Owned | Database schema and migrations |
+| `src/app/api/**/*` | Owned | API route handlers |
+| `src/lib/db/` | Owned | Database utilities and queries |
+| `src/types/` | Owned | TypeScript type definitions |
 
-**Key Files:**
-- `prisma/schema.prisma` - Database schema
-- `src/lib/db/client.ts` - Prisma client instance
-- `src/types/models.ts` - Shared type definitions
+**Exclusions:**
+- `src/app/api/auth/` - Owned by github-integration
+- `src/app/api/webhooks/` - Owned by github-integration
 
 ---
 
-### Frontend & UI Agent (`agent/frontend-ui`)
-**Owner:** frontend-ui
+### Frontend & UI Agent (`frontend-ui`)
 
-| Path | Description |
-|------|-------------|
-| `src/app/(dashboard)/` | Dashboard pages and layouts |
-| `src/components/` | React components |
-| `src/hooks/` | Custom React hooks |
-| `src/styles/` | CSS and styling |
-
-**Key Files:**
-- `src/app/(dashboard)/layout.tsx` - Dashboard layout
-- `src/app/(dashboard)/projects/page.tsx` - Projects list
-- `src/app/(dashboard)/runs/page.tsx` - Runs list
-- `src/app/(dashboard)/runs/[id]/page.tsx` - Task board
-- `src/app/(dashboard)/notifications/page.tsx` - Events feed
+| Path | Type | Description |
+|------|------|-------------|
+| `src/app/(dashboard)/` | Owned | Dashboard pages and layouts |
+| `src/components/` | Owned | React components |
+| `src/hooks/` | Owned | Custom React hooks |
+| `src/styles/` | Owned | CSS and styling |
 
 ---
 
-### GitHub Integration Agent (`agent/github-integration`)
-**Owner:** github-integration
+### GitHub Integration Agent (`github-integration`)
 
-| Path | Description |
-|------|-------------|
-| `src/lib/github/` | GitHub API client and utilities |
-| `src/app/api/webhooks/` | Webhook endpoint handlers |
-| `src/app/api/auth/` | Auth configuration (NextAuth) |
-
-**Key Files:**
-- `src/lib/github/client.ts` - GitHub API client
-- `src/lib/github/repos.ts` - Repository operations
-- `src/app/api/webhooks/github/route.ts` - Webhook handler
-- `src/app/api/auth/[...nextauth]/route.ts` - NextAuth config
+| Path | Type | Description |
+|------|------|-------------|
+| `src/lib/github/` | Owned | GitHub API client and utilities |
+| `src/app/api/webhooks/` | Owned | Webhook endpoint handlers |
+| `src/app/api/auth/` | Owned | NextAuth configuration |
 
 ---
 
-### DevOps & Infrastructure Agent (`agent/devops-compose`)
-**Owner:** devops-compose
+### DevOps & Infrastructure Agent (`devops-compose`)
 
-| Path | Description |
-|------|-------------|
-| `docker-compose.yml` | Docker Compose configuration |
-| `Dockerfile` | Application Dockerfile |
-| `.env.example` | Environment template |
-| `scripts/` | Development and build scripts |
-| `.github/` | GitHub Actions workflows |
-
-**Key Files:**
-- `docker-compose.yml` - Local dev environment
-- `.env.example` - Required environment variables
-- `scripts/dev.sh` - Development startup script
-
----
-
-### QA & Documentation Agent (`agent/qa-proof-docs`)
-**Owner:** qa-proof-docs
-
-| Path | Description |
-|------|-------------|
-| `tests/` | E2E and integration tests |
-| `__tests__/` | Unit tests |
-| `docs/` | Documentation |
-| `*.md` | Markdown files (root level) |
-
-**Key Files:**
-- `README.md` - Project documentation
-- `docs/SETUP.md` - Setup instructions
-- `docs/API.md` - API documentation
+| Path | Type | Description |
+|------|------|-------------|
+| `docker-compose.yml` | Owned | Docker Compose configuration |
+| `Dockerfile` | Owned | Application Dockerfile |
+| `.env.example` | Owned | Environment variable template |
+| `scripts/` | Owned | Development and build scripts |
+| `.github/` | Owned | GitHub Actions workflows |
+| `package.json` | Primary | Node.js dependencies and scripts |
+| `tsconfig.json` | Primary | TypeScript configuration |
+| `next.config.js` | Primary | Next.js configuration |
+| `tailwind.config.js` | Secondary | Tailwind CSS configuration |
+| `postcss.config.js` | Owned | PostCSS configuration |
 
 ---
 
-## Shared Resources (Requires Coordination)
+### QA & Documentation Agent (`qa-proof-docs`)
 
-These files may be touched by multiple agents and require Orchestrator approval:
-
-| File | Primary Owner | Secondary |
-|------|--------------|-----------|
-| `package.json` | devops-compose | all |
-| `tsconfig.json` | devops-compose | backend-db |
-| `next.config.js` | devops-compose | frontend-ui |
-| `tailwind.config.js` | frontend-ui | devops-compose |
+| Path | Type | Description |
+|------|------|-------------|
+| `tests/` | Owned | E2E tests (Playwright) |
+| `__tests__/` | Owned | Unit tests (Jest) |
+| `docs/` | Owned | Project documentation |
+| `*.md` (root) | Owned | Markdown files at root level |
+| `jest.config.js` | Owned | Jest configuration |
+| `playwright.config.ts` | Owned | Playwright configuration |
+| `.claude/` | Owned | Agent configuration |
 
 ---
+
+### Orchestrator Agent (`orchestrator`)
+
+| Path | Type | Description |
+|------|------|-------------|
+| `coordination/` | Owned | Sprint and handoff documentation |
+
+---
+
+## Shared Resources
+
+These files may be modified by multiple agents and require coordination:
+
+| File | Primary Owner | Secondary Owners | Coordination Notes |
+|------|--------------|------------------|-------------------|
+| `package.json` | devops-compose | all agents | All agents may add dependencies; devops-compose maintains structure and scripts |
+| `tsconfig.json` | devops-compose | backend-db | Backend may add path aliases for type imports |
+| `next.config.js` | devops-compose | frontend-ui | Frontend may add image domains, redirects, or rewrites |
+| `tailwind.config.js` | frontend-ui | devops-compose | Frontend owns theme customization; devops maintains plugin setup |
+
+## Modification Rules
+
+### Owned Paths
+- Agent has full authority to create, modify, and delete files
+- No coordination required for changes within owned paths
+- Agent is responsible for maintaining code quality and consistency
+
+### Primary Ownership (Shared Resources)
+- Primary owner maintains the overall structure of the file
+- Must approve structural changes from secondary owners
+- Responsible for resolving conflicts in the file
+
+### Secondary Ownership (Shared Resources)
+- May add entries (dependencies, configuration options) to the file
+- Must not change overall structure without primary owner approval
+- Should document changes in commit messages for primary owner awareness
 
 ## Conflict Resolution Protocol
 
-1. **Check boundaries first** - Before modifying a file, verify ownership
-2. **Coordinate via Orchestrator** - For shared files, request approval
-3. **Document changes** - Add comments in PRs explaining cross-boundary needs
-4. **Merge through sprint branch** - All agent branches merge to `feature/afc-0-console-proof-of-life`
+1. **Within Owned Paths**: Agent resolves independently
+2. **Shared Resources**:
+   - Primary owner has final say on structure
+   - Secondary owners coordinate via `coordination/QUESTIONS.md`
+3. **Cross-Agent Dependencies**:
+   - Use `coordination/HANDOFF-PROTOCOL.md` for interface agreements
+   - Document API contracts before implementation
 
----
+## Branch Strategy
 
-## Data Models Reference (AFC-0)
-
-### PROJECTS
 ```
-id, userId, repoName, repoFullName, description, htmlUrl, lastUpdated, createdAt
-```
-
-### RUNS
-```
-id, projectId, name, status (ACTIVE/COMPLETED/FAILED), createdAt, completedAt
-```
-
-### TASKS
-```
-id, runId, title, status (TODO/DOING/DONE/BLOCKED), assignee, createdAt, updatedAt
+main
+└── feature/afc-0-console-proof-of-life (sprint branch)
+    ├── agent/backend-db
+    ├── agent/frontend-ui
+    ├── agent/github-integration
+    ├── agent/devops-compose
+    └── agent/qa-proof-docs
 ```
 
-### GITHUB_EVENTS
-```
-id, projectId, eventType, action, payload (jsonb), receivedAt
-```
+### Merge Order (Recommended)
 
----
+1. `agent/devops-compose` - Infrastructure and configuration first
+2. `agent/backend-db` - Database schema and APIs
+3. `agent/github-integration` - Authentication and webhooks
+4. `agent/frontend-ui` - UI components and pages
+5. `agent/qa-proof-docs` - Tests and documentation
 
-## Pages Reference (AFC-0)
+This order minimizes conflicts by establishing foundational layers before dependent code.
 
-- `/projects` - Project Inventory list
-- `/notifications` - GitHub events feed
-- `/runs` - List of runs
-- `/runs/[id]` - Task board for a specific run
+## Questions and Coordination
+
+- Cross-agent questions: `coordination/QUESTIONS.md`
+- Interface agreements: `coordination/HANDOFF-PROTOCOL.md`
+- Sprint planning: `coordination/SPRINT-AFC-0.md`
