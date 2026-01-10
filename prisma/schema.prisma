@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  name      String?
+  image     String?
+  projects  Project[]
+  createdAt DateTime  @default(now())
+}
+
+model Project {
+  id           String        @id @default(cuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id])
+  repoName     String
+  repoFullName String
+  description  String?
+  htmlUrl      String
+  lastUpdated  DateTime
+  runs         Run[]
+  events       GitHubEvent[]
+  createdAt    DateTime      @default(now())
+}
+
+model Run {
+  id          String    @id @default(cuid())
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id])
+  name        String
+  status      String    @default("ACTIVE")
+  tasks       Task[]
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+}
+
+model Task {
+  id        String   @id @default(cuid())
+  runId     String
+  run       Run      @relation(fields: [runId], references: [id])
+  title     String
+  status    String   @default("TODO")
+  assignee  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model GitHubEvent {
+  id         String   @id @default(cuid())
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id])
+  eventType  String
+  action     String?
+  payload    Json
+  receivedAt DateTime @default(now())
+}
