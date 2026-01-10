@@ -1,0 +1,245 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.0.0",
+  "project": "agent-factory-console",
+  "currentGate": "AFC-0",
+  "description": "Agent definitions for multi-agent collaborative development",
+  "agents": [
+    {
+      "id": "backend-db",
+      "name": "Backend & Database Agent",
+      "role": "Backend & Database",
+      "branch": "agent/backend-db",
+      "responsibilities": [
+        "Prisma schema design and maintenance",
+        "Database migrations",
+        "API routes (Next.js Route Handlers)",
+        "Server-side data logic and validation",
+        "Database query optimization"
+      ],
+      "ownedPaths": [
+        "prisma/",
+        "src/app/api/**/*",
+        "src/lib/db/",
+        "src/types/"
+      ],
+      "excludedPaths": [
+        "src/app/api/auth/",
+        "src/app/api/webhooks/"
+      ],
+      "dependencies": ["devops-compose"],
+      "deliverables": {
+        "AFC-0": [
+          "Prisma schema with Project, Run, Task, GitHubEvent models",
+          "Database migrations for all tables",
+          "CRUD API routes for projects, runs, tasks",
+          "Type definitions for all models"
+        ]
+      }
+    },
+    {
+      "id": "frontend-ui",
+      "name": "Frontend & UI Agent",
+      "role": "Frontend & UI",
+      "branch": "agent/frontend-ui",
+      "responsibilities": [
+        "React component development",
+        "Page layouts and templates",
+        "Client-side state management",
+        "Styling with Tailwind CSS",
+        "User experience and accessibility"
+      ],
+      "ownedPaths": [
+        "src/app/(dashboard)/",
+        "src/components/",
+        "src/hooks/",
+        "src/styles/"
+      ],
+      "excludedPaths": [],
+      "dependencies": ["backend-db", "devops-compose"],
+      "deliverables": {
+        "AFC-0": [
+          "Dashboard layout with navigation sidebar",
+          "Projects list page (/projects)",
+          "Notifications feed page (/notifications)",
+          "Runs list page (/runs)",
+          "Task board page with Kanban columns (/runs/[id])"
+        ]
+      }
+    },
+    {
+      "id": "github-integration",
+      "name": "GitHub Integration Agent",
+      "role": "GitHub Integration",
+      "branch": "agent/github-integration",
+      "responsibilities": [
+        "GitHub OAuth flow implementation",
+        "GitHub API client and utilities",
+        "Webhook handlers and event processing",
+        "Repository sync functionality"
+      ],
+      "ownedPaths": [
+        "src/lib/github/",
+        "src/app/api/webhooks/",
+        "src/app/api/auth/"
+      ],
+      "excludedPaths": [],
+      "dependencies": ["backend-db", "devops-compose"],
+      "deliverables": {
+        "AFC-0": [
+          "NextAuth configuration with GitHub provider",
+          "GitHub OAuth callback handling",
+          "GitHub API client for repository fetching",
+          "Webhook endpoint for receiving GitHub events",
+          "Event storage to GitHubEvent table"
+        ]
+      }
+    },
+    {
+      "id": "devops-compose",
+      "name": "DevOps & Infrastructure Agent",
+      "role": "DevOps & Infrastructure",
+      "branch": "agent/devops-compose",
+      "responsibilities": [
+        "Docker Compose setup for local development",
+        "Environment configuration and secrets management",
+        "CI/CD pipeline management",
+        "Development scripts and tooling",
+        "Build optimization"
+      ],
+      "ownedPaths": [
+        "docker-compose.yml",
+        "Dockerfile",
+        ".env.example",
+        "scripts/",
+        ".github/",
+        "package.json",
+        "tsconfig.json",
+        "next.config.js",
+        "tailwind.config.js",
+        "postcss.config.js"
+      ],
+      "excludedPaths": [],
+      "dependencies": [],
+      "deliverables": {
+        "AFC-0": [
+          "Docker Compose with app and postgres services",
+          "Dockerfile for Next.js application",
+          "Environment variable template (.env.example)",
+          "Package.json with all dependencies",
+          "TypeScript and Next.js configuration",
+          "GitHub Actions workflow for CI"
+        ]
+      }
+    },
+    {
+      "id": "qa-proof-docs",
+      "name": "QA & Documentation Agent",
+      "role": "QA & Documentation",
+      "branch": "agent/qa-proof-docs",
+      "responsibilities": [
+        "Test setup and writing (unit, integration, E2E)",
+        "Documentation authoring and maintenance",
+        "Proof of life verification",
+        "README and contribution guidelines",
+        "API documentation"
+      ],
+      "ownedPaths": [
+        "tests/",
+        "__tests__/",
+        "docs/",
+        "*.md",
+        "jest.config.js",
+        "playwright.config.ts",
+        ".claude/"
+      ],
+      "excludedPaths": [],
+      "dependencies": ["backend-db", "frontend-ui", "github-integration", "devops-compose"],
+      "deliverables": {
+        "AFC-0": [
+          "Comprehensive README.md",
+          "Agent configuration (.claude/agents.json)",
+          "Path ownership matrix (BOUNDARIES.md)",
+          "Sprint and coordination documentation",
+          "Architecture documentation",
+          "Test infrastructure setup",
+          "Proof-of-life verification checklist"
+        ]
+      }
+    },
+    {
+      "id": "orchestrator",
+      "name": "Orchestrator Agent",
+      "role": "Orchestrator / Integrator",
+      "branch": "feature/afc-0-console-proof-of-life",
+      "responsibilities": [
+        "Coordinate agent activities and dependencies",
+        "Merge agent branches to sprint branch",
+        "Resolve merge conflicts",
+        "Ensure integration coherence",
+        "Gate readiness assessment"
+      ],
+      "ownedPaths": [
+        "coordination/"
+      ],
+      "excludedPaths": [],
+      "dependencies": [],
+      "deliverables": {
+        "AFC-0": [
+          "Sprint branch with all agent code merged",
+          "Conflict resolution",
+          "Integration testing coordination",
+          "Gate sign-off"
+        ]
+      }
+    }
+  ],
+  "sharedResources": [
+    {
+      "file": "package.json",
+      "primaryOwner": "devops-compose",
+      "secondaryOwners": ["backend-db", "frontend-ui", "github-integration", "qa-proof-docs"],
+      "note": "All agents may add dependencies; devops-compose maintains structure"
+    },
+    {
+      "file": "tsconfig.json",
+      "primaryOwner": "devops-compose",
+      "secondaryOwners": ["backend-db"],
+      "note": "Backend may add path aliases for types"
+    },
+    {
+      "file": "next.config.js",
+      "primaryOwner": "devops-compose",
+      "secondaryOwners": ["frontend-ui"],
+      "note": "Frontend may add image domains or redirects"
+    },
+    {
+      "file": "tailwind.config.js",
+      "primaryOwner": "frontend-ui",
+      "secondaryOwners": ["devops-compose"],
+      "note": "Frontend owns theme; devops maintains plugin setup"
+    }
+  ],
+  "mergeOrder": [
+    "devops-compose",
+    "backend-db",
+    "github-integration",
+    "frontend-ui",
+    "qa-proof-docs"
+  ],
+  "gates": {
+    "AFC-0": {
+      "name": "Proof of Life",
+      "description": "Establish foundational functionality and multi-agent workflow",
+      "definitionOfDone": [
+        "App starts with docker-compose up",
+        "GitHub OAuth login works",
+        "User repositories appear on /projects",
+        "Webhook events are stored and displayed",
+        "Can create/view runs and tasks",
+        "All agent code merged to sprint branch",
+        "Basic tests passing"
+      ]
+    }
+  }
+}
