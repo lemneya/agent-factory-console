@@ -1,0 +1,104 @@
+{
+  "version": "1.0",
+  "project": "agent-factory-console",
+  "gate": "AFC-0",
+  "sprintBranch": "feature/afc-0-console-proof-of-life",
+  "agents": [
+    {
+      "id": "orchestrator",
+      "role": "Orchestrator / Integrator",
+      "branch": null,
+      "responsibilities": [
+        "Coordinate agent activities",
+        "Merge agent branches to sprint branch",
+        "Resolve conflicts",
+        "Ensure integration coherence"
+      ]
+    },
+    {
+      "id": "backend-db",
+      "role": "Backend & Database",
+      "branch": "agent/backend-db",
+      "responsibilities": [
+        "Prisma schema design",
+        "Database migrations",
+        "API routes (Next.js Route Handlers)",
+        "Server-side data logic"
+      ],
+      "paths": [
+        "prisma/",
+        "src/app/api/",
+        "src/lib/db/",
+        "src/types/"
+      ]
+    },
+    {
+      "id": "frontend-ui",
+      "role": "Frontend & UI",
+      "branch": "agent/frontend-ui",
+      "responsibilities": [
+        "React components",
+        "Page layouts",
+        "Client-side state",
+        "Styling (Tailwind/CSS)"
+      ],
+      "paths": [
+        "src/app/(dashboard)/",
+        "src/components/",
+        "src/hooks/",
+        "src/styles/"
+      ]
+    },
+    {
+      "id": "github-integration",
+      "role": "GitHub Integration",
+      "branch": "agent/github-integration",
+      "responsibilities": [
+        "GitHub OAuth flow",
+        "GitHub API client",
+        "Webhook handlers",
+        "Event processing"
+      ],
+      "paths": [
+        "src/lib/github/",
+        "src/app/api/webhooks/",
+        "src/app/api/auth/"
+      ]
+    },
+    {
+      "id": "devops-compose",
+      "role": "DevOps & Infrastructure",
+      "branch": "agent/devops-compose",
+      "responsibilities": [
+        "Docker Compose setup",
+        "Environment configuration",
+        "CI/CD pipeline",
+        "Development scripts"
+      ],
+      "paths": [
+        "docker-compose.yml",
+        "Dockerfile",
+        ".env.example",
+        "scripts/",
+        ".github/"
+      ]
+    },
+    {
+      "id": "qa-proof-docs",
+      "role": "QA & Documentation",
+      "branch": "agent/qa-proof-docs",
+      "responsibilities": [
+        "Test setup and writing",
+        "Documentation",
+        "Proof of life verification",
+        "README updates"
+      ],
+      "paths": [
+        "tests/",
+        "__tests__/",
+        "docs/",
+        "*.md"
+      ]
+    }
+  ]
+}
