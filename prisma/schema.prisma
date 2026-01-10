@@ -1,0 +1,175 @@
+// Prisma schema for Agent Factory Console
+// Dashboard for multi-agent AI development
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Projects represent AI agent development initiatives
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  status      ProjectStatus @default(ACTIVE)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  agents       Agent[]
+  runs         Run[]
+  notifications Notification[]
+
+  @@map("projects")
+}
+
+enum ProjectStatus {
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+// Agents are individual AI agents within a project
+model Agent {
+  id          String   @id @default(cuid())
+  name        String
+  type        String
+  description String?
+  config      Json?
+  status      AgentStatus @default(IDLE)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  tasks       Task[]
+  runs        Run[]
+
+  @@map("agents")
+}
+
+enum AgentStatus {
+  IDLE
+  RUNNING
+  ERROR
+  DISABLED
+}
+
+// Runs represent execution instances of agents
+model Run {
+  id          String   @id @default(cuid())
+  status      RunStatus @default(PENDING)
+  startedAt   DateTime?
+  completedAt DateTime?
+  duration    Int?     // Duration in milliseconds
+  input       Json?
+  output      Json?
+  error       String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  agentId     String
+  agent       Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  tasks       Task[]
+
+  @@index([projectId])
+  @@index([agentId])
+  @@index([status])
+  @@map("runs")
+}
+
+enum RunStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// Tasks are individual units of work within a run
+model Task {
+  id          String   @id @default(cuid())
+  name        String
+  type        String
+  status      TaskStatus @default(PENDING)
+  priority    Int      @default(0)
+  startedAt   DateTime?
+  completedAt DateTime?
+  duration    Int?     // Duration in milliseconds
+  input       Json?
+  output      Json?
+  error       String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  runId       String
+  run         Run      @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  agentId     String
+  agent       Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  parentId    String?
+  parent      Task?    @relation("TaskHierarchy", fields: [parentId], references: [id])
+  subtasks    Task[]   @relation("TaskHierarchy")
+
+  @@index([runId])
+  @@index([agentId])
+  @@index([status])
+  @@map("tasks")
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  CANCELLED
+  BLOCKED
+}
+
+// Notifications for the feed
+model Notification {
+  id          String   @id @default(cuid())
+  type        NotificationType
+  title       String
+  message     String
+  severity    NotificationSeverity @default(INFO)
+  read        Boolean  @default(false)
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([read])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  RUN_STARTED
+  RUN_COMPLETED
+  RUN_FAILED
+  TASK_COMPLETED
+  TASK_FAILED
+  AGENT_ERROR
+  SYSTEM_ALERT
+}
+
+enum NotificationSeverity {
+  INFO
+  WARNING
+  ERROR
+  CRITICAL
+}
