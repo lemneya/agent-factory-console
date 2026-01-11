@@ -14,6 +14,15 @@ jobs:
     name: E2E Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/agent_factory_test
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: test-secret-for-ci
+      GITHUB_CLIENT_ID: test-client-id
+      GITHUB_CLIENT_SECRET: test-client-secret
+      GITHUB_WEBHOOK_SECRET: test-webhook-secret
+
     services:
       postgres:
         image: postgres:15-alpine
@@ -28,14 +37,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
-    env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/agent_factory_test
-      NEXTAUTH_URL: http://localhost:3000
-      NEXTAUTH_SECRET: test-secret-for-ci
-      GITHUB_CLIENT_ID: test-client-id
-      GITHUB_CLIENT_SECRET: test-client-secret
-      GITHUB_WEBHOOK_SECRET: test-webhook-secret
 
     steps:
       - name: Checkout
