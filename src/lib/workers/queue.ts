@@ -15,8 +15,12 @@ import {
   QueueStats,
 } from './types';
 
+// AFC-1.1: Lease duration in milliseconds (60 seconds)
+const LEASE_DURATION_MS = 60 * 1000;
+
 /**
  * Claim the next available task for a worker
+ * AFC-1.1: Now supports lease-based claiming with self-healing
  */
 export async function claimTask(input: ClaimTaskInput) {
   const { workerId, runId } = input;
@@ -46,28 +50,28 @@ export async function claimTask(input: ClaimTaskInput) {
     throw new Error('Worker already has a task in progress');
   }
 
-  // Build the query for available tasks
-  // Priority: higher priority first, then oldest first
-  const whereClause: {
-    status: string;
-    workerId: null;
-    runId?: string;
-    run?: { status: string };
-  } = {
-    status: TaskStatus.TODO,
-    workerId: null,
-    run: { status: 'ACTIVE' },
-  };
-
-  if (runId) {
-    whereClause.runId = runId;
-  }
+  const now = new Date();
 
   // Find and claim the next task atomically using a transaction
   const result = await prisma.$transaction(async tx => {
-    // Find the next available task
+    // AFC-1.1: Find available task
+    // A task is claimable if:
+    // 1. status='TODO' OR
+    // 2. status='DOING' AND leaseExpiresAt < now() (lease expired)
     const task = await tx.task.findFirst({
-      where: whereClause,
+      where: {
+        run: { status: 'ACTIVE' },
+        ...(runId && { runId }),
+        OR: [
+          // Unclaimed tasks
+          { status: TaskStatus.TODO, workerId: null },
+          // Expired lease tasks (AFC-1.1: self-healing)
+          {
+            status: TaskStatus.DOING,
+            leaseExpiresAt: { lt: now },
+          },
+        ],
+      },
       orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
       include: {
         run: {
@@ -89,13 +93,21 @@ export async function claimTask(input: ClaimTaskInput) {
       return null;
     }
 
-    // Claim the task
+    // AFC-1.1: Calculate lease expiry
+    const leaseExpiresAt = new Date(now.getTime() + LEASE_DURATION_MS);
+
+    // Claim the task with lease fields
     const claimedTask = await tx.task.update({
       where: { id: task.id },
       data: {
         workerId,
         status: TaskStatus.DOING,
         startedAt: new Date(),
+        // AFC-1.1: Lease fields
+        claimedBy: workerId,
+        claimedAt: now,
+        leaseExpiresAt,
+        attempts: { increment: 1 },
       },
       include: {
         run: {
@@ -119,7 +131,7 @@ export async function claimTask(input: ClaimTaskInput) {
       data: {
         status: WorkerStatus.BUSY,
         currentTaskId: task.id,
-        lastHeartbeat: new Date(),
+        lastHeartbeat: now,
       },
     });
 
@@ -132,6 +144,8 @@ export async function claimTask(input: ClaimTaskInput) {
         details: {
           taskTitle: task.title,
           runId: task.runId,
+          leaseExpiresAt: leaseExpiresAt.toISOString(),
+          attempts: claimedTask.attempts,
         },
       },
     });
@@ -140,6 +154,46 @@ export async function claimTask(input: ClaimTaskInput) {
   });
 
   return result;
+}
+
+/**
+ * AFC-1.1: Renew the lease for a task
+ * Should be called every 20-30s while worker is processing
+ */
+export async function renewLease(workerId: string, taskId: string) {
+  const task = await prisma.task.findUnique({
+    where: { id: taskId },
+  });
+
+  if (!task) {
+    throw new Error('Task not found');
+  }
+
+  if (task.workerId !== workerId || task.claimedBy !== workerId) {
+    throw new Error('Task is not assigned to this worker');
+  }
+
+  if (task.status !== TaskStatus.DOING) {
+    throw new Error('Task is not in progress');
+  }
+
+  const now = new Date();
+  const leaseExpiresAt = new Date(now.getTime() + LEASE_DURATION_MS);
+
+  const updatedTask = await prisma.task.update({
+    where: { id: taskId },
+    data: {
+      leaseExpiresAt,
+    },
+  });
+
+  // Also update worker heartbeat
+  await prisma.worker.update({
+    where: { id: workerId },
+    data: { lastHeartbeat: now },
+  });
+
+  return updatedTask;
 }
 
 /**

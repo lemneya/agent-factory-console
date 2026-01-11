@@ -49,12 +49,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // AFC-1.1: Create run first, then set threadId = id (threadId binding rule)
     const run = await prisma.run.create({
       data: {
         projectId,
         name,
         status: status || 'ACTIVE',
+        threadId: '', // Placeholder, will be updated
       },
+    });
+
+    // AFC-1.1: threadId MUST equal runId always
+    const updatedRun = await prisma.run.update({
+      where: { id: run.id },
+      data: { threadId: run.id },
       include: {
         project: {
           select: {
@@ -66,7 +74,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(run, { status: 201 });
+    return NextResponse.json(updatedRun, { status: 201 });
   } catch (error) {
     console.error('Error creating run:', error);
     return NextResponse.json({ error: 'Failed to create run' }, { status: 500 });

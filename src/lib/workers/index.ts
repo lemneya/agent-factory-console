@@ -25,6 +25,7 @@ export {
   claimTask,
   completeTask,
   releaseTask,
+  renewLease, // AFC-1.1
   getQueueStats,
   getPendingTasks,
   getInProgressTasks,
