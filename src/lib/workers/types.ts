@@ -86,8 +86,7 @@ export const WorkerLogAction = {
   DEREGISTERED: 'DEREGISTERED',
 } as const;
 
-export type WorkerLogActionType =
-  (typeof WorkerLogAction)[keyof typeof WorkerLogAction];
+export type WorkerLogActionType = (typeof WorkerLogAction)[keyof typeof WorkerLogAction];
 
 // Worker with task information
 export interface WorkerWithTask {

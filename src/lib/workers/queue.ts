@@ -64,7 +64,7 @@ export async function claimTask(input: ClaimTaskInput) {
   }
 
   // Find and claim the next task atomically using a transaction
-  const result = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async tx => {
     // Find the next available task
     const task = await tx.task.findFirst({
       where: whereClause,
@@ -166,7 +166,7 @@ export async function completeTask(input: CompleteTaskInput) {
   }
 
   // Complete the task in a transaction
-  const updatedTask = await prisma.$transaction(async (tx) => {
+  const updatedTask = await prisma.$transaction(async tx => {
     // Update the task
     const completed = await tx.task.update({
       where: { id: taskId },
@@ -207,10 +207,7 @@ export async function completeTask(input: CompleteTaskInput) {
       data: {
         workerId,
         taskId,
-        action:
-          status === 'DONE'
-            ? WorkerLogAction.TASK_COMPLETED
-            : WorkerLogAction.TASK_FAILED,
+        action: status === 'DONE' ? WorkerLogAction.TASK_COMPLETED : WorkerLogAction.TASK_FAILED,
         details: {
           taskTitle: task.title,
           status,
@@ -241,7 +238,7 @@ export async function releaseTask(workerId: string, taskId: string) {
     throw new Error('Task is not assigned to this worker');
   }
 
-  const result = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async tx => {
     // Release the task
     const releasedTask = await tx.task.update({
       where: { id: taskId },
@@ -283,13 +280,12 @@ export async function releaseTask(workerId: string, taskId: string) {
  */
 export async function getQueueStats(): Promise<QueueStats> {
   // Get overall counts
-  const [totalPending, totalInProgress, totalCompleted, totalFailed] =
-    await Promise.all([
-      prisma.task.count({ where: { status: TaskStatus.TODO } }),
-      prisma.task.count({ where: { status: TaskStatus.DOING } }),
-      prisma.task.count({ where: { status: TaskStatus.DONE } }),
-      prisma.task.count({ where: { status: 'FAILED' } }),
-    ]);
+  const [totalPending, totalInProgress, totalCompleted, totalFailed] = await Promise.all([
+    prisma.task.count({ where: { status: TaskStatus.TODO } }),
+    prisma.task.count({ where: { status: TaskStatus.DOING } }),
+    prisma.task.count({ where: { status: TaskStatus.DONE } }),
+    prisma.task.count({ where: { status: 'FAILED' } }),
+  ]);
 
   // Get counts by run
   const runs = await prisma.run.findMany({
@@ -305,13 +301,13 @@ export async function getQueueStats(): Promise<QueueStats> {
     },
   });
 
-  const byRun = runs.map((run) => ({
+  const byRun = runs.map(run => ({
     runId: run.id,
     runName: run.name,
-    pending: run.tasks.filter((t) => t.status === TaskStatus.TODO).length,
-    inProgress: run.tasks.filter((t) => t.status === TaskStatus.DOING).length,
-    completed: run.tasks.filter((t) => t.status === TaskStatus.DONE).length,
-    failed: run.tasks.filter((t) => t.status === 'FAILED').length,
+    pending: run.tasks.filter(t => t.status === TaskStatus.TODO).length,
+    inProgress: run.tasks.filter(t => t.status === TaskStatus.DOING).length,
+    completed: run.tasks.filter(t => t.status === TaskStatus.DONE).length,
+    failed: run.tasks.filter(t => t.status === 'FAILED').length,
   }));
 
   return {

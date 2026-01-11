@@ -26,7 +26,7 @@ describe('Worker API Contract', () => {
 
     it('should define valid worker types', () => {
       const validTypes = ['AGENT', 'HUMAN', 'SYSTEM'];
-      validTypes.forEach((type) => {
+      validTypes.forEach(type => {
         expect(['AGENT', 'HUMAN', 'SYSTEM']).toContain(type);
       });
     });
@@ -125,7 +125,7 @@ describe('Worker API Contract', () => {
 
     it('should accept valid completion statuses', () => {
       const validStatuses = ['DONE', 'FAILED', 'BLOCKED'];
-      validStatuses.forEach((status) => {
+      validStatuses.forEach(status => {
         expect(['DONE', 'FAILED', 'BLOCKED']).toContain(status);
       });
     });
@@ -177,7 +177,7 @@ describe('Queue API Contract', () => {
   describe('GET /api/queue', () => {
     it('should support view parameter', () => {
       const validViews = ['stats', 'pending', 'in_progress'];
-      validViews.forEach((view) => {
+      validViews.forEach(view => {
         expect(['stats', 'pending', 'in_progress']).toContain(view);
       });
     });

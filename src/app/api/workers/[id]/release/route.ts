@@ -16,10 +16,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const { taskId } = body;
 
     if (!taskId) {
-      return NextResponse.json(
-        { error: 'Missing required field: taskId' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing required field: taskId' }, { status: 400 });
     }
 
     // Verify worker exists
@@ -32,15 +29,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ task, released: true });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : 'Failed to release task';
+    const message = error instanceof Error ? error.message : 'Failed to release task';
     console.error('Error releasing task:', error);
 
     // Return appropriate status code based on error
-    if (
-      message === 'Task not found' ||
-      message === 'Task is not assigned to this worker'
-    ) {
+    if (message === 'Task not found' || message === 'Task is not assigned to this worker') {
       return NextResponse.json({ error: message }, { status: 400 });
     }
 

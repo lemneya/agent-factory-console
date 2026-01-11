@@ -15,10 +15,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ workers });
   } catch (error) {
     console.error('Error fetching workers:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch workers' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch workers' }, { status: 500 });
   }
 }
 
@@ -32,10 +29,7 @@ export async function POST(request: NextRequest) {
     const { name, type, capabilities, metadata } = body;
 
     if (!name) {
-      return NextResponse.json(
-        { error: 'Missing required field: name' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing required field: name' }, { status: 400 });
     }
 
     const worker = await registerWorker({
@@ -48,9 +42,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ worker }, { status: 201 });
   } catch (error) {
     console.error('Error registering worker:', error);
-    return NextResponse.json(
-      { error: 'Failed to register worker' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to register worker' }, { status: 500 });
   }
 }

@@ -11,11 +11,7 @@ import * as crypto from 'crypto';
  * Verify webhook signature - mirrors the implementation in lib/github/client.ts
  * Defined inline to avoid ESM module issues with octokit during testing
  */
-function verifyWebhookSignature(
-  payload: string,
-  signature: string,
-  secret: string
-): boolean {
+function verifyWebhookSignature(payload: string, signature: string, secret: string): boolean {
   const hmac = crypto.createHmac('sha256', secret);
   const digest = 'sha256=' + hmac.update(payload).digest('hex');
 

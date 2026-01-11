@@ -6,15 +6,15 @@
 
 ### Current Status Summary
 
-| Agent              | Status   | Current Task                    | Blockers |
-| ------------------ | -------- | ------------------------------- | -------- |
-| orchestrator       | COMPLETE | AFC-0 Integration complete      | None     |
-| backend-db         | MERGED   | PR #5 merged                    | None     |
-| frontend-ui        | CLOSED   | PR #2 retired (see ADR-001)     | N/A      |
-| github-integration | MERGED   | PR #3 merged                    | None     |
-| devops-compose     | MERGED   | PR #1 merged                    | None     |
-| qa-proof-docs      | MERGED   | PR #6 merged                    | None     |
-| **Agent D**        | ACTIVE   | DevOps/QA Enhancement (AFC-1)   | None     |
+| Agent              | Status   | Current Task                  | Blockers |
+| ------------------ | -------- | ----------------------------- | -------- |
+| orchestrator       | COMPLETE | AFC-0 Integration complete    | None     |
+| backend-db         | MERGED   | PR #5 merged                  | None     |
+| frontend-ui        | CLOSED   | PR #2 retired (see ADR-001)   | N/A      |
+| github-integration | MERGED   | PR #3 merged                  | None     |
+| devops-compose     | MERGED   | PR #1 merged                  | None     |
+| qa-proof-docs      | MERGED   | PR #6 merged                  | None     |
+| **Agent D**        | ACTIVE   | DevOps/QA Enhancement (AFC-1) | None     |
 
 ---
 

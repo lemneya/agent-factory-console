@@ -27,9 +27,7 @@ const customJestConfig = {
     '!src/types/**',
   ],
   // Transform ESM modules
-  transformIgnorePatterns: [
-    'node_modules/(?!(octokit|@octokit)/)',
-  ],
+  transformIgnorePatterns: ['node_modules/(?!(octokit|@octokit)/)'],
   // Coverage thresholds disabled for early-stage project
   // TODO: Re-enable when proper test coverage is established
   // coverageThreshold: {

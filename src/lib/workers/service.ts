@@ -134,7 +134,7 @@ export async function getWorkers(includeOffline = false) {
     orderBy: { lastHeartbeat: 'desc' },
   });
 
-  return workers.map((worker) => ({
+  return workers.map(worker => ({
     ...worker,
     currentTask: worker.tasks[0] || null,
     metadata: worker.metadata as Record<string, unknown> | null,
@@ -259,42 +259,33 @@ export async function markStaleWorkersOffline() {
 export async function getWorkerStats(): Promise<WorkerStats> {
   const staleThreshold = new Date(Date.now() - STALE_WORKER_THRESHOLD_MS);
 
-  const [
-    totalWorkers,
-    activeWorkers,
-    idleWorkers,
-    offlineWorkers,
-    completedLogs,
-    failedLogs,
-  ] = await Promise.all([
-    prisma.worker.count(),
-    prisma.worker.count({
-      where: {
-        status: WorkerStatus.BUSY,
-        lastHeartbeat: { gte: staleThreshold },
-      },
-    }),
-    prisma.worker.count({
-      where: {
-        status: WorkerStatus.IDLE,
-        lastHeartbeat: { gte: staleThreshold },
-      },
-    }),
-    prisma.worker.count({
-      where: {
-        OR: [
-          { status: WorkerStatus.OFFLINE },
-          { lastHeartbeat: { lt: staleThreshold } },
-        ],
-      },
-    }),
-    prisma.workerLog.count({
-      where: { action: WorkerLogAction.TASK_COMPLETED },
-    }),
-    prisma.workerLog.count({
-      where: { action: WorkerLogAction.TASK_FAILED },
-    }),
-  ]);
+  const [totalWorkers, activeWorkers, idleWorkers, offlineWorkers, completedLogs, failedLogs] =
+    await Promise.all([
+      prisma.worker.count(),
+      prisma.worker.count({
+        where: {
+          status: WorkerStatus.BUSY,
+          lastHeartbeat: { gte: staleThreshold },
+        },
+      }),
+      prisma.worker.count({
+        where: {
+          status: WorkerStatus.IDLE,
+          lastHeartbeat: { gte: staleThreshold },
+        },
+      }),
+      prisma.worker.count({
+        where: {
+          OR: [{ status: WorkerStatus.OFFLINE }, { lastHeartbeat: { lt: staleThreshold } }],
+        },
+      }),
+      prisma.workerLog.count({
+        where: { action: WorkerLogAction.TASK_COMPLETED },
+      }),
+      prisma.workerLog.count({
+        where: { action: WorkerLogAction.TASK_FAILED },
+      }),
+    ]);
 
   return {
     totalWorkers,
@@ -309,11 +300,7 @@ export async function getWorkerStats(): Promise<WorkerStats> {
 /**
  * Get worker activity logs
  */
-export async function getWorkerLogs(
-  workerId?: string,
-  limit = 50,
-  offset = 0
-) {
+export async function getWorkerLogs(workerId?: string, limit = 50, offset = 0) {
   return prisma.workerLog.findMany({
     where: workerId ? { workerId } : {},
     orderBy: { createdAt: 'desc' },

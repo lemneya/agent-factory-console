@@ -31,9 +31,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     });
   } catch (error) {
     console.error('Error recording heartbeat:', error);
-    return NextResponse.json(
-      { error: 'Failed to record heartbeat' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to record heartbeat' }, { status: 500 });
   }
 }

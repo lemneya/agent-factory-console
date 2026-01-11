@@ -112,6 +112,7 @@ Enhance the DevOps and QA infrastructure for the Agent Factory Console to suppor
 **Decision:** Focus unit tests on pure functions and model validation rather than Next.js route handlers.
 
 **Rationale:**
+
 - Next.js API routes require Web APIs (Request, Response) not available in jsdom
 - Route handler testing better suited for E2E/integration tests
 - Allows faster test execution and simpler mocking
@@ -123,6 +124,7 @@ Enhance the DevOps and QA infrastructure for the Agent Factory Console to suppor
 **Decision:** E2E tests focus on API health checks and basic navigation rather than authenticated flows.
 
 **Rationale:**
+
 - GitHub OAuth requires real credentials for full E2E testing
 - API endpoint availability more critical for CI/CD validation
 - Authenticated flows can be tested with mocked session in future
@@ -137,19 +139,19 @@ None
 
 ### Dependencies on Other Agents
 
-| Agent | Dependency | Status |
-|-------|-----------|--------|
-| Backend-DB | API routes must be functional | Resolved |
-| Frontend-UI | Pages must render correctly | Resolved |
+| Agent              | Dependency                    | Status   |
+| ------------------ | ----------------------------- | -------- |
+| Backend-DB         | API routes must be functional | Resolved |
+| Frontend-UI        | Pages must render correctly   | Resolved |
 | GitHub-Integration | OAuth flow must be configured | Resolved |
 
 ## Risk Assessment
 
-| Risk | Likelihood | Impact | Mitigation |
-|------|------------|--------|------------|
-| E2E tests flaky in CI | Medium | Medium | Added retries, screenshots on failure |
-| Test environment differences | Low | Medium | Use Docker for consistent environments |
-| Coverage regression | Medium | Low | CI enforces test passing |
+| Risk                         | Likelihood | Impact | Mitigation                             |
+| ---------------------------- | ---------- | ------ | -------------------------------------- |
+| E2E tests flaky in CI        | Medium     | Medium | Added retries, screenshots on failure  |
+| Test environment differences | Low        | Medium | Use Docker for consistent environments |
+| Coverage regression          | Medium     | Low    | CI enforces test passing               |
 
 ## Next Steps (Future Sprints)
 

@@ -6,13 +6,13 @@
 
 ## Proof Summary
 
-| Check | Status | Log File |
-|-------|--------|----------|
-| npm install | PASS | npm-ci.log |
-| lint | PASS (1 warning) | lint.log |
-| typecheck | PASS | typecheck.log |
-| tests | PASS (121/121) | test.log |
-| build | PASS | build.log |
+| Check       | Status           | Log File      |
+| ----------- | ---------------- | ------------- |
+| npm install | PASS             | npm-ci.log    |
+| lint        | PASS (1 warning) | lint.log      |
+| typecheck   | PASS             | typecheck.log |
+| tests       | PASS (121/121)   | test.log      |
+| build       | PASS             | build.log     |
 
 ## Merged Branches
 

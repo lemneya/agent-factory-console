@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  getQueueStats,
-  getPendingTasks,
-  getInProgressTasks,
-} from '@/lib/workers';
+import { getQueueStats, getPendingTasks, getInProgressTasks } from '@/lib/workers';
 
 /**
  * GET /api/queue
@@ -35,9 +31,6 @@ export async function GET(request: NextRequest) {
     }
   } catch (error) {
     console.error('Error fetching queue info:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch queue info' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch queue info' }, { status: 500 });
   }
 }

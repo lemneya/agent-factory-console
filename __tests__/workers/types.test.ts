@@ -88,9 +88,7 @@ describe('Timeout Constants', () => {
   it('should have stale threshold greater than heartbeat timeout', () => {
     // Stale threshold should be at least 2x heartbeat timeout
     // to allow for missed heartbeats before marking offline
-    expect(STALE_WORKER_THRESHOLD_MS).toBeGreaterThanOrEqual(
-      HEARTBEAT_TIMEOUT_MS * 2
-    );
+    expect(STALE_WORKER_THRESHOLD_MS).toBeGreaterThanOrEqual(HEARTBEAT_TIMEOUT_MS * 2);
   });
 });
 
@@ -104,20 +102,17 @@ describe('Worker status transitions', () => {
     { from: 'ERROR', to: 'IDLE', valid: true },
   ];
 
-  it.each(validTransitions)(
-    'should recognize transition from $from to $to',
-    ({ from, to }) => {
-      // Verify both statuses exist
-      expect(Object.values(WorkerStatus)).toContain(from);
-      expect(Object.values(WorkerStatus)).toContain(to);
-    }
-  );
+  it.each(validTransitions)('should recognize transition from $from to $to', ({ from, to }) => {
+    // Verify both statuses exist
+    expect(Object.values(WorkerStatus)).toContain(from);
+    expect(Object.values(WorkerStatus)).toContain(to);
+  });
 });
 
 describe('Task status transitions', () => {
   const validTaskStatuses = ['TODO', 'DOING', 'DONE', 'BLOCKED', 'FAILED'];
 
-  it.each(validTaskStatuses)('should have %s as valid task status', (status) => {
+  it.each(validTaskStatuses)('should have %s as valid task status', status => {
     expect(Object.values(TaskStatus)).toContain(status);
   });
 

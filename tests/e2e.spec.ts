@@ -33,9 +33,7 @@ test.describe('AFC-0 Proof of Life', () => {
       await page.waitForLoadState('networkidle');
 
       // Filter out expected errors (like favicon 404)
-      const criticalErrors = errors.filter(
-        e => !e.includes('favicon') && !e.includes('404')
-      );
+      const criticalErrors = errors.filter(e => !e.includes('favicon') && !e.includes('404'));
       expect(criticalErrors).toHaveLength(0);
     });
   });

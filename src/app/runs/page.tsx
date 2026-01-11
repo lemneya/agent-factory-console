@@ -130,7 +130,7 @@ export default function RunsPage() {
           <div className="animate-pulse p-6">
             <div className="h-4 w-1/4 rounded bg-gray-200 dark:bg-gray-700" />
             <div className="mt-4 space-y-3">
-              {[1, 2, 3].map((i) => (
+              {[1, 2, 3].map(i => (
                 <div key={i} className="h-12 rounded bg-gray-200 dark:bg-gray-700" />
               ))}
             </div>
@@ -150,10 +150,22 @@ export default function RunsPage() {
           </p>
         </div>
         <div className="rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center dark:border-gray-600 dark:bg-gray-800">
-          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+          <svg
+            className="mx-auto h-12 w-12 text-gray-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
+            />
           </svg>
-          <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">Sign in required</h3>
+          <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
+            Sign in required
+          </h3>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
             Sign in with GitHub to view and manage your runs.
           </p>
@@ -176,7 +188,13 @@ export default function RunsPage() {
           disabled={projects.length === 0}
           className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+          <svg
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
           New Run
@@ -191,8 +209,18 @@ export default function RunsPage() {
 
       {runs.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center dark:border-gray-600 dark:bg-gray-800">
-          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+          <svg
+            className="mx-auto h-12 w-12 text-gray-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"
+            />
           </svg>
           <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">No runs yet</h3>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
@@ -206,8 +234,18 @@ export default function RunsPage() {
               className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
             >
               Go to Projects
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                />
               </svg>
             </Link>
           )}
@@ -235,7 +273,7 @@ export default function RunsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {runs.map((run) => (
+              {runs.map(run => (
                 <tr key={run.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/50">
                   <td className="whitespace-nowrap px-6 py-4">
                     <Link
@@ -249,7 +287,9 @@ export default function RunsPage() {
                     {run.project.repoName}
                   </td>
                   <td className="whitespace-nowrap px-6 py-4">
-                    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusBadge(run.status)}`}>
+                    <span
+                      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusBadge(run.status)}`}
+                    >
                       {run.status}
                     </span>
                   </td>
@@ -278,12 +318,12 @@ export default function RunsPage() {
                 </label>
                 <select
                   value={newRun.projectId}
-                  onChange={(e) => setNewRun({ ...newRun, projectId: e.target.value })}
+                  onChange={e => setNewRun({ ...newRun, projectId: e.target.value })}
                   className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   required
                 >
                   <option value="">Select a project</option>
-                  {projects.map((project) => (
+                  {projects.map(project => (
                     <option key={project.id} value={project.id}>
                       {project.repoFullName}
                     </option>
@@ -297,7 +337,7 @@ export default function RunsPage() {
                 <input
                   type="text"
                   value={newRun.name}
-                  onChange={(e) => setNewRun({ ...newRun, name: e.target.value })}
+                  onChange={e => setNewRun({ ...newRun, name: e.target.value })}
                   placeholder="e.g., Sprint 1, Feature Implementation"
                   className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500"
                   required

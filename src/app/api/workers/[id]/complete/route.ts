@@ -16,10 +16,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const { taskId, result, status, errorMsg } = body;
 
     if (!taskId) {
-      return NextResponse.json(
-        { error: 'Missing required field: taskId' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing required field: taskId' }, { status: 400 });
     }
 
     // Verify worker exists
@@ -46,8 +43,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ task });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : 'Failed to complete task';
+    const message = error instanceof Error ? error.message : 'Failed to complete task';
     console.error('Error completing task:', error);
 
     // Return appropriate status code based on error

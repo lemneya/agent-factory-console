@@ -28,23 +28,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!task) {
-      return NextResponse.json(
-        { message: 'No tasks available', task: null },
-        { status: 200 }
-      );
+      return NextResponse.json({ message: 'No tasks available', task: null }, { status: 200 });
     }
 
     return NextResponse.json({ task });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : 'Failed to claim task';
+    const message = error instanceof Error ? error.message : 'Failed to claim task';
     console.error('Error claiming task:', error);
 
     // Return appropriate status code based on error
-    if (
-      message === 'Worker already has a task in progress' ||
-      message === 'Worker is offline'
-    ) {
+    if (message === 'Worker already has a task in progress' || message === 'Worker is offline') {
       return NextResponse.json({ error: message }, { status: 409 });
     }
 

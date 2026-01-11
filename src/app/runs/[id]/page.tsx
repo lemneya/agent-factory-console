@@ -28,10 +28,38 @@ interface Run {
 }
 
 const COLUMNS = [
-  { id: 'TODO', label: 'TODO', bgColor: 'bg-gray-100 dark:bg-gray-800', textColor: 'text-gray-700 dark:text-gray-300', badgeBg: 'bg-gray-200 dark:bg-gray-700', borderColor: 'border-gray-300 dark:border-gray-600' },
-  { id: 'DOING', label: 'DOING', bgColor: 'bg-blue-50 dark:bg-blue-900/20', textColor: 'text-blue-700 dark:text-blue-300', badgeBg: 'bg-blue-200 dark:bg-blue-800', borderColor: 'border-blue-300 dark:border-blue-700' },
-  { id: 'BLOCKED', label: 'BLOCKED', bgColor: 'bg-red-50 dark:bg-red-900/20', textColor: 'text-red-700 dark:text-red-300', badgeBg: 'bg-red-200 dark:bg-red-800', borderColor: 'border-red-300 dark:border-red-700' },
-  { id: 'DONE', label: 'DONE', bgColor: 'bg-green-50 dark:bg-green-900/20', textColor: 'text-green-700 dark:text-green-300', badgeBg: 'bg-green-200 dark:bg-green-800', borderColor: 'border-green-300 dark:border-green-700' },
+  {
+    id: 'TODO',
+    label: 'TODO',
+    bgColor: 'bg-gray-100 dark:bg-gray-800',
+    textColor: 'text-gray-700 dark:text-gray-300',
+    badgeBg: 'bg-gray-200 dark:bg-gray-700',
+    borderColor: 'border-gray-300 dark:border-gray-600',
+  },
+  {
+    id: 'DOING',
+    label: 'DOING',
+    bgColor: 'bg-blue-50 dark:bg-blue-900/20',
+    textColor: 'text-blue-700 dark:text-blue-300',
+    badgeBg: 'bg-blue-200 dark:bg-blue-800',
+    borderColor: 'border-blue-300 dark:border-blue-700',
+  },
+  {
+    id: 'BLOCKED',
+    label: 'BLOCKED',
+    bgColor: 'bg-red-50 dark:bg-red-900/20',
+    textColor: 'text-red-700 dark:text-red-300',
+    badgeBg: 'bg-red-200 dark:bg-red-800',
+    borderColor: 'border-red-300 dark:border-red-700',
+  },
+  {
+    id: 'DONE',
+    label: 'DONE',
+    bgColor: 'bg-green-50 dark:bg-green-900/20',
+    textColor: 'text-green-700 dark:text-green-300',
+    badgeBg: 'bg-green-200 dark:bg-green-800',
+    borderColor: 'border-green-300 dark:border-green-700',
+  },
 ];
 
 interface RunDetailPageProps {
@@ -148,7 +176,7 @@ export default function RunDetailPage({ params }: RunDetailPageProps) {
   }
 
   function getTasksByStatus(status: string): Task[] {
-    return run?.tasks.filter((task) => task.status === status) || [];
+    return run?.tasks.filter(task => task.status === status) || [];
   }
 
   if (authStatus === 'loading' || loading) {
@@ -164,7 +192,7 @@ export default function RunDetailPage({ params }: RunDetailPageProps) {
           <div className="mt-2 h-8 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
         </div>
         <div className="grid gap-6 md:grid-cols-4">
-          {COLUMNS.map((col) => (
+          {COLUMNS.map(col => (
             <div key={col.id} className={`rounded-xl p-4 ${col.bgColor}`}>
               <div className="h-6 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
               <div className="mt-4 space-y-2">
@@ -190,10 +218,22 @@ export default function RunDetailPage({ params }: RunDetailPageProps) {
           <h1 className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">Run Details</h1>
         </div>
         <div className="rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center dark:border-gray-600 dark:bg-gray-800">
-          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+          <svg
+            className="mx-auto h-12 w-12 text-gray-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
+            />
           </svg>
-          <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">Sign in required</h3>
+          <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
+            Sign in required
+          </h3>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
             Sign in with GitHub to view run details.
           </p>
@@ -234,11 +274,15 @@ export default function RunDetailPage({ params }: RunDetailPageProps) {
           <h1 className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{run?.name}</h1>
           <div className="mt-1 flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
             <span>{run?.project.repoFullName}</span>
-            <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-              run?.status === 'ACTIVE' ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-400' :
-              run?.status === 'COMPLETED' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-400' :
-              'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-400'
-            }`}>
+            <span
+              className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                run?.status === 'ACTIVE'
+                  ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-400'
+                  : run?.status === 'COMPLETED'
+                    ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-400'
+                    : 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-400'
+              }`}
+            >
               {run?.status}
             </span>
           </div>
@@ -247,7 +291,13 @@ export default function RunDetailPage({ params }: RunDetailPageProps) {
           onClick={() => setShowModal(true)}
           className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
         >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+          <svg
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
           Add Task
@@ -261,7 +311,7 @@ export default function RunDetailPage({ params }: RunDetailPageProps) {
       )}
 
       <div className="grid gap-6 md:grid-cols-4">
-        {COLUMNS.map((column) => {
+        {COLUMNS.map(column => {
           const tasks = getTasksByStatus(column.id);
           return (
             <div key={column.id} className={`rounded-xl p-4 ${column.bgColor}`}>
@@ -273,11 +323,13 @@ export default function RunDetailPage({ params }: RunDetailPageProps) {
               </h2>
               <div className="space-y-3">
                 {tasks.length === 0 ? (
-                  <div className={`rounded-lg border border-dashed p-4 text-center text-sm ${column.borderColor} ${column.textColor} opacity-60`}>
+                  <div
+                    className={`rounded-lg border border-dashed p-4 text-center text-sm ${column.borderColor} ${column.textColor} opacity-60`}
+                  >
                     No tasks
                   </div>
                 ) : (
-                  tasks.map((task) => (
+                  tasks.map(task => (
                     <TaskCard
                       key={task.id}
                       task={task}
@@ -306,7 +358,7 @@ export default function RunDetailPage({ params }: RunDetailPageProps) {
                 <input
                   type="text"
                   value={newTask.title}
-                  onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                  onChange={e => setNewTask({ ...newTask, title: e.target.value })}
                   placeholder="e.g., Implement user authentication"
                   className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500"
                   required
@@ -319,7 +371,7 @@ export default function RunDetailPage({ params }: RunDetailPageProps) {
                 <input
                   type="text"
                   value={newTask.assignee}
-                  onChange={(e) => setNewTask({ ...newTask, assignee: e.target.value })}
+                  onChange={e => setNewTask({ ...newTask, assignee: e.target.value })}
                   placeholder="e.g., @username"
                   className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500"
                 />
@@ -361,7 +413,7 @@ interface TaskCardProps {
 function TaskCard({ task, currentStatus, onMove, onDelete }: TaskCardProps) {
   const [showMenu, setShowMenu] = useState(false);
 
-  const availableMoves = COLUMNS.filter((col) => col.id !== currentStatus);
+  const availableMoves = COLUMNS.filter(col => col.id !== currentStatus);
 
   return (
     <div className="group relative rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-600 dark:bg-gray-700">
@@ -372,8 +424,18 @@ function TaskCard({ task, currentStatus, onMove, onDelete }: TaskCardProps) {
             onClick={() => setShowMenu(!showMenu)}
             className="rounded p-1 text-gray-400 opacity-0 hover:bg-gray-100 hover:text-gray-600 group-hover:opacity-100 dark:hover:bg-gray-600 dark:hover:text-gray-300"
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z"
+              />
             </svg>
           </button>
           {showMenu && (
@@ -381,7 +443,7 @@ function TaskCard({ task, currentStatus, onMove, onDelete }: TaskCardProps) {
               <div className="border-b border-gray-100 px-3 py-2 text-xs font-medium text-gray-500 dark:border-gray-700 dark:text-gray-400">
                 Move to
               </div>
-              {availableMoves.map((col) => (
+              {availableMoves.map(col => (
                 <button
                   key={col.id}
                   onClick={() => {
@@ -410,8 +472,18 @@ function TaskCard({ task, currentStatus, onMove, onDelete }: TaskCardProps) {
       </div>
       {task.assignee && (
         <div className="mt-2 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-          <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+          <svg
+            className="h-3 w-3"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+            />
           </svg>
           {task.assignee}
         </div>

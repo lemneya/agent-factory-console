@@ -21,10 +21,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ worker });
   } catch (error) {
     console.error('Error fetching worker:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch worker' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch worker' }, { status: 500 });
   }
 }
 
@@ -54,10 +51,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ worker });
   } catch (error) {
     console.error('Error updating worker:', error);
-    return NextResponse.json(
-      { error: 'Failed to update worker' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update worker' }, { status: 500 });
   }
 }
 
@@ -80,9 +74,6 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deregistering worker:', error);
-    return NextResponse.json(
-      { error: 'Failed to deregister worker' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to deregister worker' }, { status: 500 });
   }
 }
