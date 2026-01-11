@@ -25,6 +25,27 @@ jest.mock('next-auth/react', () => ({
   signOut: jest.fn(),
 }));
 
+// Mock octokit to avoid ESM issues
+jest.mock('octokit', () => ({
+  Octokit: jest.fn().mockImplementation(() => ({
+    rest: {
+      repos: {
+        listForAuthenticatedUser: jest.fn(),
+        get: jest.fn(),
+      },
+      issues: {
+        listForRepo: jest.fn(),
+      },
+      pulls: {
+        list: jest.fn(),
+      },
+    },
+    paginate: {
+      iterator: jest.fn(),
+    },
+  })),
+}));
+
 // Reset mocks between tests
 beforeEach(() => {
   jest.clearAllMocks();
