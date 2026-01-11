@@ -81,9 +81,11 @@ export default function ProjectsPage() {
 
   if (status === 'loading' || loading) {
     return (
-      <div>
+      <main data-testid="page-root">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Projects</h1>
+          <h1 data-testid="page-title" className="text-2xl font-bold text-gray-900 dark:text-white">
+            Projects
+          </h1>
           <p className="mt-1 text-gray-600 dark:text-gray-400">
             Your GitHub repositories linked to Agent Factory
           </p>
@@ -100,15 +102,17 @@ export default function ProjectsPage() {
             </div>
           ))}
         </div>
-      </div>
+      </main>
     );
   }
 
   if (status === 'unauthenticated') {
     return (
-      <div>
+      <main data-testid="page-root">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Projects</h1>
+          <h1 data-testid="page-title" className="text-2xl font-bold text-gray-900 dark:text-white">
+            Projects
+          </h1>
           <p className="mt-1 text-gray-600 dark:text-gray-400">
             Your GitHub repositories linked to Agent Factory
           </p>
@@ -134,7 +138,7 @@ export default function ProjectsPage() {
             Sign in with GitHub to view and sync your repositories.
           </p>
         </div>
-      </div>
+      </main>
     );
   }
 

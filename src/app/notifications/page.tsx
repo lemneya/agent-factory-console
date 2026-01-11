@@ -247,9 +247,11 @@ export default function NotificationsPage() {
 
   if (authStatus === 'loading' || loading) {
     return (
-      <div>
+      <main data-testid="page-root">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Notifications</h1>
+          <h1 data-testid="page-title" className="text-2xl font-bold text-gray-900 dark:text-white">
+            Notifications
+          </h1>
           <p className="mt-1 text-gray-600 dark:text-gray-400">
             GitHub events feed from your connected repositories
           </p>
@@ -270,15 +272,17 @@ export default function NotificationsPage() {
             </div>
           ))}
         </div>
-      </div>
+      </main>
     );
   }
 
   if (authStatus === 'unauthenticated') {
     return (
-      <div>
+      <main data-testid="page-root">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Notifications</h1>
+          <h1 data-testid="page-title" className="text-2xl font-bold text-gray-900 dark:text-white">
+            Notifications
+          </h1>
           <p className="mt-1 text-gray-600 dark:text-gray-400">
             GitHub events feed from your connected repositories
           </p>
@@ -304,7 +308,7 @@ export default function NotificationsPage() {
             Sign in with GitHub to view notifications.
           </p>
         </div>
-      </div>
+      </main>
     );
   }
 
