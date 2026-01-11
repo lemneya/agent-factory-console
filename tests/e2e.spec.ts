@@ -102,39 +102,39 @@ test.describe('AFC-0 Proof of Life', () => {
   test.describe('Projects Page', () => {
     test('should load projects page', async ({ page }) => {
       await page.goto('/projects');
-      await expect(page.getByRole('heading', { name: /projects/i })).toBeVisible();
+      await expect(page.getByRole('heading', { name: /projects/i }).first()).toBeVisible();
     });
 
     test('should have page structure', async ({ page }) => {
       await page.goto('/projects');
-      // Should have a heading
-      await expect(page.getByRole('heading')).toBeVisible();
+      // Should have page root and title with data-testid
+      await expect(page.getByTestId('page-title')).toBeVisible();
     });
   });
 
   test.describe('Notifications Page', () => {
     test('should load notifications page', async ({ page }) => {
       await page.goto('/notifications');
-      await expect(page.getByRole('heading', { name: /notifications/i })).toBeVisible();
+      await expect(page.getByRole('heading', { name: /notifications/i }).first()).toBeVisible();
     });
 
     test('should have page structure', async ({ page }) => {
       await page.goto('/notifications');
-      // Should have a heading
-      await expect(page.getByRole('heading')).toBeVisible();
+      // Should have page root and title with data-testid
+      await expect(page.getByTestId('page-title')).toBeVisible();
     });
   });
 
   test.describe('Runs Page', () => {
     test('should load runs page', async ({ page }) => {
       await page.goto('/runs');
-      await expect(page.getByRole('heading', { name: /runs/i })).toBeVisible();
+      await expect(page.getByRole('heading', { name: /runs/i }).first()).toBeVisible();
     });
 
     test('should have page structure', async ({ page }) => {
       await page.goto('/runs');
-      // Should have a heading
-      await expect(page.getByRole('heading')).toBeVisible();
+      // Should have page root and title with data-testid
+      await expect(page.getByTestId('page-title')).toBeVisible();
     });
   });
 });

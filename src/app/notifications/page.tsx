@@ -309,10 +309,12 @@ export default function NotificationsPage() {
   }
 
   return (
-    <div>
+    <main data-testid="page-root">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Notifications</h1>
+          <h1 data-testid="page-title" className="text-2xl font-bold text-gray-900 dark:text-white">
+            Notifications
+          </h1>
           <p className="mt-1 text-gray-600 dark:text-gray-400">
             GitHub events feed from your connected repositories
           </p>
@@ -404,6 +406,6 @@ export default function NotificationsPage() {
           ))}
         </div>
       )}
-    </div>
+    </main>
   );
 }
