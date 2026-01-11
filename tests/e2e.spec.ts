@@ -56,39 +56,44 @@ test.describe('AFC-0 Proof of Life', () => {
   test.describe('Navigation', () => {
     test('should have navigation to projects page', async ({ page }) => {
       await page.goto('/');
-      const projectsLink = page.getByRole('link', { name: /projects/i });
+      // Look for link in navigation sidebar (first match) or any link to projects
+      const projectsLink = page.getByRole('link', { name: /projects/i }).first();
       await expect(projectsLink).toBeVisible();
     });
 
     test('should have navigation to notifications page', async ({ page }) => {
       await page.goto('/');
-      const notificationsLink = page.getByRole('link', { name: /notifications/i });
+      const notificationsLink = page.getByRole('link', { name: /notifications/i }).first();
       await expect(notificationsLink).toBeVisible();
     });
 
     test('should have navigation to runs page', async ({ page }) => {
       await page.goto('/');
-      const runsLink = page.getByRole('link', { name: /runs/i });
+      const runsLink = page.getByRole('link', { name: /runs/i }).first();
       await expect(runsLink).toBeVisible();
     });
 
     test('should navigate to projects page when clicked', async ({ page }) => {
       await page.goto('/');
-      const projectsLink = page.getByRole('link', { name: /projects/i });
+      // Use sidebar nav link specifically
+      const nav = page.locator('nav');
+      const projectsLink = nav.getByRole('link', { name: /projects/i });
       await projectsLink.click();
       await expect(page).toHaveURL(/\/projects/);
     });
 
     test('should navigate to notifications page when clicked', async ({ page }) => {
       await page.goto('/');
-      const notificationsLink = page.getByRole('link', { name: /notifications/i });
+      const nav = page.locator('nav');
+      const notificationsLink = nav.getByRole('link', { name: /notifications/i });
       await notificationsLink.click();
       await expect(page).toHaveURL(/\/notifications/);
     });
 
     test('should navigate to runs page when clicked', async ({ page }) => {
       await page.goto('/');
-      const runsLink = page.getByRole('link', { name: /runs/i });
+      const nav = page.locator('nav');
+      const runsLink = nav.getByRole('link', { name: /runs/i });
       await runsLink.click();
       await expect(page).toHaveURL(/\/runs/);
     });
