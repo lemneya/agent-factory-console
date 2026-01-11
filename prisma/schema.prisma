@@ -146,14 +146,51 @@ model Run {
 }
 
 model Task {
+  id          String    @id @default(cuid())
+  runId       String
+  run         Run       @relation(fields: [runId], references: [id])
+  title       String
+  description String?   @db.Text
+  status      String    @default("TODO")
+  priority    Int       @default(0)
+  assignee    String?
+  workerId    String?
+  worker      Worker?   @relation(fields: [workerId], references: [id])
+  result      Json?
+  errorMsg    String?   @db.Text
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// Worker model for Agent B implementation
+// Workers are AI agents that can claim and execute tasks
+model Worker {
+  id           String    @id @default(cuid())
+  name         String
+  type         String    @default("AGENT")
+  status       String    @default("IDLE")
+  capabilities String[]
+  metadata     Json?
+  lastHeartbeat DateTime @default(now())
+  currentTaskId String?  @unique
+  tasks        Task[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+// WorkerLog tracks worker activity history
+model WorkerLog {
   id        String   @id @default(cuid())
-  runId     String
-  run       Run      @relation(fields: [runId], references: [id])
-  title     String
-  status    String   @default("TODO")
-  assignee  String?
+  workerId  String
+  taskId    String?
+  action    String
+  details   Json?
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+
+  @@index([workerId])
+  @@index([taskId])
 }
 
 model GitHubEvent {

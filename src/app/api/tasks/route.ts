@@ -7,12 +7,16 @@ export async function GET(request: NextRequest) {
     const runId = searchParams.get('runId');
     const status = searchParams.get('status');
     const assignee = searchParams.get('assignee');
+    const workerId = searchParams.get('workerId');
+    const available = searchParams.get('available');
 
     const tasks = await prisma.task.findMany({
       where: {
         ...(runId && { runId }),
         ...(status && { status }),
         ...(assignee && { assignee }),
+        ...(workerId && { workerId }),
+        ...(available === 'true' && { workerId: null, status: 'TODO' }),
       },
       include: {
         run: {
@@ -28,8 +32,16 @@ export async function GET(request: NextRequest) {
             },
           },
         },
+        worker: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            status: true,
+          },
+        },
       },
-      orderBy: { createdAt: 'asc' },
+      orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
     });
 
     return NextResponse.json(tasks);
@@ -42,7 +54,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { runId, title, status, assignee } = body;
+    const { runId, title, description, status, priority, assignee } = body;
 
     if (!runId || !title) {
       return NextResponse.json({ error: 'Missing required fields: runId, title' }, { status: 400 });
@@ -52,7 +64,9 @@ export async function POST(request: NextRequest) {
       data: {
         runId,
         title,
+        description,
         status: status || 'TODO',
+        priority: priority ?? 0,
         assignee,
       },
       include: {
@@ -66,6 +80,14 @@ export async function POST(request: NextRequest) {
                 repoName: true,
               },
             },
+          },
+        },
+        worker: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            status: true,
           },
         },
       },
