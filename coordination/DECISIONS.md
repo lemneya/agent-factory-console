@@ -57,6 +57,52 @@ Both approaches were valid starting points, but maintaining two root application
 
 ---
 
+## ADR-002: Execution Engine = Self-Hosted Worker Container
+
+**Date:** 2026-01-11
+**Status:** Accepted
+**Deciders:** Orchestrator, Team
+
+### Context
+
+AFC needs an execution engine to run agent jobs. Options include:
+
+1. GitHub Actions (existing CI/CD)
+2. Self-hosted worker containers
+3. Cloud functions (Lambda, Cloud Run)
+
+### Decision
+
+**Use self-hosted worker containers as the execution engine.**
+
+- Execution engine = self-hosted worker container, not GitHub Actions
+- GitHub Actions remains CI (checks), not agent runner
+- Worker communicates with AFC via a standard Worker Contract
+
+### Consequences
+
+**Positive:**
+
+- Worker can run long jobs without GitHub Actions limits (6-hour max)
+- Full control over execution environment
+- Can run multiple concurrent agents
+- Cost-effective for high-volume workloads
+- Secrets and credentials stay within infrastructure
+
+**Negative:**
+
+- Requires docker compose orchestration
+- Self-managed infrastructure
+- Need to implement Worker Contract protocol
+
+### Alternatives Considered
+
+1. **GitHub Actions for agent execution** - Rejected; 6-hour limit, per-minute billing, less control
+2. **Cloud functions** - Rejected; cold start latency, execution time limits
+3. **Kubernetes** - Rejected for now; over-engineering for initial phase
+
+---
+
 ## Decision Template
 
 ```markdown

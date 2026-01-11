@@ -1,19 +1,31 @@
 # Agent Status Board
 
-> Last Updated: 2026-01-10 by Orchestrator
+> Last Updated: 2026-01-11 by Orchestrator
 
-## Sprint: AFC-0 - Proof of Life
+## Sprint: AFC-1 - Worker Contract + E2E Run
 
 ### Current Status Summary
 
-| Agent              | Status | Current Task                | Blockers |
-| ------------------ | ------ | --------------------------- | -------- |
-| orchestrator       | ACTIVE | Integration complete        | None     |
-| backend-db         | MERGED | PR #5 merged                | None     |
-| frontend-ui        | CLOSED | PR #2 retired (see ADR-001) | N/A      |
-| github-integration | MERGED | PR #3 merged                | None     |
-| devops-compose     | MERGED | PR #1 merged                | None     |
-| qa-proof-docs      | MERGED | PR #6 merged                | None     |
+| Agent              | Status | Current Task                      | Blockers |
+| ------------------ | ------ | --------------------------------- | -------- |
+| orchestrator       | ACTIVE | AFC-1 integration setup           | None     |
+| worker-contract    | READY  | Awaiting worker contract spec     | None     |
+| e2e-run            | READY  | Awaiting run execution pipeline   | None     |
+
+---
+
+## AFC-0 Completion Summary
+
+**Gate Status:** ✅ PASSED (PR #7 merged 2026-01-11)
+
+| Agent              | Final Status | Deliverable                 |
+| ------------------ | ------------ | --------------------------- |
+| orchestrator       | COMPLETE     | Integration + consolidation |
+| backend-db         | MERGED       | PR #5 - Prisma schema       |
+| frontend-ui        | CLOSED       | PR #2 retired (ADR-001)     |
+| github-integration | MERGED       | PR #3 - OAuth + webhooks    |
+| devops-compose     | MERGED       | PR #1 - Docker setup        |
+| qa-proof-docs      | MERGED       | PR #6 - Test infrastructure |
 
 ---
 
