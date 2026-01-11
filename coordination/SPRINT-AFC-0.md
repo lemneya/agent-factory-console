@@ -21,61 +21,61 @@ The AFC-0 gate establishes the "proof of life" for the Agent Factory Console:
 
 ### DevOps & Infrastructure (`devops-compose`)
 
-| Deliverable | Status | Notes |
-|-------------|--------|-------|
-| Docker Compose with app and postgres services | Pending | |
-| Dockerfile for Next.js application | Pending | |
-| Environment variable template (.env.example) | Pending | |
-| Package.json with all dependencies | Pending | |
-| TypeScript and Next.js configuration | Pending | |
-| GitHub Actions workflow for CI | Pending | |
+| Deliverable                                   | Status  | Notes |
+| --------------------------------------------- | ------- | ----- |
+| Docker Compose with app and postgres services | Pending |       |
+| Dockerfile for Next.js application            | Pending |       |
+| Environment variable template (.env.example)  | Pending |       |
+| Package.json with all dependencies            | Pending |       |
+| TypeScript and Next.js configuration          | Pending |       |
+| GitHub Actions workflow for CI                | Pending |       |
 
 ### Backend & Database (`backend-db`)
 
-| Deliverable | Status | Notes |
-|-------------|--------|-------|
-| Prisma schema with Project model | Pending | |
-| Prisma schema with Run model | Pending | |
-| Prisma schema with Task model | Pending | |
-| Prisma schema with GitHubEvent model | Pending | |
-| Database migrations | Pending | |
-| CRUD API for projects | Pending | |
-| CRUD API for runs | Pending | |
-| CRUD API for tasks | Pending | |
-| Type definitions | Pending | |
+| Deliverable                          | Status  | Notes |
+| ------------------------------------ | ------- | ----- |
+| Prisma schema with Project model     | Pending |       |
+| Prisma schema with Run model         | Pending |       |
+| Prisma schema with Task model        | Pending |       |
+| Prisma schema with GitHubEvent model | Pending |       |
+| Database migrations                  | Pending |       |
+| CRUD API for projects                | Pending |       |
+| CRUD API for runs                    | Pending |       |
+| CRUD API for tasks                   | Pending |       |
+| Type definitions                     | Pending |       |
 
 ### GitHub Integration (`github-integration`)
 
-| Deliverable | Status | Notes |
-|-------------|--------|-------|
-| NextAuth configuration with GitHub provider | Pending | |
-| GitHub OAuth callback handling | Pending | |
-| GitHub API client for repository fetching | Pending | |
-| Webhook endpoint for receiving events | Pending | |
-| Event storage to GitHubEvent table | Pending | |
+| Deliverable                                 | Status  | Notes |
+| ------------------------------------------- | ------- | ----- |
+| NextAuth configuration with GitHub provider | Pending |       |
+| GitHub OAuth callback handling              | Pending |       |
+| GitHub API client for repository fetching   | Pending |       |
+| Webhook endpoint for receiving events       | Pending |       |
+| Event storage to GitHubEvent table          | Pending |       |
 
 ### Frontend & UI (`frontend-ui`)
 
-| Deliverable | Status | Notes |
-|-------------|--------|-------|
-| Dashboard layout with navigation sidebar | Pending | |
-| Projects list page (/projects) | Pending | |
-| Notifications feed page (/notifications) | Pending | |
-| Runs list page (/runs) | Pending | |
-| Task board page with Kanban (/runs/[id]) | Pending | |
+| Deliverable                              | Status  | Notes |
+| ---------------------------------------- | ------- | ----- |
+| Dashboard layout with navigation sidebar | Pending |       |
+| Projects list page (/projects)           | Pending |       |
+| Notifications feed page (/notifications) | Pending |       |
+| Runs list page (/runs)                   | Pending |       |
+| Task board page with Kanban (/runs/[id]) | Pending |       |
 
 ### QA & Documentation (`qa-proof-docs`)
 
-| Deliverable | Status | Notes |
-|-------------|--------|-------|
-| Comprehensive README.md | Complete | |
-| Agent configuration (.claude/agents.json) | Complete | |
-| Path ownership matrix (BOUNDARIES.md) | Complete | |
-| Sprint documentation | Complete | This document |
-| Handoff protocol | Complete | |
-| Architecture documentation | Pending | |
-| Test infrastructure setup | Pending | |
-| Proof-of-life verification checklist | Pending | |
+| Deliverable                               | Status   | Notes         |
+| ----------------------------------------- | -------- | ------------- |
+| Comprehensive README.md                   | Complete |               |
+| Agent configuration (.claude/agents.json) | Complete |               |
+| Path ownership matrix (BOUNDARIES.md)     | Complete |               |
+| Sprint documentation                      | Complete | This document |
+| Handoff protocol                          | Complete |               |
+| Architecture documentation                | Pending  |               |
+| Test infrastructure setup                 | Pending  |               |
+| Proof-of-life verification checklist      | Pending  |               |
 
 ## Definition of Done
 
@@ -93,6 +93,7 @@ All of the following must be true for AFC-0 to be considered complete:
 ## Data Model Specification
 
 ### Project
+
 ```prisma
 model Project {
   id          String   @id @default(cuid())
@@ -110,6 +111,7 @@ model Project {
 ```
 
 ### Run
+
 ```prisma
 model Run {
   id          String    @id @default(cuid())
@@ -131,6 +133,7 @@ enum RunStatus {
 ```
 
 ### Task
+
 ```prisma
 model Task {
   id        String     @id @default(cuid())
@@ -153,6 +156,7 @@ enum TaskStatus {
 ```
 
 ### GitHubEvent
+
 ```prisma
 model GitHubEvent {
   id         String   @id @default(cuid())
@@ -169,27 +173,32 @@ model GitHubEvent {
 ## Page Specifications
 
 ### Dashboard Layout (`/`)
+
 - Sidebar navigation with links to all pages
 - Header with user info and logout
 - Main content area
 
 ### Projects Page (`/projects`)
+
 - List of user's GitHub repositories
 - Sync button to refresh from GitHub
 - Click to view project details
 
 ### Notifications Page (`/notifications`)
+
 - Chronological feed of GitHub events
 - Event type and action displayed
 - Timestamp and project association
 
 ### Runs Page (`/runs`)
+
 - List of all runs across projects
 - Status indicator (Active/Completed/Failed)
 - Create new run button
 - Click to view task board
 
 ### Task Board Page (`/runs/[id]`)
+
 - Kanban board with 4 columns: TODO, DOING, DONE, BLOCKED
 - Drag-and-drop task movement
 - Add new task button
@@ -275,12 +284,12 @@ Week 4:
 
 ## Risks and Mitigations
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Merge conflicts in shared files | Medium | Clear ownership in BOUNDARIES.md |
-| API contract mismatches | High | Document specs in HANDOFF-PROTOCOL.md |
-| Environment configuration issues | Medium | Comprehensive .env.example |
-| Authentication flow complexity | Medium | Early testing with GitHub OAuth |
+| Risk                             | Impact | Mitigation                            |
+| -------------------------------- | ------ | ------------------------------------- |
+| Merge conflicts in shared files  | Medium | Clear ownership in BOUNDARIES.md      |
+| API contract mismatches          | High   | Document specs in HANDOFF-PROTOCOL.md |
+| Environment configuration issues | Medium | Comprehensive .env.example            |
+| Authentication flow complexity   | Medium | Early testing with GitHub OAuth       |
 
 ## Notes and Decisions
 

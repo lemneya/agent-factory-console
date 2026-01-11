@@ -44,6 +44,7 @@ npx playwright show-report
 Before running E2E tests:
 
 1. Start the development environment:
+
    ```bash
    docker-compose up -d
    ```
@@ -58,59 +59,59 @@ Before running E2E tests:
 ### Basic Page Test
 
 ```typescript
-import { test, expect } from '@playwright/test'
+import { test, expect } from '@playwright/test';
 
 test.describe('Projects Page', () => {
   test('should display projects list', async ({ page }) => {
-    await page.goto('/projects')
-    await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible()
-  })
-})
+    await page.goto('/projects');
+    await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible();
+  });
+});
 ```
 
 ### Authentication Test
 
 ```typescript
-import { test, expect } from '@playwright/test'
+import { test, expect } from '@playwright/test';
 
 test.describe('Authentication', () => {
   test('should redirect unauthenticated users to login', async ({ page }) => {
-    await page.goto('/projects')
-    await expect(page).toHaveURL(/.*login/)
-  })
+    await page.goto('/projects');
+    await expect(page).toHaveURL(/.*login/);
+  });
 
   test('should show GitHub login button', async ({ page }) => {
-    await page.goto('/login')
-    await expect(page.getByRole('button', { name: /sign in with github/i })).toBeVisible()
-  })
-})
+    await page.goto('/login');
+    await expect(page.getByRole('button', { name: /sign in with github/i })).toBeVisible();
+  });
+});
 ```
 
 ### Task Board Test
 
 ```typescript
-import { test, expect } from '@playwright/test'
+import { test, expect } from '@playwright/test';
 
 test.describe('Task Board', () => {
   test.beforeEach(async ({ page }) => {
     // Setup: Login and navigate to task board
-    await page.goto('/runs/test-run-id')
-  })
+    await page.goto('/runs/test-run-id');
+  });
 
   test('should display kanban columns', async ({ page }) => {
-    await expect(page.getByTestId('column-TODO')).toBeVisible()
-    await expect(page.getByTestId('column-DOING')).toBeVisible()
-    await expect(page.getByTestId('column-DONE')).toBeVisible()
-    await expect(page.getByTestId('column-BLOCKED')).toBeVisible()
-  })
+    await expect(page.getByTestId('column-TODO')).toBeVisible();
+    await expect(page.getByTestId('column-DOING')).toBeVisible();
+    await expect(page.getByTestId('column-DONE')).toBeVisible();
+    await expect(page.getByTestId('column-BLOCKED')).toBeVisible();
+  });
 
   test('should create a new task', async ({ page }) => {
-    await page.getByRole('button', { name: 'Add Task' }).click()
-    await page.getByLabel('Title').fill('New test task')
-    await page.getByRole('button', { name: 'Create' }).click()
-    await expect(page.getByText('New test task')).toBeVisible()
-  })
-})
+    await page.getByRole('button', { name: 'Add Task' }).click();
+    await page.getByLabel('Title').fill('New test task');
+    await page.getByRole('button', { name: 'Create' }).click();
+    await expect(page.getByText('New test task')).toBeVisible();
+  });
+});
 ```
 
 ## Test Fixtures
@@ -119,33 +120,33 @@ test.describe('Task Board', () => {
 
 ```typescript
 // tests/fixtures/index.ts
-import { test as base } from '@playwright/test'
+import { test as base } from '@playwright/test';
 
 type TestFixtures = {
-  authenticatedPage: Page
-}
+  authenticatedPage: Page;
+};
 
 export const test = base.extend<TestFixtures>({
   authenticatedPage: async ({ page }, use) => {
     // Perform authentication
-    await page.goto('/login')
+    await page.goto('/login');
     // ... login steps
-    await use(page)
+    await use(page);
   },
-})
+});
 
-export { expect } from '@playwright/test'
+export { expect } from '@playwright/test';
 ```
 
 ### Using Fixtures
 
 ```typescript
-import { test, expect } from './fixtures'
+import { test, expect } from './fixtures';
 
 test('authenticated user can see projects', async ({ authenticatedPage }) => {
-  await authenticatedPage.goto('/projects')
-  await expect(authenticatedPage.getByRole('heading', { name: 'Projects' })).toBeVisible()
-})
+  await authenticatedPage.goto('/projects');
+  await expect(authenticatedPage.getByRole('heading', { name: 'Projects' })).toBeVisible();
+});
 ```
 
 ## Test Data
@@ -166,7 +167,7 @@ Tests should clean up after themselves or use isolated data:
 ```typescript
 test.afterEach(async ({ page }) => {
   // Cleanup test data via API or database
-})
+});
 ```
 
 ## CI/CD Integration

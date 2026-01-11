@@ -86,6 +86,7 @@ src/app/
 ```
 
 **Key Patterns:**
+
 - Server Components for data fetching
 - Client Components for interactivity (marked with `'use client'`)
 - Server Actions for mutations (optional)
@@ -141,6 +142,7 @@ src/app/api/
 ```
 
 **API Response Format:**
+
 ```typescript
 // Success response
 {
@@ -170,19 +172,20 @@ src/lib/db/
 ```
 
 **Query Pattern:**
+
 ```typescript
 // src/lib/db/projects.ts
-import { prisma } from './client'
+import { prisma } from './client';
 
 export async function getProjectsByUser(userId: string) {
   return prisma.project.findMany({
     where: { userId },
-    orderBy: { lastUpdated: 'desc' }
-  })
+    orderBy: { lastUpdated: 'desc' },
+  });
 }
 
 export async function createProject(data: CreateProjectInput) {
-  return prisma.project.create({ data })
+  return prisma.project.create({ data });
 }
 ```
 
@@ -196,27 +199,28 @@ src/lib/github/
 ```
 
 **Client Pattern:**
+
 ```typescript
 // src/lib/github/client.ts
 export class GitHubClient {
   constructor(private accessToken: string) {}
 
   async getUser() {
-    return this.fetch('/user')
+    return this.fetch('/user');
   }
 
   async getRepositories() {
-    return this.fetch('/user/repos')
+    return this.fetch('/user/repos');
   }
 
   private async fetch(path: string) {
     const response = await fetch(`https://api.github.com${path}`, {
       headers: {
         Authorization: `Bearer ${this.accessToken}`,
-        Accept: 'application/vnd.github.v3+json'
-      }
-    })
-    return response.json()
+        Accept: 'application/vnd.github.v3+json',
+      },
+    });
+    return response.json();
   }
 }
 ```
@@ -344,16 +348,19 @@ Enums:
 ## Security Architecture
 
 ### Authentication
+
 - GitHub OAuth via NextAuth
 - JWT session tokens (encrypted)
 - CSRF protection built into NextAuth
 
 ### Authorization
+
 - All API routes verify session
 - User can only access their own projects
 - Webhook signature verification for GitHub events
 
 ### Data Protection
+
 - Environment variables for secrets
 - Database connection via SSL in production
 - No sensitive data in client-side code
@@ -385,16 +392,19 @@ Enums:
 ## Performance Considerations
 
 ### Database
+
 - Indexed foreign keys
 - Connection pooling via Prisma
 - Pagination for list endpoints
 
 ### Frontend
+
 - Server Components for initial load
 - React Suspense for streaming
 - Optimistic updates for task moves
 
 ### Caching
+
 - NextAuth session caching
 - Static page generation where possible
 - API response caching (future)
@@ -402,11 +412,13 @@ Enums:
 ## Monitoring and Observability
 
 ### Logging
+
 - Structured logging in API routes
 - Error boundary logging in frontend
 - Webhook event logging
 
 ### Metrics (Future)
+
 - Request latency
 - Error rates
 - GitHub API rate limits
@@ -414,6 +426,7 @@ Enums:
 ## Extensibility Points
 
 ### Adding New Data Models
+
 1. Add to Prisma schema
 2. Create migration
 3. Add to `src/lib/db/`
@@ -421,11 +434,13 @@ Enums:
 5. Add UI components
 
 ### Adding New GitHub Events
+
 1. Update webhook handler
 2. Store new event type
 3. Update notifications display
 
 ### Adding New Pages
+
 1. Create page in `src/app/(dashboard)/`
 2. Add navigation link in Sidebar
 3. Create required components

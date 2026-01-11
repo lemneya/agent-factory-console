@@ -1,10 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
 
@@ -23,19 +20,13 @@ export async function GET(
     });
 
     if (!event) {
-      return NextResponse.json(
-        { error: "GitHub event not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'GitHub event not found' }, { status: 404 });
     }
 
     return NextResponse.json(event);
   } catch (error) {
-    console.error("Error fetching GitHub event:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch GitHub event" },
-      { status: 500 }
-    );
+    console.error('Error fetching GitHub event:', error);
+    return NextResponse.json({ error: 'Failed to fetch GitHub event' }, { status: 500 });
   }
 }
 
@@ -50,12 +41,9 @@ export async function DELETE(
       where: { id },
     });
 
-    return NextResponse.json({ message: "GitHub event deleted successfully" });
+    return NextResponse.json({ message: 'GitHub event deleted successfully' });
   } catch (error) {
-    console.error("Error deleting GitHub event:", error);
-    return NextResponse.json(
-      { error: "Failed to delete GitHub event" },
-      { status: 500 }
-    );
+    console.error('Error deleting GitHub event:', error);
+    return NextResponse.json({ error: 'Failed to delete GitHub event' }, { status: 500 });
   }
 }

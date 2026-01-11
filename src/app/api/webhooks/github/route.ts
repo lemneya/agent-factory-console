@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { verifyWebhookSignature } from "@/lib/github/client";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { verifyWebhookSignature } from '@/lib/github/client';
 
 // GitHub webhook event types we handle
-type GitHubEventType = "push" | "pull_request" | "issues";
+type GitHubEventType = 'push' | 'pull_request' | 'issues';
 
 interface WebhookPayload {
   action?: string;
@@ -59,40 +59,31 @@ export async function POST(request: NextRequest) {
     const rawBody = await request.text();
 
     // Verify webhook signature
-    const signature = request.headers.get("x-hub-signature-256");
+    const signature = request.headers.get('x-hub-signature-256');
     const webhookSecret = process.env.GITHUB_WEBHOOK_SECRET;
 
     if (!webhookSecret) {
-      console.error("GITHUB_WEBHOOK_SECRET is not configured");
-      return NextResponse.json(
-        { error: "Webhook secret not configured" },
-        { status: 500 }
-      );
+      console.error('GITHUB_WEBHOOK_SECRET is not configured');
+      return NextResponse.json({ error: 'Webhook secret not configured' }, { status: 500 });
     }
 
     if (!signature) {
-      return NextResponse.json(
-        { error: "Missing signature header" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Missing signature header' }, { status: 401 });
     }
 
     const isValid = verifyWebhookSignature(rawBody, signature, webhookSecret);
     if (!isValid) {
-      return NextResponse.json(
-        { error: "Invalid signature" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
 
     // Parse the payload
     const payload: WebhookPayload = JSON.parse(rawBody);
-    const eventType = request.headers.get("x-github-event") as GitHubEventType;
-    const deliveryId = request.headers.get("x-github-delivery");
+    const eventType = request.headers.get('x-github-event') as GitHubEventType;
+    const deliveryId = request.headers.get('x-github-delivery');
 
     // Only process events we care about
-    if (!["push", "pull_request", "issues"].includes(eventType)) {
-      return NextResponse.json({ message: "Event type not handled" });
+    if (!['push', 'pull_request', 'issues'].includes(eventType)) {
+      return NextResponse.json({ message: 'Event type not handled' });
     }
 
     // Find the repository in our database
@@ -118,33 +109,28 @@ export async function POST(request: NextRequest) {
 
     // Process specific event types
     switch (eventType) {
-      case "push":
+      case 'push':
         await handlePushEvent(payload, repository?.id);
         break;
-      case "pull_request":
+      case 'pull_request':
         await handlePullRequestEvent(payload, repository?.id);
         break;
-      case "issues":
+      case 'issues':
         await handleIssuesEvent(payload, repository?.id);
         break;
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Webhook processing error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error('Webhook processing error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
 async function handlePushEvent(payload: WebhookPayload, repositoryId?: string) {
   const { ref, pusher } = payload;
 
-  console.log(
-    `Push to ${payload.repository.full_name} on ${ref} by ${pusher?.name || "unknown"}`
-  );
+  console.log(`Push to ${payload.repository.full_name} on ${ref} by ${pusher?.name || 'unknown'}`);
 
   // Update repository's last push timestamp if we track it
   if (repositoryId && ref) {
@@ -152,7 +138,7 @@ async function handlePushEvent(payload: WebhookPayload, repositoryId?: string) {
       where: { id: repositoryId },
       data: {
         lastPushAt: new Date(),
-        defaultBranch: ref.replace("refs/heads/", ""),
+        defaultBranch: ref.replace('refs/heads/', ''),
       },
     });
   }
@@ -161,9 +147,7 @@ async function handlePushEvent(payload: WebhookPayload, repositoryId?: string) {
 async function handlePullRequestEvent(payload: WebhookPayload, repositoryId?: string) {
   const { action, pull_request, number } = payload;
 
-  console.log(
-    `Pull request #${number} ${action} on ${payload.repository.full_name}`
-  );
+  console.log(`Pull request #${number} ${action} on ${payload.repository.full_name}`);
 
   if (!repositoryId || !number) return;
 
@@ -210,9 +194,7 @@ async function handlePullRequestEvent(payload: WebhookPayload, repositoryId?: st
 async function handleIssuesEvent(payload: WebhookPayload, repositoryId?: string) {
   const { action, issue } = payload;
 
-  console.log(
-    `Issue #${issue?.number} ${action} on ${payload.repository.full_name}`
-  );
+  console.log(`Issue #${issue?.number} ${action} on ${payload.repository.full_name}`);
 
   if (!repositoryId || !issue) return;
 
@@ -234,7 +216,7 @@ async function handleIssuesEvent(payload: WebhookPayload, repositoryId?: string)
       htmlUrl: issue.html_url,
       authorUsername: issue.user.login,
       authorAvatarUrl: issue.user.avatar_url,
-      labels: issue.labels?.map((l) => l.name) || [],
+      labels: issue.labels?.map(l => l.name) || [],
       createdAt: new Date(issue.created_at),
       updatedAt: new Date(issue.updated_at),
       closedAt: issue.closed_at ? new Date(issue.closed_at) : null,
@@ -243,7 +225,7 @@ async function handleIssuesEvent(payload: WebhookPayload, repositoryId?: string)
       title: issue.title,
       body: issue.body,
       state: issue.state,
-      labels: issue.labels?.map((l) => l.name) || [],
+      labels: issue.labels?.map(l => l.name) || [],
       updatedAt: new Date(issue.updated_at),
       closedAt: issue.closed_at ? new Date(issue.closed_at) : null,
     },

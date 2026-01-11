@@ -30,6 +30,7 @@ Why you need this, what you're trying to accomplish.
 ```
 
 ### Question Numbering
+
 - Use sequential numbers: Q-001, Q-002, etc.
 - Don't reuse numbers even if questions are deleted
 
@@ -37,13 +38,13 @@ Why you need this, what you're trying to accomplish.
 
 ## Active Questions
 
-*No active questions at this time.*
+_No active questions at this time._
 
 ---
 
 ## Resolved Questions
 
-*No resolved questions at this time.*
+_No resolved questions at this time._
 
 ---
 
@@ -51,7 +52,7 @@ Why you need this, what you're trying to accomplish.
 
 ### Dependency Request Template
 
-```markdown
+````markdown
 ### [Q-XXX] Need [feature/API/component] for [purpose]
 
 **From:** requesting-agent
@@ -63,21 +64,25 @@ Why you need this, what you're trying to accomplish.
 I need [specific thing] to implement [your feature].
 
 **Context:**
+
 - What I'm building: [description]
 - How I plan to use it: [usage example]
 - When I need it: [timeline]
 
 **Suggested Interface:**
+
 ```typescript
 // Your proposed interface
 ```
+````
 
 ---
 
 **Answer:**
 
 **Resolution:**
-```
+
+````
 
 ### Blocker Report Template
 
@@ -103,7 +108,7 @@ I am blocked and cannot proceed with [task] because [reason].
 **Answer:**
 
 **Resolution:**
-```
+````
 
 ### Clarification Request Template
 
@@ -119,6 +124,7 @@ I am blocked and cannot proceed with [task] because [reason].
 I need clarification on [topic/decision/interface].
 
 **Context:**
+
 - My understanding: [what you think]
 - Confusion: [what's unclear]
 - Impact: [how this affects your work]
@@ -134,6 +140,6 @@ I need clarification on [topic/decision/interface].
 
 ## Index
 
-| ID | Title | From | To | Status | Date |
-|----|-------|------|-----|--------|------|
-| - | - | - | - | - | - |
+| ID  | Title | From | To  | Status | Date |
+| --- | ----- | ---- | --- | ------ | ---- |
+| -   | -     | -    | -   | -      | -    |

@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const projectId = searchParams.get("projectId");
-    const status = searchParams.get("status");
+    const projectId = searchParams.get('projectId');
+    const status = searchParams.get('status');
 
     const runs = await prisma.run.findMany({
       where: {
@@ -21,22 +21,19 @@ export async function GET(request: NextRequest) {
           },
         },
         tasks: {
-          orderBy: { createdAt: "asc" },
+          orderBy: { createdAt: 'asc' },
         },
         _count: {
           select: { tasks: true },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
     });
 
     return NextResponse.json(runs);
   } catch (error) {
-    console.error("Error fetching runs:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch runs" },
-      { status: 500 }
-    );
+    console.error('Error fetching runs:', error);
+    return NextResponse.json({ error: 'Failed to fetch runs' }, { status: 500 });
   }
 }
 
@@ -47,7 +44,7 @@ export async function POST(request: NextRequest) {
 
     if (!projectId || !name) {
       return NextResponse.json(
-        { error: "Missing required fields: projectId, name" },
+        { error: 'Missing required fields: projectId, name' },
         { status: 400 }
       );
     }
@@ -56,7 +53,7 @@ export async function POST(request: NextRequest) {
       data: {
         projectId,
         name,
-        status: status || "ACTIVE",
+        status: status || 'ACTIVE',
       },
       include: {
         project: {
@@ -71,10 +68,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(run, { status: 201 });
   } catch (error) {
-    console.error("Error creating run:", error);
-    return NextResponse.json(
-      { error: "Failed to create run" },
-      { status: 500 }
-    );
+    console.error('Error creating run:', error);
+    return NextResponse.json({ error: 'Failed to create run' }, { status: 500 });
   }
 }

@@ -9,16 +9,19 @@ Effective multi-agent collaboration requires clear interfaces, explicit contract
 ## Communication Channels
 
 ### 1. Questions Tracker (`QUESTIONS.md`)
+
 - For cross-agent questions and clarifications
 - For dependency requests
 - For reporting blockers
 
 ### 2. Handoff Protocol (this document)
+
 - For interface definitions
 - For API contracts
 - For integration agreements
 
 ### 3. Sprint Document (`SPRINT-AFC-0.md`)
+
 - For deliverable tracking
 - For status updates
 - For acceptance criteria
@@ -61,10 +64,11 @@ The database schema is the source of truth for data structures. All agents shoul
 - Not create duplicate type definitions
 
 **Contract:**
+
 ```typescript
 // Available from @prisma/client after generation
-import { Project, Run, Task, GitHubEvent } from '@prisma/client'
-import { RunStatus, TaskStatus } from '@prisma/client'
+import { Project, Run, Task, GitHubEvent } from '@prisma/client';
+import { RunStatus, TaskStatus } from '@prisma/client';
 ```
 
 ### API Routes (backend-db → frontend-ui)
@@ -76,22 +80,19 @@ API contracts are defined in `SPRINT-AFC-0.md`. Frontend should:
 - Not assume undocumented fields
 
 **Contract:**
+
 ```typescript
 // Standard API response wrapper
 interface ApiResponse<T> {
-  data?: T
+  data?: T;
   error?: {
-    message: string
-    code: string
-  }
+    message: string;
+    code: string;
+  };
 }
 
 // Standard error codes
-type ErrorCode =
-  | 'UNAUTHORIZED'
-  | 'NOT_FOUND'
-  | 'VALIDATION_ERROR'
-  | 'INTERNAL_ERROR'
+type ErrorCode = 'UNAUTHORIZED' | 'NOT_FOUND' | 'VALIDATION_ERROR' | 'INTERNAL_ERROR';
 ```
 
 ### Authentication (github-integration → all agents)
@@ -103,20 +104,21 @@ NextAuth provides session management. All agents should:
 - Not implement custom auth logic
 
 **Contract:**
+
 ```typescript
 // Server-side (API routes, Server Components)
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
-const session = await getServerSession(authOptions)
+const session = await getServerSession(authOptions);
 // session.user.id - User's ID
 // session.user.email - User's email
 // session.accessToken - GitHub access token
 
 // Client-side (Client Components)
-import { useSession } from 'next-auth/react'
+import { useSession } from 'next-auth/react';
 
-const { data: session, status } = useSession()
+const { data: session, status } = useSession();
 // status: 'loading' | 'authenticated' | 'unauthenticated'
 ```
 
@@ -129,15 +131,16 @@ The GitHub client provides repository and user data. Backend should:
 - Handle rate limiting
 
 **Contract:**
-```typescript
-import { GitHubClient } from '@/lib/github'
 
-const client = new GitHubClient(accessToken)
+```typescript
+import { GitHubClient } from '@/lib/github';
+
+const client = new GitHubClient(accessToken);
 
 // Available methods
-await client.getUser()           // Get authenticated user
-await client.getRepositories()   // Get user's repositories
-await client.getRepository(owner, repo)  // Get specific repo
+await client.getUser(); // Get authenticated user
+await client.getRepositories(); // Get user's repositories
+await client.getRepository(owner, repo); // Get specific repo
 ```
 
 ### Webhook Events (github-integration → backend-db)
@@ -145,16 +148,17 @@ await client.getRepository(owner, repo)  // Get specific repo
 Webhook handler stores events. Backend provides storage API:
 
 **Contract:**
+
 ```typescript
 // github-integration calls this to store events
-import { createGitHubEvent } from '@/lib/db/github-events'
+import { createGitHubEvent } from '@/lib/db/github-events';
 
 await createGitHubEvent({
   projectId: string,
-  eventType: string,    // X-GitHub-Event header
+  eventType: string, // X-GitHub-Event header
   action: string | null, // payload.action if present
-  payload: object       // Full webhook payload
-})
+  payload: object, // Full webhook payload
+});
 ```
 
 ### UI Components (frontend-ui → all agents)
@@ -162,15 +166,16 @@ await createGitHubEvent({
 Shared UI components are available from `@/components`:
 
 **Contract:**
+
 ```typescript
 // Layout components
-import { DashboardLayout } from '@/components/layout/DashboardLayout'
-import { Sidebar } from '@/components/layout/Sidebar'
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { Sidebar } from '@/components/layout/Sidebar';
 
 // Common components
-import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
-import { StatusBadge } from '@/components/ui/StatusBadge'
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 ```
 
 ### Environment Variables (devops-compose → all agents)
@@ -178,14 +183,15 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 Environment configuration is centralized:
 
 **Contract:**
+
 ```typescript
 // Available environment variables
-process.env.DATABASE_URL        // PostgreSQL connection string
-process.env.GITHUB_CLIENT_ID    // GitHub OAuth client ID
-process.env.GITHUB_CLIENT_SECRET // GitHub OAuth client secret
-process.env.NEXTAUTH_SECRET     // Session encryption key
-process.env.NEXTAUTH_URL        // Application URL
-process.env.WEBHOOK_SECRET      // GitHub webhook secret (optional)
+process.env.DATABASE_URL; // PostgreSQL connection string
+process.env.GITHUB_CLIENT_ID; // GitHub OAuth client ID
+process.env.GITHUB_CLIENT_SECRET; // GitHub OAuth client secret
+process.env.NEXTAUTH_SECRET; // Session encryption key
+process.env.NEXTAUTH_URL; // Application URL
+process.env.WEBHOOK_SECRET; // GitHub webhook secret (optional)
 ```
 
 ## Dependency Graph
@@ -209,17 +215,20 @@ qa-proof-docs ◄── all agents (tests, documentation)
 ## Conflict Resolution
 
 ### Code Conflicts
+
 1. Primary owner of the file has final say
 2. If no clear owner, orchestrator decides
 3. Document decision in `QUESTIONS.md`
 
 ### Interface Conflicts
+
 1. Provider (upstream) proposes interface
 2. Consumer (downstream) reviews and requests changes
 3. Both agree and document in this file
 4. Changes to established contracts require both parties
 
 ### Timeline Conflicts
+
 1. Dependent agent raises blocker in `QUESTIONS.md`
 2. Blocking agent prioritizes or provides workaround
 3. Orchestrator mediates if unresolved
@@ -227,6 +236,7 @@ qa-proof-docs ◄── all agents (tests, documentation)
 ## Checklist for Handoffs
 
 ### Provider Checklist
+
 - [ ] Code is committed and pushed
 - [ ] Interface is documented in HANDOFF-PROTOCOL.md
 - [ ] Types are exported and accessible
@@ -235,6 +245,7 @@ qa-proof-docs ◄── all agents (tests, documentation)
 - [ ] Status updated in SPRINT-AFC-0.md
 
 ### Consumer Checklist
+
 - [ ] Interface contract is understood
 - [ ] Types are imported correctly
 - [ ] Error handling is implemented

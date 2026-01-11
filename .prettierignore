@@ -8,3 +8,6 @@ coverage
 package-lock.json
 pnpm-lock.yaml
 yarn.lock
+
+# Files with complex markdown tables that cause prettier issues
+docs/PROOF-OF-LIFE-CHECKLIST.md

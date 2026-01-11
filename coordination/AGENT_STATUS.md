@@ -6,14 +6,14 @@
 
 ### Current Status Summary
 
-| Agent | Status | Current Task | Blockers |
-|-------|--------|--------------|----------|
-| orchestrator | ACTIVE | Integration complete | None |
-| backend-db | MERGED | PR #5 merged | None |
-| frontend-ui | CLOSED | PR #2 retired (see ADR-001) | N/A |
-| github-integration | MERGED | PR #3 merged | None |
-| devops-compose | MERGED | PR #1 merged | None |
-| qa-proof-docs | MERGED | PR #6 merged | None |
+| Agent              | Status | Current Task                | Blockers |
+| ------------------ | ------ | --------------------------- | -------- |
+| orchestrator       | ACTIVE | Integration complete        | None     |
+| backend-db         | MERGED | PR #5 merged                | None     |
+| frontend-ui        | CLOSED | PR #2 retired (see ADR-001) | N/A      |
+| github-integration | MERGED | PR #3 merged                | None     |
+| devops-compose     | MERGED | PR #1 merged                | None     |
+| qa-proof-docs      | MERGED | PR #6 merged                | None     |
 
 ---
 
@@ -80,10 +80,10 @@
 
 ## Status Legend
 
-| Status | Meaning |
-|--------|---------|
-| ACTIVE | Currently working |
-| MERGED | PR merged to main |
-| CLOSED | PR closed (not merged) |
-| BLOCKED | Waiting on dependency |
-| REVIEW | PR open, awaiting review |
+| Status  | Meaning                  |
+| ------- | ------------------------ |
+| ACTIVE  | Currently working        |
+| MERGED  | PR merged to main        |
+| CLOSED  | PR closed (not merged)   |
+| BLOCKED | Waiting on dependency    |
+| REVIEW  | PR open, awaiting review |

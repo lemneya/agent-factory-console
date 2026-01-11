@@ -1,5 +1,5 @@
-import { Octokit } from "octokit";
-import * as crypto from "crypto";
+import { Octokit } from 'octokit';
+import * as crypto from 'crypto';
 
 // Create an authenticated Octokit client for a user
 export function createGitHubClient(accessToken: string): Octokit {
@@ -38,7 +38,7 @@ export interface GitHubIssue {
   number: number;
   title: string;
   body: string | null;
-  state: "open" | "closed";
+  state: 'open' | 'closed';
   html_url: string;
   pull_request?: unknown;
   user: {
@@ -61,7 +61,7 @@ export interface GitHubPullRequest {
   number: number;
   title: string;
   body: string | null;
-  state: "open" | "closed";
+  state: 'open' | 'closed';
   html_url: string;
   diff_url: string;
   patch_url: string;
@@ -93,8 +93,8 @@ export async function fetchUserRepositories(client: Octokit): Promise<GitHubRepo
     client.rest.repos.listForAuthenticatedUser,
     {
       per_page: 100,
-      sort: "updated",
-      direction: "desc",
+      sort: 'updated',
+      direction: 'desc',
     }
   )) {
     repos.push(...(response.data as GitHubRepository[]));
@@ -108,23 +108,18 @@ export async function fetchRepositoryIssues(
   client: Octokit,
   owner: string,
   repo: string,
-  state: "open" | "closed" | "all" = "all"
+  state: 'open' | 'closed' | 'all' = 'all'
 ): Promise<GitHubIssue[]> {
   const issues: GitHubIssue[] = [];
 
-  for await (const response of client.paginate.iterator(
-    client.rest.issues.listForRepo,
-    {
-      owner,
-      repo,
-      state,
-      per_page: 100,
-    }
-  )) {
+  for await (const response of client.paginate.iterator(client.rest.issues.listForRepo, {
+    owner,
+    repo,
+    state,
+    per_page: 100,
+  })) {
     // Filter out pull requests (GitHub API returns PRs in issues endpoint)
-    const repoIssues = (response.data as GitHubIssue[]).filter(
-      (issue) => !issue.pull_request
-    );
+    const repoIssues = (response.data as GitHubIssue[]).filter(issue => !issue.pull_request);
     issues.push(...repoIssues);
   }
 
@@ -136,19 +131,16 @@ export async function fetchRepositoryPullRequests(
   client: Octokit,
   owner: string,
   repo: string,
-  state: "open" | "closed" | "all" = "all"
+  state: 'open' | 'closed' | 'all' = 'all'
 ): Promise<GitHubPullRequest[]> {
   const pullRequests: GitHubPullRequest[] = [];
 
-  for await (const response of client.paginate.iterator(
-    client.rest.pulls.list,
-    {
-      owner,
-      repo,
-      state,
-      per_page: 100,
-    }
-  )) {
+  for await (const response of client.paginate.iterator(client.rest.pulls.list, {
+    owner,
+    repo,
+    state,
+    per_page: 100,
+  })) {
     pullRequests.push(...(response.data as unknown as GitHubPullRequest[]));
   }
 
@@ -175,8 +167,8 @@ export function verifyWebhookSignature(
   signature: string,
   secret: string
 ): boolean {
-  const hmac = crypto.createHmac("sha256", secret);
-  const digest = "sha256=" + hmac.update(payload).digest("hex");
+  const hmac = crypto.createHmac('sha256', secret);
+  const digest = 'sha256=' + hmac.update(payload).digest('hex');
 
   // Use timing-safe comparison to prevent timing attacks
   try {

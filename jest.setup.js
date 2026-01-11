@@ -1,7 +1,7 @@
 // Jest setup file
 // Add any global test setup here
 
-import '@testing-library/jest-dom'
+import '@testing-library/jest-dom';
 
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
@@ -13,7 +13,7 @@ jest.mock('next/navigation', () => ({
   }),
   usePathname: () => '/',
   useSearchParams: () => new URLSearchParams(),
-}))
+}));
 
 // Mock NextAuth
 jest.mock('next-auth/react', () => ({
@@ -23,9 +23,9 @@ jest.mock('next-auth/react', () => ({
   }),
   signIn: jest.fn(),
   signOut: jest.fn(),
-}))
+}));
 
 // Reset mocks between tests
 beforeEach(() => {
-  jest.clearAllMocks()
-})
+  jest.clearAllMocks();
+});

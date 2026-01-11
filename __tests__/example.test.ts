@@ -8,22 +8,22 @@
 describe('Example Test Suite', () => {
   describe('basic assertions', () => {
     it('should pass a simple test', () => {
-      expect(true).toBe(true)
-    })
+      expect(true).toBe(true);
+    });
 
     it('should handle async operations', async () => {
-      const result = await Promise.resolve('hello')
-      expect(result).toBe('hello')
-    })
-  })
+      const result = await Promise.resolve('hello');
+      expect(result).toBe('hello');
+    });
+  });
 
   describe('array operations', () => {
     it('should contain expected values', () => {
-      const items = ['todo', 'doing', 'done', 'blocked']
-      expect(items).toContain('todo')
-      expect(items).toHaveLength(4)
-    })
-  })
+      const items = ['todo', 'doing', 'done', 'blocked'];
+      expect(items).toContain('todo');
+      expect(items).toHaveLength(4);
+    });
+  });
 
   describe('object matching', () => {
     it('should match object structure', () => {
@@ -32,28 +32,28 @@ describe('Example Test Suite', () => {
         title: 'Test Task',
         status: 'TODO',
         assignee: null,
-      }
+      };
 
       expect(task).toMatchObject({
         id: '1',
         status: 'TODO',
-      })
-    })
-  })
-})
+      });
+    });
+  });
+});
 
 describe('TaskStatus enum validation', () => {
-  const validStatuses = ['TODO', 'DOING', 'DONE', 'BLOCKED']
+  const validStatuses = ['TODO', 'DOING', 'DONE', 'BLOCKED'];
 
-  it.each(validStatuses)('should recognize %s as valid status', (status) => {
-    expect(validStatuses).toContain(status)
-  })
-})
+  it.each(validStatuses)('should recognize %s as valid status', status => {
+    expect(validStatuses).toContain(status);
+  });
+});
 
 describe('RunStatus enum validation', () => {
-  const validStatuses = ['ACTIVE', 'COMPLETED', 'FAILED']
+  const validStatuses = ['ACTIVE', 'COMPLETED', 'FAILED'];
 
-  it.each(validStatuses)('should recognize %s as valid status', (status) => {
-    expect(validStatuses).toContain(status)
-  })
-})
+  it.each(validStatuses)('should recognize %s as valid status', status => {
+    expect(validStatuses).toContain(status);
+  });
+});

@@ -1,11 +1,8 @@
-import { prisma } from "@/lib/prisma";
-import { createGitHubClient, fetchUserRepositories, GitHubRepository } from "./client";
+import { prisma } from '@/lib/prisma';
+import { createGitHubClient, fetchUserRepositories, GitHubRepository } from './client';
 
 // Sync all repositories for a user after OAuth login
-export async function syncUserRepositories(
-  userId: string,
-  accessToken: string
-): Promise<void> {
+export async function syncUserRepositories(userId: string, accessToken: string): Promise<void> {
   const client = createGitHubClient(accessToken);
 
   console.log(`Starting repository sync for user ${userId}`);
@@ -61,7 +58,7 @@ export async function triggerRepositorySync(userId: string): Promise<{ synced: n
   const account = await prisma.account.findFirst({
     where: {
       userId,
-      provider: "github",
+      provider: 'github',
     },
     select: {
       access_token: true,
@@ -69,7 +66,7 @@ export async function triggerRepositorySync(userId: string): Promise<{ synced: n
   });
 
   if (!account?.access_token) {
-    throw new Error("No GitHub account linked");
+    throw new Error('No GitHub account linked');
   }
 
   const client = createGitHubClient(account.access_token);
@@ -91,7 +88,7 @@ export async function syncSingleRepository(
   const account = await prisma.account.findFirst({
     where: {
       userId,
-      provider: "github",
+      provider: 'github',
     },
     select: {
       access_token: true,
@@ -99,7 +96,7 @@ export async function syncSingleRepository(
   });
 
   if (!account?.access_token) {
-    throw new Error("No GitHub account linked");
+    throw new Error('No GitHub account linked');
   }
 
   const client = createGitHubClient(account.access_token);

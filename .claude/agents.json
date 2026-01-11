@@ -17,16 +17,8 @@
         "Server-side data logic and validation",
         "Database query optimization"
       ],
-      "ownedPaths": [
-        "prisma/",
-        "src/app/api/**/*",
-        "src/lib/db/",
-        "src/types/"
-      ],
-      "excludedPaths": [
-        "src/app/api/auth/",
-        "src/app/api/webhooks/"
-      ],
+      "ownedPaths": ["prisma/", "src/app/api/**/*", "src/lib/db/", "src/types/"],
+      "excludedPaths": ["src/app/api/auth/", "src/app/api/webhooks/"],
       "dependencies": ["devops-compose"],
       "deliverables": {
         "AFC-0": [
@@ -49,12 +41,7 @@
         "Styling with Tailwind CSS",
         "User experience and accessibility"
       ],
-      "ownedPaths": [
-        "src/app/(dashboard)/",
-        "src/components/",
-        "src/hooks/",
-        "src/styles/"
-      ],
+      "ownedPaths": ["src/app/(dashboard)/", "src/components/", "src/hooks/", "src/styles/"],
       "excludedPaths": [],
       "dependencies": ["backend-db", "devops-compose"],
       "deliverables": {
@@ -78,11 +65,7 @@
         "Webhook handlers and event processing",
         "Repository sync functionality"
       ],
-      "ownedPaths": [
-        "src/lib/github/",
-        "src/app/api/webhooks/",
-        "src/app/api/auth/"
-      ],
+      "ownedPaths": ["src/lib/github/", "src/app/api/webhooks/", "src/app/api/auth/"],
       "excludedPaths": [],
       "dependencies": ["backend-db", "devops-compose"],
       "deliverables": {
@@ -179,9 +162,7 @@
         "Ensure integration coherence",
         "Gate readiness assessment"
       ],
-      "ownedPaths": [
-        "coordination/"
-      ],
+      "ownedPaths": ["coordination/"],
       "excludedPaths": [],
       "dependencies": [],
       "deliverables": {

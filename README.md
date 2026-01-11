@@ -16,14 +16,14 @@ Agent Factory Console (AFC) is a web-based dashboard that provides centralized m
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Frontend | Next.js (App Router), React, TypeScript, Tailwind CSS |
-| Backend | Next.js Route Handlers, Prisma ORM |
-| Database | PostgreSQL |
-| Authentication | NextAuth with GitHub OAuth |
-| DevOps | Docker, Docker Compose, GitHub Actions |
-| Testing | Jest (unit), Playwright (E2E) |
+| Layer          | Technology                                            |
+| -------------- | ----------------------------------------------------- |
+| Frontend       | Next.js (App Router), React, TypeScript, Tailwind CSS |
+| Backend        | Next.js Route Handlers, Prisma ORM                    |
+| Database       | PostgreSQL                                            |
+| Authentication | NextAuth with GitHub OAuth                            |
+| DevOps         | Docker, Docker Compose, GitHub Actions                |
+| Testing        | Jest (unit), Playwright (E2E)                         |
 
 ## Quick Start
 
@@ -36,12 +36,14 @@ Agent Factory Console (AFC) is a web-based dashboard that provides centralized m
 ### Environment Setup
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/anthropics/agent-factory-console.git
    cd agent-factory-console
    ```
 
 2. Copy the environment template:
+
    ```bash
    cp .env.example .env
    ```
@@ -130,14 +132,14 @@ agent-factory-console/
 
 This project uses a collaborative multi-agent development approach with 6 specialized agents:
 
-| Agent | Role | Responsibilities |
-|-------|------|------------------|
-| backend-db | Backend & Database | Prisma schema, migrations, API routes, server logic |
-| frontend-ui | Frontend & UI | React components, pages, styling, client state |
-| github-integration | GitHub Integration | OAuth, GitHub API, webhooks, event processing |
-| devops-compose | DevOps & Infrastructure | Docker, CI/CD, environment config, scripts |
-| qa-proof-docs | QA & Documentation | Tests, documentation, verification |
-| orchestrator | Orchestrator | Coordination, merging, conflict resolution |
+| Agent              | Role                    | Responsibilities                                    |
+| ------------------ | ----------------------- | --------------------------------------------------- |
+| backend-db         | Backend & Database      | Prisma schema, migrations, API routes, server logic |
+| frontend-ui        | Frontend & UI           | React components, pages, styling, client state      |
+| github-integration | GitHub Integration      | OAuth, GitHub API, webhooks, event processing       |
+| devops-compose     | DevOps & Infrastructure | Docker, CI/CD, environment config, scripts          |
+| qa-proof-docs      | QA & Documentation      | Tests, documentation, verification                  |
+| orchestrator       | Orchestrator            | Coordination, merging, conflict resolution          |
 
 See [BOUNDARIES.md](./BOUNDARIES.md) for detailed path ownership and [coordination/](./coordination/) for sprint planning.
 
@@ -164,21 +166,25 @@ The AFC-0 gate defines four core data models:
 ## API Endpoints
 
 ### Projects
+
 - `GET /api/projects` - List user's projects
 - `POST /api/projects` - Create/sync a project
 - `GET /api/projects/[id]` - Get project details
 
 ### Runs
+
 - `GET /api/runs` - List all runs
 - `POST /api/runs` - Create a new run
 - `GET /api/runs/[id]` - Get run with tasks
 
 ### Tasks
+
 - `GET /api/tasks` - List tasks (filterable by run)
 - `POST /api/tasks` - Create a task
 - `PATCH /api/tasks/[id]` - Update task status
 
 ### Webhooks
+
 - `POST /api/webhooks/github` - GitHub webhook receiver
 
 ## Testing
@@ -214,6 +220,7 @@ The initial gate establishes foundational functionality:
 - [ ] Basic test coverage
 
 **Definition of Done:**
+
 1. App starts with `docker-compose up`
 2. GitHub OAuth login works
 3. User repositories appear on `/projects`

@@ -1,10 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
 
@@ -20,7 +17,7 @@ export async function GET(
           },
         },
         tasks: {
-          orderBy: { createdAt: "asc" },
+          orderBy: { createdAt: 'asc' },
         },
         _count: {
           select: { tasks: true },
@@ -29,26 +26,17 @@ export async function GET(
     });
 
     if (!run) {
-      return NextResponse.json(
-        { error: "Run not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Run not found' }, { status: 404 });
     }
 
     return NextResponse.json(run);
   } catch (error) {
-    console.error("Error fetching run:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch run" },
-      { status: 500 }
-    );
+    console.error('Error fetching run:', error);
+    return NextResponse.json({ error: 'Failed to fetch run' }, { status: 500 });
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const body = await request.json();
@@ -77,11 +65,8 @@ export async function PUT(
 
     return NextResponse.json(run);
   } catch (error) {
-    console.error("Error updating run:", error);
-    return NextResponse.json(
-      { error: "Failed to update run" },
-      { status: 500 }
-    );
+    console.error('Error updating run:', error);
+    return NextResponse.json({ error: 'Failed to update run' }, { status: 500 });
   }
 }
 
@@ -96,12 +81,9 @@ export async function DELETE(
       where: { id },
     });
 
-    return NextResponse.json({ message: "Run deleted successfully" });
+    return NextResponse.json({ message: 'Run deleted successfully' });
   } catch (error) {
-    console.error("Error deleting run:", error);
-    return NextResponse.json(
-      { error: "Failed to delete run" },
-      { status: 500 }
-    );
+    console.error('Error deleting run:', error);
+    return NextResponse.json({ error: 'Failed to delete run' }, { status: 500 });
   }
 }
