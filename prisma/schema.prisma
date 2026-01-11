@@ -19,6 +19,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   projects      Project[]
+  agents        Agent[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -92,20 +93,20 @@ model Repository {
 }
 
 model PullRequest {
-  id              String    @id @default(cuid())
+  id              String     @id @default(cuid())
   repositoryId    String
   repository      Repository @relation(fields: [repositoryId], references: [id])
   number          Int
   githubId        Int
   title           String
-  body            String?   @db.Text
+  body            String?    @db.Text
   state           String
   htmlUrl         String
   authorUsername  String
   authorAvatarUrl String?
   headRef         String
   baseRef         String
-  merged          Boolean   @default(false)
+  merged          Boolean    @default(false)
   mergedAt        DateTime?
   createdAt       DateTime
   updatedAt       DateTime
@@ -115,13 +116,13 @@ model PullRequest {
 }
 
 model Issue {
-  id              String    @id @default(cuid())
+  id              String     @id @default(cuid())
   repositoryId    String
   repository      Repository @relation(fields: [repositoryId], references: [id])
   number          Int
   githubId        Int
   title           String
-  body            String?   @db.Text
+  body            String?    @db.Text
   state           String
   htmlUrl         String
   authorUsername  String
@@ -134,26 +135,80 @@ model Issue {
   @@unique([repositoryId, number])
 }
 
+// Agent types matching the multi-agent development workflow
+enum AgentType {
+  BACKEND
+  FRONTEND
+  GITHUB_INTEGRATION
+  DEVOPS
+  QA_DOCS
+  ORCHESTRATOR
+  CUSTOM
+}
+
+model Agent {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  type        AgentType
+  description String?
+  avatarUrl   String?
+  isActive    Boolean   @default(true)
+  tasks       Task[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([userId, name])
+}
+
+// Task status for Kanban workflow
+enum TaskStatus {
+  TODO
+  DOING
+  DONE
+  BLOCKED
+}
+
+// Task priority levels
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+// Run status
+enum RunStatus {
+  ACTIVE
+  COMPLETED
+  FAILED
+}
+
 model Run {
   id          String    @id @default(cuid())
   projectId   String
-  project     Project   @relation(fields: [projectId], references: [id])
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   name        String
-  status      String    @default("ACTIVE")
+  status      RunStatus @default(ACTIVE)
   tasks       Task[]
   createdAt   DateTime  @default(now())
   completedAt DateTime?
 }
 
 model Task {
-  id        String   @id @default(cuid())
-  runId     String
-  run       Run      @relation(fields: [runId], references: [id])
-  title     String
-  status    String   @default("TODO")
-  assignee  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String       @id @default(cuid())
+  runId       String
+  run         Run          @relation(fields: [runId], references: [id], onDelete: Cascade)
+  title       String
+  description String?      @db.Text
+  status      TaskStatus   @default(TODO)
+  priority    TaskPriority @default(MEDIUM)
+  agentId     String?
+  agent       Agent?       @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  assignee    String? // Kept for backwards compatibility
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
 
 model GitHubEvent {

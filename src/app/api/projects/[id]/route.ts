@@ -1,14 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { requireAuth, checkOwnership } from '@/lib/api/auth';
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+interface RouteParams {
+  params: Promise<{ id: string }>;
+}
+
+export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
+    const user = auth.user!;
+
     const { id } = await params;
 
     const project = await prisma.project.findUnique({
       where: { id },
       include: {
-        user: true,
         runs: {
           include: {
             tasks: true,
@@ -30,6 +38,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
+    const ownershipError = checkOwnership(project.userId, user.id);
+    if (ownershipError) return ownershipError;
+
     return NextResponse.json(project);
   } catch (error) {
     console.error('Error fetching project:', error);
@@ -37,23 +48,41 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
+    const user = auth.user!;
+
     const { id } = await params;
+
+    const existingProject = await prisma.project.findUnique({
+      where: { id },
+    });
+
+    if (!existingProject) {
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+    }
+
+    const ownershipError = checkOwnership(existingProject.userId, user.id);
+    if (ownershipError) return ownershipError;
+
     const body = await request.json();
     const { repoName, repoFullName, description, htmlUrl, lastUpdated } = body;
 
     const project = await prisma.project.update({
       where: { id },
       data: {
-        ...(repoName && { repoName }),
-        ...(repoFullName && { repoFullName }),
+        ...(repoName !== undefined && { repoName }),
+        ...(repoFullName !== undefined && { repoFullName }),
         ...(description !== undefined && { description }),
-        ...(htmlUrl && { htmlUrl }),
-        ...(lastUpdated && { lastUpdated: new Date(lastUpdated) }),
+        ...(htmlUrl !== undefined && { htmlUrl }),
+        ...(lastUpdated !== undefined && { lastUpdated: new Date(lastUpdated) }),
       },
       include: {
-        user: true,
+        _count: {
+          select: { runs: true, events: true },
+        },
       },
     });
 
@@ -64,18 +93,35 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+// Also support PUT for backwards compatibility
+export async function PUT(request: NextRequest, { params }: RouteParams) {
+  return PATCH(request, { params });
+}
+
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
+    const user = auth.user!;
+
     const { id } = await params;
+
+    const existingProject = await prisma.project.findUnique({
+      where: { id },
+    });
+
+    if (!existingProject) {
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+    }
+
+    const ownershipError = checkOwnership(existingProject.userId, user.id);
+    if (ownershipError) return ownershipError;
 
     await prisma.project.delete({
       where: { id },
     });
 
-    return NextResponse.json({ message: 'Project deleted successfully' });
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting project:', error);
     return NextResponse.json({ error: 'Failed to delete project' }, { status: 500 });

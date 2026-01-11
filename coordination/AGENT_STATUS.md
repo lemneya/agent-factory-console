@@ -1,19 +1,60 @@
 # Agent Status Board
 
-> Last Updated: 2026-01-10 by Orchestrator
+> Last Updated: 2026-01-11 by backend-db-api
 
-## Sprint: AFC-0 - Proof of Life
+## Sprint: AFC-1 - Enhanced Multi-Agent Capabilities
 
 ### Current Status Summary
 
-| Agent              | Status | Current Task                | Blockers |
-| ------------------ | ------ | --------------------------- | -------- |
-| orchestrator       | ACTIVE | Integration complete        | None     |
-| backend-db         | MERGED | PR #5 merged                | None     |
-| frontend-ui        | CLOSED | PR #2 retired (see ADR-001) | N/A      |
-| github-integration | MERGED | PR #3 merged                | None     |
-| devops-compose     | MERGED | PR #1 merged                | None     |
-| qa-proof-docs      | MERGED | PR #6 merged                | None     |
+| Agent              | Status      | Current Task                           | Blockers |
+| ------------------ | ----------- | -------------------------------------- | -------- |
+| backend-db-api     | IN_PROGRESS | AFC-1 Backend/DB/API implementation    | None     |
+| frontend-ui        | PENDING     | Awaiting backend APIs                  | None     |
+| github-integration | PENDING     | Awaiting backend APIs                  | None     |
+| devops-compose     | PENDING     | Awaiting AFC-1 requirements            | None     |
+| qa-proof-docs      | PENDING     | Awaiting AFC-1 completion              | None     |
+| orchestrator       | STANDBY     | Monitoring AFC-1 progress              | None     |
+
+---
+
+## AFC-1 Backend/DB/API Progress
+
+### Completed (2026-01-11)
+
+1. **Sprint Planning Document** - `coordination/SPRINT-AFC-1.md`
+   - Full AFC-1 specification and deliverables
+   - Agent model design
+   - API specifications with pagination
+
+2. **Database Schema Updates** - `prisma/schema.prisma`
+   - Agent model with AgentType enum
+   - TaskStatus, TaskPriority, RunStatus enums
+   - Enhanced Task model (description, priority, agentId)
+   - Cascade delete relationships
+
+3. **New API Endpoints**
+   - `GET/POST /api/agents` - Agent CRUD with pagination
+   - `GET/PATCH/DELETE /api/agents/[id]` - Individual agent operations
+   - `GET /api/stats/dashboard` - Dashboard statistics
+   - `GET/POST /api/repositories` - Repository management
+   - `GET/PATCH/DELETE /api/repositories/[id]` - Individual repository ops
+
+4. **API Utilities** - `src/lib/api/`
+   - `auth.ts` - Authentication middleware (requireAuth, checkOwnership)
+   - `pagination.ts` - Cursor-based pagination utilities
+
+5. **Updated Existing APIs**
+   - All endpoints now require authentication
+   - Pagination support for list endpoints
+   - Proper authorization checks (user ownership)
+   - Support for new Task fields (description, priority, agentId)
+
+6. **Database Migration**
+   - `prisma/migrations/20260111000000_afc1_agents_and_enhanced_tasks`
+
+---
+
+## Previous Sprint: AFC-0 - Proof of Life (COMPLETED)
 
 ---
 
