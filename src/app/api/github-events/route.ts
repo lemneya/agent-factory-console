@@ -39,20 +39,22 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { projectId, eventType, action, payload } = body;
+    const { projectId, eventType, action, payload, repositoryName, senderUsername } = body;
 
-    if (!projectId || !eventType || !payload) {
+    if (!eventType || !payload || !repositoryName || !senderUsername) {
       return NextResponse.json(
-        { error: "Missing required fields: projectId, eventType, payload" },
+        { error: "Missing required fields: eventType, payload, repositoryName, senderUsername" },
         { status: 400 }
       );
     }
 
     const event = await prisma.gitHubEvent.create({
       data: {
-        projectId,
+        projectId: projectId || null,
         eventType,
-        action,
+        action: action || null,
+        repositoryName,
+        senderUsername,
         payload,
       },
       include: {

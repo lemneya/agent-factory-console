@@ -16,22 +16,18 @@ export async function syncUserRepositories(
 
   // Batch upsert repositories
   for (const repo of repos) {
-    await upsertRepository(userId, repo);
+    await upsertRepository(repo);
   }
-
-  // Mark repositories that no longer exist as archived
-  await markRemovedRepositories(userId, repos.map((r) => r.id));
 
   console.log(`Repository sync complete for user ${userId}`);
 }
 
-async function upsertRepository(userId: string, repo: GitHubRepository): Promise<void> {
+async function upsertRepository(repo: GitHubRepository): Promise<void> {
   await prisma.repository.upsert({
     where: {
       githubId: repo.id,
     },
     create: {
-      userId,
       githubId: repo.id,
       name: repo.name,
       fullName: repo.full_name,
@@ -42,14 +38,7 @@ async function upsertRepository(userId: string, repo: GitHubRepository): Promise
       sshUrl: repo.ssh_url,
       defaultBranch: repo.default_branch,
       language: repo.language,
-      stargazersCount: repo.stargazers_count,
-      forksCount: repo.forks_count,
-      openIssuesCount: repo.open_issues_count,
-      ownerLogin: repo.owner.login,
-      ownerAvatarUrl: repo.owner.avatar_url,
       lastPushAt: repo.pushed_at ? new Date(repo.pushed_at) : null,
-      repoCreatedAt: new Date(repo.created_at),
-      repoUpdatedAt: new Date(repo.updated_at),
     },
     update: {
       name: repo.name,
@@ -61,33 +50,7 @@ async function upsertRepository(userId: string, repo: GitHubRepository): Promise
       sshUrl: repo.ssh_url,
       defaultBranch: repo.default_branch,
       language: repo.language,
-      stargazersCount: repo.stargazers_count,
-      forksCount: repo.forks_count,
-      openIssuesCount: repo.open_issues_count,
-      ownerLogin: repo.owner.login,
-      ownerAvatarUrl: repo.owner.avatar_url,
       lastPushAt: repo.pushed_at ? new Date(repo.pushed_at) : null,
-      repoUpdatedAt: new Date(repo.updated_at),
-      archived: false, // Unarchive if it was previously archived
-    },
-  });
-}
-
-async function markRemovedRepositories(
-  userId: string,
-  currentGitHubIds: number[]
-): Promise<void> {
-  // Mark repositories that are no longer in the user's GitHub account
-  await prisma.repository.updateMany({
-    where: {
-      userId,
-      githubId: {
-        notIn: currentGitHubIds,
-      },
-      archived: false,
-    },
-    data: {
-      archived: true,
     },
   });
 }
@@ -113,10 +76,8 @@ export async function triggerRepositorySync(userId: string): Promise<{ synced: n
   const repos = await fetchUserRepositories(client);
 
   for (const repo of repos) {
-    await upsertRepository(userId, repo);
+    await upsertRepository(repo);
   }
-
-  await markRemovedRepositories(userId, repos.map((r) => r.id));
 
   return { synced: repos.length };
 }
@@ -148,5 +109,5 @@ export async function syncSingleRepository(
     repo: repoName,
   });
 
-  await upsertRepository(userId, response.data as GitHubRepository);
+  await upsertRepository(response.data as GitHubRepository);
 }

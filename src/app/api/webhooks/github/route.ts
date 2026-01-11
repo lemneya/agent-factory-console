@@ -20,7 +20,37 @@ interface WebhookPayload {
     login: string;
     avatar_url: string;
   };
-  [key: string]: any;
+  ref?: string;
+  pusher?: { name?: string };
+  pull_request?: {
+    id: number;
+    title: string;
+    body: string | null;
+    state: string;
+    html_url: string;
+    user: { login: string; avatar_url: string };
+    head: { ref: string };
+    base: { ref: string };
+    merged?: boolean;
+    merged_at: string | null;
+    created_at: string;
+    updated_at: string;
+    closed_at: string | null;
+  };
+  number?: number;
+  issue?: {
+    id: number;
+    number: number;
+    title: string;
+    body: string | null;
+    state: string;
+    html_url: string;
+    user: { login: string; avatar_url: string };
+    labels?: Array<{ name: string }>;
+    created_at: string;
+    updated_at: string;
+    closed_at: string | null;
+  };
 }
 
 export async function POST(request: NextRequest) {
@@ -82,7 +112,7 @@ export async function POST(request: NextRequest) {
         repositoryName: payload.repository.full_name,
         senderUsername: payload.sender.login,
         senderAvatarUrl: payload.sender.avatar_url,
-        payload: payload as any,
+        payload: JSON.parse(JSON.stringify(payload)),
       },
     });
 
@@ -110,14 +140,14 @@ export async function POST(request: NextRequest) {
 }
 
 async function handlePushEvent(payload: WebhookPayload, repositoryId?: string) {
-  const { ref, commits, head_commit, pusher } = payload;
+  const { ref, pusher } = payload;
 
   console.log(
     `Push to ${payload.repository.full_name} on ${ref} by ${pusher?.name || "unknown"}`
   );
 
   // Update repository's last push timestamp if we track it
-  if (repositoryId) {
+  if (repositoryId && ref) {
     await prisma.repository.update({
       where: { id: repositoryId },
       data: {
@@ -126,9 +156,6 @@ async function handlePushEvent(payload: WebhookPayload, repositoryId?: string) {
       },
     });
   }
-
-  // Could create notifications for team members here
-  // await createPushNotification(repositoryId, payload);
 }
 
 async function handlePullRequestEvent(payload: WebhookPayload, repositoryId?: string) {
@@ -138,7 +165,7 @@ async function handlePullRequestEvent(payload: WebhookPayload, repositoryId?: st
     `Pull request #${number} ${action} on ${payload.repository.full_name}`
   );
 
-  if (!repositoryId) return;
+  if (!repositoryId || !number) return;
 
   // Upsert pull request data
   if (pull_request) {
@@ -207,7 +234,7 @@ async function handleIssuesEvent(payload: WebhookPayload, repositoryId?: string)
       htmlUrl: issue.html_url,
       authorUsername: issue.user.login,
       authorAvatarUrl: issue.user.avatar_url,
-      labels: issue.labels?.map((l: any) => l.name) || [],
+      labels: issue.labels?.map((l) => l.name) || [],
       createdAt: new Date(issue.created_at),
       updatedAt: new Date(issue.updated_at),
       closedAt: issue.closed_at ? new Date(issue.closed_at) : null,
@@ -216,7 +243,7 @@ async function handleIssuesEvent(payload: WebhookPayload, repositoryId?: string)
       title: issue.title,
       body: issue.body,
       state: issue.state,
-      labels: issue.labels?.map((l: any) => l.name) || [],
+      labels: issue.labels?.map((l) => l.name) || [],
       updatedAt: new Date(issue.updated_at),
       closedAt: issue.closed_at ? new Date(issue.closed_at) : null,
     },

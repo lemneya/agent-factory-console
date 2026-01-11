@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Home() {
   return (
     <main className="min-h-screen p-8">
@@ -6,7 +8,7 @@ export default function Home() {
         Single pane of glass dashboard for multi-agent AI development
       </p>
       <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <a
+        <Link
           href="/projects"
           className="rounded-lg border border-gray-200 p-6 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600"
         >
@@ -14,8 +16,8 @@ export default function Home() {
           <p className="mt-2 text-gray-600 dark:text-gray-400">
             View and manage your AI projects
           </p>
-        </a>
-        <a
+        </Link>
+        <Link
           href="/runs"
           className="rounded-lg border border-gray-200 p-6 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600"
         >
@@ -23,8 +25,8 @@ export default function Home() {
           <p className="mt-2 text-gray-600 dark:text-gray-400">
             Track agent execution runs
           </p>
-        </a>
-        <a
+        </Link>
+        <Link
           href="/notifications"
           className="rounded-lg border border-gray-200 p-6 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600"
         >
@@ -32,7 +34,7 @@ export default function Home() {
           <p className="mt-2 text-gray-600 dark:text-gray-400">
             GitHub events feed
           </p>
-        </a>
+        </Link>
       </div>
     </main>
   );

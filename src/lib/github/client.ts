@@ -1,4 +1,5 @@
 import { Octokit } from "octokit";
+import * as crypto from "crypto";
 
 // Create an authenticated Octokit client for a user
 export function createGitHubClient(accessToken: string): Octokit {
@@ -39,6 +40,7 @@ export interface GitHubIssue {
   body: string | null;
   state: "open" | "closed";
   html_url: string;
+  pull_request?: unknown;
   user: {
     id: number;
     login: string;
@@ -63,7 +65,7 @@ export interface GitHubPullRequest {
   html_url: string;
   diff_url: string;
   patch_url: string;
-  merged: boolean;
+  merged?: boolean;
   merged_at: string | null;
   head: {
     ref: string;
@@ -121,7 +123,7 @@ export async function fetchRepositoryIssues(
   )) {
     // Filter out pull requests (GitHub API returns PRs in issues endpoint)
     const repoIssues = (response.data as GitHubIssue[]).filter(
-      (issue: any) => !issue.pull_request
+      (issue) => !issue.pull_request
     );
     issues.push(...repoIssues);
   }
@@ -147,7 +149,7 @@ export async function fetchRepositoryPullRequests(
       per_page: 100,
     }
   )) {
-    pullRequests.push(...(response.data as GitHubPullRequest[]));
+    pullRequests.push(...(response.data as unknown as GitHubPullRequest[]));
   }
 
   return pullRequests;
@@ -173,7 +175,6 @@ export function verifyWebhookSignature(
   signature: string,
   secret: string
 ): boolean {
-  const crypto = require("crypto");
   const hmac = crypto.createHmac("sha256", secret);
   const digest = "sha256=" + hmac.update(payload).digest("hex");
 
