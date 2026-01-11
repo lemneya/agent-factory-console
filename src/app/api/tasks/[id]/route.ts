@@ -22,6 +22,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             },
           },
         },
+        worker: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            status: true,
+          },
+        },
       },
     });
 
@@ -40,13 +48,15 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const { id } = await params;
     const body = await request.json();
-    const { title, status, assignee } = body;
+    const { title, description, status, priority, assignee } = body;
 
     const task = await prisma.task.update({
       where: { id },
       data: {
         ...(title && { title }),
+        ...(description !== undefined && { description }),
         ...(status && { status }),
+        ...(priority !== undefined && { priority }),
         ...(assignee !== undefined && { assignee }),
       },
       include: {
@@ -60,6 +70,14 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
                 repoName: true,
               },
             },
+          },
+        },
+        worker: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            status: true,
           },
         },
       },

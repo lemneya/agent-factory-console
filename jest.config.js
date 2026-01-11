@@ -14,10 +14,11 @@ const customJestConfig = {
     // Handle module aliases (this will be automatically configured for you soon)
     '^@/(.*)$': '<rootDir>/src/$1',
   },
-  testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)'],
+  testMatch: ['**/__tests__/**/*.test.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)'],
   testPathIgnorePatterns: [
     '<rootDir>/node_modules/',
     '<rootDir>/tests/', // Ignore Playwright tests
+    '<rootDir>/__tests__/mocks/', // Ignore mock files
   ],
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',
@@ -25,6 +26,8 @@ const customJestConfig = {
     '!src/app/api/auth/**',
     '!src/types/**',
   ],
+  // Transform ESM modules
+  transformIgnorePatterns: ['node_modules/(?!(octokit|@octokit)/)'],
   // Coverage thresholds disabled for early-stage project
   // TODO: Re-enable when proper test coverage is established
   // coverageThreshold: {

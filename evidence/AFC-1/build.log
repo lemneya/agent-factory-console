@@ -1,0 +1,49 @@
+
+> agent-factory-console@0.1.0 build
+> next build
+
+▲ Next.js 16.1.1 (Turbopack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 6.8s
+  Running TypeScript ...
+  Collecting page data using 15 workers ...
+  Generating static pages using 15 workers (0/17) ...
+  Generating static pages using 15 workers (4/17) 
+  Generating static pages using 15 workers (8/17) 
+  Generating static pages using 15 workers (12/17) 
+✓ Generating static pages using 15 workers (17/17) in 437.9ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/auth/[...nextauth]
+├ ƒ /api/github-events
+├ ƒ /api/github-events/[id]
+├ ƒ /api/health
+├ ƒ /api/projects
+├ ƒ /api/projects/[id]
+├ ƒ /api/projects/sync
+├ ƒ /api/queue
+├ ƒ /api/runs
+├ ƒ /api/runs/[id]
+├ ƒ /api/tasks
+├ ƒ /api/tasks/[id]
+├ ƒ /api/webhooks/github
+├ ƒ /api/workers
+├ ƒ /api/workers/[id]
+├ ƒ /api/workers/[id]/claim
+├ ƒ /api/workers/[id]/complete
+├ ƒ /api/workers/[id]/heartbeat
+├ ƒ /api/workers/[id]/release
+├ ƒ /api/workers/stats
+├ ○ /notifications
+├ ○ /projects
+├ ○ /runs
+└ ƒ /runs/[id]
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
