@@ -94,15 +94,18 @@ export async function POST(request: NextRequest) {
 
     // Check for specific Prisma errors
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorName = error instanceof Error ? error.constructor.name : '';
 
-    // Table doesn't exist or Prisma model not available
+    // Database not available (missing DATABASE_URL, connection issues, or missing tables)
     if (
+      errorName === 'PrismaClientInitializationError' ||
+      errorMessage.includes('DATABASE_URL') ||
       errorMessage.includes('does not exist') ||
       errorMessage.includes('P2021') ||
       errorMessage.includes('P2025')
     ) {
       return NextResponse.json(
-        { error: 'Memory layer not initialized. Please run database migrations.' },
+        { error: 'Memory layer not initialized. Database not available.' },
         { status: 503 }
       );
     }
