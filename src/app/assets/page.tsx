@@ -42,27 +42,39 @@ export default function AssetsPage() {
   const categories = ['auth', 'crud', 'ui', 'infra', 'worker', 'integration', 'testing'];
 
   useEffect(() => {
+    let isMounted = true;
+
+    const fetchAssets = async () => {
+      try {
+        setLoading(true);
+        const params = new URLSearchParams();
+        if (searchQuery) params.set('q', searchQuery);
+        if (selectedTag) params.set('tag', selectedTag);
+        if (selectedCategory) params.set('category', selectedCategory);
+
+        const response = await fetch(`/api/assets?${params.toString()}`);
+        if (!response.ok) throw new Error('Failed to fetch assets');
+        const data = await response.json();
+        if (isMounted) {
+          setAssets(data);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : 'Unknown error');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
     fetchAssets();
+
+    return () => {
+      isMounted = false;
+    };
   }, [searchQuery, selectedTag, selectedCategory]);
-
-  async function fetchAssets() {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams();
-      if (searchQuery) params.set('q', searchQuery);
-      if (selectedTag) params.set('tag', selectedTag);
-      if (selectedCategory) params.set('category', selectedCategory);
-
-      const response = await fetch(`/api/assets?${params.toString()}`);
-      if (!response.ok) throw new Error('Failed to fetch assets');
-      const data = await response.json();
-      setAssets(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
-      setLoading(false);
-    }
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
