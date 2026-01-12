@@ -1,0 +1,80 @@
+# AFC-1.5 Mode Change Audit Log Evidence
+# This shows the audit trail when enabling interactive mode (break-glass)
+
+## Example Audit Events
+
+### 1. Session Created (READ_ONLY by default)
+```json
+{
+  "id": "evt-1736683200001",
+  "terminalSessionId": "term-1736683200000",
+  "ts": "2024-01-12T12:00:00.000Z",
+  "type": "CONNECT",
+  "actorUserId": "user-1",
+  "seq": 1,
+  "data": { "message": "Session started" }
+}
+```
+
+### 2. Break-Glass Mode Change (CRITICAL - AUDITED)
+```json
+{
+  "id": "evt-1736683260001",
+  "terminalSessionId": "term-1736683200000",
+  "ts": "2024-01-12T12:01:00.000Z",
+  "type": "MODE_CHANGE",
+  "actorUserId": "user-1",
+  "seq": 5,
+  "data": {
+    "from": "READ_ONLY",
+    "to": "INTERACTIVE",
+    "reason": "Need to debug failing test in worker pod"
+  }
+}
+```
+Console output: `[AUDIT] BREAK-GLASS: User user-1 enabled INTERACTIVE mode on session term-1736683200000. Reason: Need to debug failing test in worker pod`
+
+### 3. Input Sent (only allowed in INTERACTIVE mode)
+```json
+{
+  "id": "evt-1736683280001",
+  "terminalSessionId": "term-1736683200000",
+  "ts": "2024-01-12T12:01:20.000Z",
+  "type": "INPUT",
+  "actorUserId": "user-1",
+  "seq": 6,
+  "data": { "text": "npm run test -- --verbose" }
+}
+```
+Console output: `[AUDIT] INPUT: User user-1 sent input to session term-1736683200000`
+
+### 4. Session Killed
+```json
+{
+  "id": "evt-1736683320001",
+  "terminalSessionId": "term-1736683200000",
+  "ts": "2024-01-12T12:02:00.000Z",
+  "type": "KILL",
+  "actorUserId": "user-1",
+  "seq": 10,
+  "data": { "reason": "Debugging complete, closing session" }
+}
+```
+Console output: `[AUDIT] KILL: User user-1 killed session term-1736683200000. Reason: Debugging complete, closing session`
+
+## Security Properties
+
+1. **All mode changes are logged** - No way to enable INTERACTIVE mode without audit trail
+2. **User ID captured** - Every action includes actorUserId for accountability
+3. **Reason required** - Break-glass requires explanation that is logged
+4. **Sequence numbers** - Events can be ordered for complete audit replay
+5. **Input blocked by default** - READ_ONLY mode prevents accidental commands
+
+## Test Evidence
+
+From test run:
+```
+[AUDIT] BREAK-GLASS: User user-1 enabled INTERACTIVE mode on session term-XXXXXXXXX. Reason: Need to debug issue
+[AUDIT] INPUT: User user-1 sent input to session term-XXXXXXXXX
+[AUDIT] KILL: User user-1 killed session term-XXXXXXXXX. Reason: Testing complete
+```
