@@ -259,7 +259,9 @@ describe('AFC-1.4 Enterprise Smoke Tests', () => {
       console.log(`\nStep 3: Circuit breaker check (thrash detection)`);
       console.log(`  Repeated errors with fingerprint "${sameFingerprint}": ${repeatedCount}`);
       console.log(`  Max repeated errors: ${testPolicy.maxRepeatedError}`);
-      console.log(`  Should trigger approval gate: ${repeatedCount >= testPolicy.maxRepeatedError}`);
+      console.log(
+        `  Should trigger approval gate: ${repeatedCount >= testPolicy.maxRepeatedError}`
+      );
 
       // VERIFY: Thrash detection triggers
       const shouldWaitApproval = repeatedCount >= testPolicy.maxRepeatedError;
