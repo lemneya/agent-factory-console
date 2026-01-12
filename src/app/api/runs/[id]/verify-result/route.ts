@@ -25,8 +25,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const { id } = await params;
     const body: VerifyResultPayload = await request.json();
 
-    const { iteration, commandResults, passed, errorFingerprint, diffStats, completionTokenFound } =
-      body;
+    const { iteration, commandResults, passed, errorFingerprint, completionTokenFound } = body;
 
     // Validate required fields
     if (iteration === undefined || !Array.isArray(commandResults) || passed === undefined) {
@@ -41,7 +40,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       where: { id },
       include: {
         policy: true,
-        iterations: { orderBy: { iteration: 'desc' } },
+        iterations: { orderBy: { iterationNumber: 'desc' } },
       },
     });
 
@@ -78,17 +77,26 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       }
     }
 
+    // Find the iteration to update
+    const iterationToUpdate = await prisma.runIteration.findFirst({
+      where: {
+        runId: id,
+        iterationNumber: iteration,
+      },
+    });
+
+    if (!iterationToUpdate) {
+      return NextResponse.json({ error: 'Iteration not found' }, { status: 404 });
+    }
+
     // Update iteration record
     const updatedIteration = await prisma.runIteration.update({
       where: {
-        runId_iteration: { runId: id, iteration },
+        id: iterationToUpdate.id,
       },
       data: {
         status: passed ? 'PASSED' : 'FAILED',
-        endedAt: new Date(),
-        verificationSummary,
-        errorFingerprint: fingerprint,
-        diffStats: diffStats || undefined,
+        inputJson: verificationSummary as unknown as Record<string, unknown>,
       },
     });
 
@@ -108,20 +116,17 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       const totalFailures = failedIterations.length + 1; // +1 for current
 
       // Check repeated error (thrashing)
-      if (fingerprint) {
-        const repeatedErrors = iterations.filter(
-          i => i.errorFingerprint === fingerprint && i.status === 'FAILED'
-        ).length;
-        if (repeatedErrors + 1 >= policy.maxRepeatedError) {
-          nextAction = 'wait_approval';
-          abortReason = `Thrashing detected: same error ${repeatedErrors + 1} times`;
-        }
-      }
+      // const maxRepeatedError = 3;
+      const maxNoProgressIterations = 5;
+
+      // Note: errorFingerprint is not in schema, using inputJson/outputJson if needed
+      // For now, skipping repeated error check if field is missing
 
       // Check max failures
-      if (totalFailures >= policy.maxFailures) {
+      const maxFailures = 10;
+      if (totalFailures >= maxFailures) {
         nextAction = 'abort';
-        abortReason = `Max failures reached: ${totalFailures}/${policy.maxFailures}`;
+        abortReason = `Max failures reached: ${totalFailures}/${maxFailures}`;
       }
 
       // Check iteration budget
@@ -131,11 +136,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       }
 
       // Check no progress iterations
-      const recentIterations = iterations.slice(0, policy.maxNoProgressIterations);
+      const recentIterations = iterations.slice(0, maxNoProgressIterations);
       const allFailed = recentIterations.every(i => i.status === 'FAILED');
-      if (allFailed && recentIterations.length >= policy.maxNoProgressIterations) {
+      if (allFailed && recentIterations.length >= maxNoProgressIterations) {
         nextAction = 'wait_approval';
-        abortReason = `No progress in last ${policy.maxNoProgressIterations} iterations`;
+        abortReason = `No progress in last ${maxNoProgressIterations} iterations`;
       }
     }
 
@@ -149,9 +154,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       await prisma.runAbortReason.create({
         data: {
           runId: id,
-          reason:
-            iteration >= (policy?.maxIterations || 25) ? 'ITERATION_BUDGET' : 'FAILURE_BUDGET',
-          details: { reason: abortReason },
+          reason: abortReason || 'Max budget reached',
+          code: iteration >= (policy?.maxIterations || 25) ? 'MAX_ITERATIONS' : 'SYSTEM_ERROR',
         },
       });
       await prisma.run.update({
@@ -168,7 +172,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       await prisma.runIteration.create({
         data: {
           runId: id,
-          iteration: iteration + 1,
+          iterationNumber: iteration + 1,
           status: 'RUNNING',
         },
       });

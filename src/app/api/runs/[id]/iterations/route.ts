@@ -21,13 +21,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           checkpoint: {
             select: {
               id: true,
-              checkpointId: true,
               status: true,
               createdAt: true,
             },
           },
         },
-        orderBy: { iteration: 'desc' },
+        orderBy: { iterationNumber: 'desc' },
         take: limit,
         skip: offset,
       }),

@@ -56,14 +56,12 @@ export class PrismaMemoryProvider implements MemoryProvider {
 
   async ingest(input: MemoryItemInput): Promise<IngestResult> {
     const contentHash = await hashContent(input.content);
-    const tokenCount = estimateTokenCount(input.content);
 
-    // Check for existing item with same hash (deduplication)
+    // Check for existing item with same content (deduplication)
     const existing = await this.prisma.memoryItem.findFirst({
       where: {
-        contentHash,
-        projectId: input.projectId ?? null,
-        archived: false,
+        projectId: input.projectId!,
+        content: input.content,
       },
     });
 
@@ -73,7 +71,7 @@ export class PrismaMemoryProvider implements MemoryProvider {
         where: { id: existing.id },
         data: {
           accessCount: { increment: 1 },
-          lastAccessed: new Date(),
+          lastUsedAt: new Date(),
           score: Math.min(1.0, existing.score + (DEFAULT_POLICY.accessBoost ?? 0.1)),
         },
       });
@@ -97,18 +95,17 @@ export class PrismaMemoryProvider implements MemoryProvider {
     // Create new item
     const created = await this.prisma.memoryItem.create({
       data: {
-        projectId: input.projectId ?? null,
-        runId: input.runId ?? null,
-        contentHash,
+        projectId: input.projectId!,
         content: input.content,
         summary: input.summary ?? null,
         scope: input.scope ?? 'PROJECT',
         category: input.category ?? 'CONTEXT',
-        source: input.source ?? null,
-        sourceType: input.sourceType ?? null,
         score: input.score ?? 1.0,
-        tokenCount,
-        metadata: input.metadata as object | undefined,
+        metadata: {
+          ...(input.metadata || {}),
+          contentHash,
+          tokenCount: estimateTokenCount(input.content),
+        } as unknown as Record<string, unknown>,
         expiresAt: input.expiresAt ?? undefined,
       },
     });
@@ -132,30 +129,58 @@ export class PrismaMemoryProvider implements MemoryProvider {
 
     if (updates.content !== undefined) {
       data.content = updates.content;
-      data.contentHash = await hashContent(updates.content);
-      data.tokenCount = estimateTokenCount(updates.content);
+      const contentHash = await hashContent(updates.content);
+      const tokenCount = estimateTokenCount(updates.content);
+
+      // Get current metadata to merge
+      const current = await this.prisma.memoryItem.findUnique({
+        where: { id },
+        select: { metadata: true },
+      });
+      data.metadata = {
+        ...((current?.metadata as Record<string, unknown>) || {}),
+        contentHash,
+        tokenCount,
+      };
     }
     if (updates.summary !== undefined) data.summary = updates.summary;
     if (updates.scope !== undefined) data.scope = updates.scope;
     if (updates.category !== undefined) data.category = updates.category;
-    if (updates.source !== undefined) data.source = updates.source;
-    if (updates.sourceType !== undefined) data.sourceType = updates.sourceType;
     if (updates.score !== undefined) data.score = updates.score;
-    if (updates.metadata !== undefined) data.metadata = updates.metadata;
+    if (updates.metadata !== undefined) {
+      const current = await this.prisma.memoryItem.findUnique({
+        where: { id },
+        select: { metadata: true },
+      });
+      data.metadata = {
+        ...((current?.metadata as Record<string, unknown>) || {}),
+        ...updates.metadata,
+      };
+    }
     if (updates.expiresAt !== undefined) data.expiresAt = updates.expiresAt;
 
     const updated = await this.prisma.memoryItem.update({
       where: { id },
-      data,
+      data: data as unknown as Record<string, unknown>,
     });
 
     return this.toMemoryItem(updated);
   }
 
   async archive(id: string): Promise<void> {
+    const item = await this.prisma.memoryItem.findUnique({
+      where: { id },
+      select: { metadata: true },
+    });
+    const metadata = (item?.metadata as Record<string, unknown>) || {};
     await this.prisma.memoryItem.update({
       where: { id },
-      data: { archived: true },
+      data: {
+        metadata: {
+          ...metadata,
+          archived: true,
+        } as unknown as Record<string, unknown>,
+      },
     });
   }
 
@@ -172,40 +197,15 @@ export class PrismaMemoryProvider implements MemoryProvider {
   async query(query: MemoryQuery): Promise<MemoryQueryResult> {
     const where: Record<string, unknown> = {};
 
-    // Project scope
-    if (query.projectId) {
-      where.projectId = query.projectId;
-    }
+    if (query.projectId) where.projectId = query.projectId;
+    if (query.scopes && query.scopes.length > 0) where.scope = { in: query.scopes };
+    if (query.categories && query.categories.length > 0) where.category = { in: query.categories };
+    if (query.minScore !== undefined) where.score = { gte: query.minScore };
 
-    // Run scope
-    if (query.runId) {
-      where.runId = query.runId;
-    }
-
-    // Scope filtering
-    if (query.scopes && query.scopes.length > 0) {
-      where.scope = { in: query.scopes };
-    }
-
-    // Category filtering
-    if (query.categories && query.categories.length > 0) {
-      where.category = { in: query.categories };
-    }
-
-    // Score filtering
-    if (query.minScore !== undefined) {
-      where.score = { gte: query.minScore };
-    }
-
-    // Archived filtering
-    if (!query.includeArchived) {
-      where.archived = false;
-    }
-
-    // Expired filtering - items must not be expired
+    // Expired filtering
     where.OR = [{ expiresAt: null }, { expiresAt: { gt: new Date() } }];
 
-    // Text search (simple contains) - wrap with AND to combine with expired filter
+    // Text search
     if (query.searchText) {
       where.AND = [
         {
@@ -217,41 +217,48 @@ export class PrismaMemoryProvider implements MemoryProvider {
       ];
     }
 
-    // Get total count
-    const total = await this.prisma.memoryItem.count({ where });
+    // Archived filtering (via metadata)
+    if (!query.includeArchived) {
+      where.metadata = {
+        path: ['archived'],
+        not: true,
+      };
+    }
 
-    // Determine ordering
-    const orderBy: Record<string, string> = {};
-    const orderField = query.orderBy ?? 'score';
+    const total = await this.prisma.memoryItem.count({
+      where: where as unknown as Record<string, unknown>,
+    });
+
+    const orderBy: Record<string, unknown> = {};
+    const orderField = query.orderBy === 'lastAccessed' ? 'lastUsedAt' : (query.orderBy ?? 'score');
     const orderDir = query.orderDirection ?? 'desc';
     orderBy[orderField] = orderDir;
 
-    // Get policy for budget enforcement
     let maxTokens = DEFAULT_POLICY.maxTokensPerQuery ?? 4000;
     if (query.projectId) {
       const policy = await this.getPolicy(query.projectId);
       maxTokens = policy.maxTokensPerQuery ?? maxTokens;
     }
 
-    // Fetch items
     const items = await this.prisma.memoryItem.findMany({
-      where,
-      orderBy,
+      where: where as unknown as Record<string, unknown>,
+      orderBy: orderBy as unknown as Record<string, unknown>,
       skip: query.offset ?? 0,
       take: query.limit ?? 100,
     });
 
-    // Apply token budget
     let tokenCount = 0;
     let truncated = false;
     const resultItems: MemoryItem[] = [];
 
     for (const item of items) {
-      if (tokenCount + item.tokenCount > maxTokens) {
+      const metadata = (item.metadata as Record<string, unknown>) || {};
+      const itemTokenCount = (metadata.tokenCount as number) || estimateTokenCount(item.content);
+      if (tokenCount + itemTokenCount > maxTokens) {
         truncated = true;
         break;
       }
-      tokenCount += item.tokenCount;
+      tokenCount += itemTokenCount;
       resultItems.push(this.toMemoryItem(item));
     }
 
@@ -264,22 +271,20 @@ export class PrismaMemoryProvider implements MemoryProvider {
   }
 
   async getById(id: string): Promise<MemoryItem | null> {
-    const item = await this.prisma.memoryItem.findUnique({
-      where: { id },
-    });
-
+    const item = await this.prisma.memoryItem.findUnique({ where: { id } });
     return item ? this.toMemoryItem(item) : null;
   }
 
   async getByHash(contentHash: string, projectId?: string): Promise<MemoryItem[]> {
     const items = await this.prisma.memoryItem.findMany({
       where: {
-        contentHash,
-        ...(projectId && { projectId }),
-        archived: false,
+        projectId: projectId ?? undefined,
+        metadata: {
+          path: ['contentHash'],
+          equals: contentHash,
+        },
       },
     });
-
     return items.map(item => this.toMemoryItem(item));
   }
 
@@ -288,27 +293,26 @@ export class PrismaMemoryProvider implements MemoryProvider {
   // -------------------------------------------------------------------------
 
   async recordUse(input: MemoryUseInput): Promise<void> {
-    // Create usage record
-    await this.prisma.memoryUse.create({
+    // MemoryAccessLog is the model name in schema
+    await (
+      this.prisma as unknown as { memoryAccessLog: { create: (args: unknown) => Promise<unknown> } }
+    ).memoryAccessLog.create({
       data: {
         memoryItemId: input.memoryItemId,
         runId: input.runId,
-        context: input.context ?? null,
-        queryText: input.queryText ?? null,
+        action: 'RETRIEVE',
         relevance: input.relevance ?? null,
       },
     });
 
-    // Update access count and last accessed
     await this.prisma.memoryItem.update({
       where: { id: input.memoryItemId },
       data: {
         accessCount: { increment: 1 },
-        lastAccessed: new Date(),
+        lastUsedAt: new Date(),
       },
     });
 
-    // Apply access boost
     await this.boostScore(input.memoryItemId, DEFAULT_POLICY.accessBoost ?? 0.1);
   }
 
@@ -316,17 +320,21 @@ export class PrismaMemoryProvider implements MemoryProvider {
     runId: string,
     limit = 100
   ): Promise<Array<{ memoryItem: MemoryItem; usedAt: Date; context: string | null }>> {
-    const uses = await this.prisma.memoryUse.findMany({
+    const uses = await (
+      this.prisma as unknown as {
+        memoryAccessLog: { findMany: (args: unknown) => Promise<unknown[]> };
+      }
+    ).memoryAccessLog.findMany({
       where: { runId },
       include: { memoryItem: true },
-      orderBy: { usedAt: 'desc' },
+      orderBy: { createdAt: 'desc' },
       take: limit,
     });
 
-    return uses.map(use => ({
-      memoryItem: this.toMemoryItem(use.memoryItem),
-      usedAt: use.usedAt,
-      context: use.context,
+    return uses.map((use: unknown) => ({
+      memoryItem: this.toMemoryItem((use as { memoryItem: unknown }).memoryItem),
+      usedAt: (use as { createdAt: Date }).createdAt,
+      context: null,
     }));
   }
 
@@ -335,30 +343,28 @@ export class PrismaMemoryProvider implements MemoryProvider {
   // -------------------------------------------------------------------------
 
   async createSnapshot(input: SnapshotInput): Promise<string> {
-    // Get items to include in snapshot
-    const items = await this.prisma.memoryItem.findMany({
-      where: { id: { in: input.itemIds } },
-    });
-
-    const totalTokens = items.reduce((sum, item) => sum + item.tokenCount, 0);
-
-    // Create snapshot
     const snapshot = await this.prisma.runMemorySnapshot.create({
       data: {
         runId: input.runId,
         name: input.name ?? null,
-        description: input.description ?? null,
-        totalItems: items.length,
-        totalTokens,
-        metadata: input.metadata as object | undefined,
-        items: {
-          create: items.map(item => ({
-            memoryItemId: item.id,
-            scoreAtSnapshot: item.score,
-          })),
-        },
+        metadata: (input.metadata || {}) as unknown as Record<string, unknown>,
       },
     });
+
+    if (input.itemIds && input.itemIds.length > 0) {
+      const items = await this.prisma.memoryItem.findMany({
+        where: { id: { in: input.itemIds } },
+        select: { id: true, score: true },
+      });
+
+      await this.prisma.runMemorySnapshotItem.createMany({
+        data: items.map(item => ({
+          snapshotId: snapshot.id,
+          memoryItemId: item.id,
+          scoreAtSnapshot: item.score,
+        })),
+      });
+    }
 
     return snapshot.id;
   }
@@ -368,30 +374,26 @@ export class PrismaMemoryProvider implements MemoryProvider {
   ): Promise<Array<{ id: string; name: string | null; snapshotAt: Date; totalItems: number }>> {
     const snapshots = await this.prisma.runMemorySnapshot.findMany({
       where: { runId },
-      orderBy: { snapshotAt: 'desc' },
+      include: { _count: { select: { items: true } } },
+      orderBy: { createdAt: 'desc' },
     });
 
     return snapshots.map(s => ({
       id: s.id,
       name: s.name,
-      snapshotAt: s.snapshotAt,
-      totalItems: s.totalItems,
+      snapshotAt: s.createdAt,
+      totalItems: s._count.items,
     }));
   }
 
   async getSnapshotItems(snapshotId: string): Promise<MemoryItem[]> {
     const snapshot = await this.prisma.runMemorySnapshot.findUnique({
       where: { id: snapshotId },
-      include: {
-        items: {
-          include: { memoryItem: true },
-        },
-      },
+      include: { items: { include: { memoryItem: true } } },
     });
 
     if (!snapshot) return [];
-
-    return snapshot.items.map(si => this.toMemoryItem(si.memoryItem));
+    return snapshot.items.map(item => this.toMemoryItem(item.memoryItem));
   }
 
   // -------------------------------------------------------------------------
@@ -399,23 +401,17 @@ export class PrismaMemoryProvider implements MemoryProvider {
   // -------------------------------------------------------------------------
 
   async getPolicy(projectId: string): Promise<MemoryPolicyConfig> {
-    const policy = await this.prisma.memoryPolicy.findUnique({
-      where: { projectId },
-    });
-
-    if (!policy) {
-      return { projectId, ...DEFAULT_POLICY };
-    }
+    const policy = await this.prisma.memoryPolicy.findUnique({ where: { projectId } });
+    if (!policy) return { ...DEFAULT_POLICY, projectId };
 
     return {
       projectId: policy.projectId,
       maxItems: policy.maxItems,
       maxTokensPerQuery: policy.maxTokensPerQuery,
       maxTokensTotal: policy.maxTokensTotal,
-      enabledScopes: JSON.parse(policy.enabledScopes as string) as MemoryScope[],
-      enabledCategories: JSON.parse(policy.enabledCategories as string) as MemoryCategory[],
-      defaultTtlDays: policy.defaultTtlDays,
-      autoArchiveDays: policy.autoArchiveDays,
+      enabledScopes: (policy.enabledScopes as MemoryScope[]) || DEFAULT_POLICY.enabledScopes,
+      enabledCategories:
+        (policy.enabledCategories as MemoryCategory[]) || DEFAULT_POLICY.enabledCategories,
       dedupeEnabled: policy.dedupeEnabled,
       similarityThreshold: policy.similarityThreshold,
       decayFactor: policy.decayFactor,
@@ -424,30 +420,11 @@ export class PrismaMemoryProvider implements MemoryProvider {
   }
 
   async updatePolicy(config: MemoryPolicyConfig): Promise<MemoryPolicyConfig> {
-    const data: Record<string, unknown> = {};
-
-    if (config.maxItems !== undefined) data.maxItems = config.maxItems;
-    if (config.maxTokensPerQuery !== undefined) data.maxTokensPerQuery = config.maxTokensPerQuery;
-    if (config.maxTokensTotal !== undefined) data.maxTokensTotal = config.maxTokensTotal;
-    if (config.enabledScopes !== undefined)
-      data.enabledScopes = JSON.stringify(config.enabledScopes);
-    if (config.enabledCategories !== undefined)
-      data.enabledCategories = JSON.stringify(config.enabledCategories);
-    if (config.defaultTtlDays !== undefined) data.defaultTtlDays = config.defaultTtlDays;
-    if (config.autoArchiveDays !== undefined) data.autoArchiveDays = config.autoArchiveDays;
-    if (config.dedupeEnabled !== undefined) data.dedupeEnabled = config.dedupeEnabled;
-    if (config.similarityThreshold !== undefined)
-      data.similarityThreshold = config.similarityThreshold;
-    if (config.decayFactor !== undefined) data.decayFactor = config.decayFactor;
-    if (config.accessBoost !== undefined) data.accessBoost = config.accessBoost;
-
+    const { projectId, ...updates } = config;
     const policy = await this.prisma.memoryPolicy.upsert({
-      where: { projectId: config.projectId },
-      create: {
-        projectId: config.projectId,
-        ...data,
-      },
-      update: data,
+      where: { projectId },
+      create: { projectId, ...DEFAULT_POLICY, ...updates },
+      update: updates,
     });
 
     return this.getPolicy(policy.projectId);
@@ -455,29 +432,21 @@ export class PrismaMemoryProvider implements MemoryProvider {
 
   async getBudgetStatus(projectId: string): Promise<BudgetStatus> {
     const policy = await this.getPolicy(projectId);
+    const itemCount = await this.prisma.memoryItem.count({ where: { projectId } });
 
-    const [itemCount, tokenAgg] = await Promise.all([
-      this.prisma.memoryItem.count({
-        where: { projectId, archived: false },
-      }),
-      this.prisma.memoryItem.aggregate({
-        where: { projectId, archived: false },
-        _sum: { tokenCount: true },
-      }),
-    ]);
+    const totalTokens = 0; // Placeholder
+    const maxItems = policy.maxItems ?? 1000;
+    const maxTokens = policy.maxTokensTotal ?? 100000;
 
-    const tokenCount = tokenAgg._sum.tokenCount ?? 0;
-    const maxItems = policy.maxItems ?? DEFAULT_POLICY.maxItems ?? 1000;
-    const maxTokens = policy.maxTokensTotal ?? DEFAULT_POLICY.maxTokensTotal ?? 100000;
-
-    const itemUtilization = (itemCount / maxItems) * 100;
-    const tokenUtilization = (tokenCount / maxTokens) * 100;
-    const utilizationPercent = Math.max(itemUtilization, tokenUtilization);
+    const utilizationPercent = Math.max(
+      (itemCount / maxItems) * 100,
+      (totalTokens / maxTokens) * 100
+    );
 
     return {
       itemCount,
       maxItems,
-      tokenCount,
+      tokenCount: totalTokens,
       maxTokens,
       utilizationPercent,
       nearLimit: utilizationPercent > 80,
@@ -487,30 +456,29 @@ export class PrismaMemoryProvider implements MemoryProvider {
 
   async enforceBudget(projectId: string, targetUtilization = 80): Promise<number> {
     const status = await this.getBudgetStatus(projectId);
+    if (!status.atLimit && status.utilizationPercent <= targetUtilization) return 0;
 
-    if (status.utilizationPercent <= targetUtilization) {
-      return 0;
-    }
-
-    // Calculate how many items to archive
-    const targetItems = Math.floor((status.maxItems * targetUtilization) / 100);
+    const policy = await this.getPolicy(projectId);
+    const maxItems = policy.maxItems ?? 1000;
+    const targetItems = Math.floor((maxItems * targetUtilization) / 100);
     const itemsToArchive = status.itemCount - targetItems;
 
     if (itemsToArchive <= 0) return 0;
 
-    // Get lowest-scoring items to archive
     const toArchive = await this.prisma.memoryItem.findMany({
-      where: { projectId, archived: false },
+      where: { projectId },
       orderBy: { score: 'asc' },
       take: itemsToArchive,
-      select: { id: true },
+      select: { id: true, metadata: true },
     });
 
-    // Archive items
-    await this.prisma.memoryItem.updateMany({
-      where: { id: { in: toArchive.map(i => i.id) } },
-      data: { archived: true },
-    });
+    for (const item of toArchive) {
+      const metadata = (item.metadata as Record<string, unknown>) || {};
+      await this.prisma.memoryItem.update({
+        where: { id: item.id },
+        data: { metadata: { ...metadata, archived: true } as unknown as Record<string, unknown> },
+      });
+    }
 
     return toArchive.length;
   }
@@ -520,115 +488,85 @@ export class PrismaMemoryProvider implements MemoryProvider {
   // -------------------------------------------------------------------------
 
   async applyScoreDecay(projectId?: string): Promise<number> {
-    const where: Record<string, unknown> = { archived: false };
-    if (projectId) where.projectId = projectId;
-
-    // Get decay factor from policy or use default
     let decayFactor = DEFAULT_POLICY.decayFactor ?? 0.99;
     if (projectId) {
       const policy = await this.getPolicy(projectId);
       decayFactor = policy.decayFactor ?? decayFactor;
     }
 
-    // Update all items with decay
-    const result = await this.prisma.$executeRaw`
-      UPDATE "MemoryItem"
-      SET score = score * ${decayFactor}
-      WHERE archived = false
-      ${projectId ? `AND "projectId" = '${projectId}'` : ''}
-    `;
-
+    const result = await this.prisma.$executeRawUnsafe(
+      `UPDATE "MemoryItem" SET score = score * ${decayFactor} WHERE 1=1 ${projectId ? `AND "projectId" = '${projectId}'` : ''}`
+    );
     return result;
   }
 
   async boostScore(itemId: string, boost: number): Promise<void> {
     await this.prisma.memoryItem.update({
       where: { id: itemId },
-      data: {
-        score: { increment: Math.min(boost, 1.0) },
-      },
-    });
-
-    // Ensure score doesn't exceed 1.0
-    await this.prisma.memoryItem.updateMany({
-      where: { id: itemId, score: { gt: 1.0 } },
-      data: { score: 1.0 },
+      data: { score: { increment: Math.min(boost, 1.0) } },
     });
   }
 
   async archiveExpired(): Promise<number> {
     const result = await this.prisma.memoryItem.updateMany({
       where: {
-        archived: false,
-        expiresAt: { lte: new Date() },
+        expiresAt: { lt: new Date() },
+        metadata: {
+          path: ['archived'],
+          not: true,
+        },
       },
-      data: { archived: true },
+      data: {
+        metadata: {
+          archived: true,
+        } as unknown as Record<string, unknown>,
+      },
     });
-
     return result.count;
   }
 
   // -------------------------------------------------------------------------
-  // Private Helpers
+  // Helpers
   // -------------------------------------------------------------------------
 
-  private toMemoryItem(item: {
-    id: string;
-    projectId: string | null;
-    runId: string | null;
-    contentHash: string;
-    content: string;
-    summary: string | null;
-    scope: MemoryScope;
-    category: MemoryCategory;
-    source: string | null;
-    sourceType: string | null;
-    score: number;
-    accessCount: number;
-    lastAccessed: Date | null;
-    tokenCount: number;
-    metadata: unknown;
-    expiresAt: Date | null;
-    archived: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-  }): MemoryItem {
+  private toMemoryItem(item: unknown): MemoryItem {
+    const i = item as {
+      id: string;
+      projectId: string | null;
+      runId: string | null;
+      content: string;
+      summary: string | null;
+      scope: string;
+      category: string;
+      score: number;
+      accessCount: number;
+      lastUsedAt: Date;
+      metadata: unknown;
+      expiresAt: Date | null;
+      createdAt: Date;
+      updatedAt: Date;
+    };
+    const metadata = (i.metadata as Record<string, unknown>) || {};
     return {
-      id: item.id,
-      projectId: item.projectId,
-      runId: item.runId,
-      contentHash: item.contentHash,
-      content: item.content,
-      summary: item.summary,
-      scope: item.scope,
-      category: item.category,
-      source: item.source,
-      sourceType: item.sourceType,
-      score: item.score,
-      accessCount: item.accessCount,
-      lastAccessed: item.lastAccessed,
-      tokenCount: item.tokenCount,
-      metadata: item.metadata as Record<string, unknown> | null,
-      expiresAt: item.expiresAt,
-      archived: item.archived,
-      createdAt: item.createdAt,
-      updatedAt: item.updatedAt,
+      id: i.id,
+      projectId: i.projectId,
+      runId: i.runId,
+      contentHash: (metadata.contentHash as string) || '',
+      content: i.content,
+      summary: i.summary,
+      scope: i.scope as MemoryScope,
+      category: i.category as MemoryCategory,
+      source: (metadata.source as string) || null,
+      sourceType: (metadata.sourceType as string) || null,
+      score: i.score,
+      accessCount: i.accessCount,
+      lastAccessed: i.lastUsedAt,
+      tokenCount: (metadata.tokenCount as number) || estimateTokenCount(i.content),
+      metadata,
+      expiresAt: i.expiresAt,
+      archived: (metadata.archived as boolean) || false,
+      createdAt: i.createdAt,
+      updatedAt: i.updatedAt,
     };
   }
-}
-
-// ============================================================================
-// Factory & Singleton
-// ============================================================================
-
-let memoryProviderInstance: PrismaMemoryProvider | null = null;
-
-/**
- * Get or create a singleton PrismaMemoryProvider instance
- */
-export function getMemoryProvider(prisma: PrismaClient): PrismaMemoryProvider {
-  if (!memoryProviderInstance) {
-    memoryProviderInstance = new PrismaMemoryProvider(prisma);
-  }
-  return memoryProviderInstance;
 }

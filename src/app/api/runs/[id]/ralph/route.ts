@@ -20,7 +20,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       where: { id },
       include: {
         policy: true,
-        iterations: { orderBy: { iteration: 'desc' }, take: 1 },
+        iterations: { orderBy: { iterationNumber: 'desc' }, take: 1 },
       },
     });
 
@@ -65,12 +65,8 @@ async function handleStart(
       data: {
         runId,
         maxIterations: 25,
-        maxWallClockSeconds: 14400,
-        maxFailures: 10,
-        maxRepeatedError: 3,
-        maxNoProgressIterations: 5,
-        verificationCommands: ['npm run lint', 'npm test', 'npm run build'],
-        completionPromise: '<AFC_DONE/>',
+        autoAbortOnFailure: true,
+        requireHumanReview: false,
       },
     });
   }
@@ -86,7 +82,7 @@ async function handleStart(
   await prisma.runIteration.create({
     data: {
       runId,
-      iteration: 1,
+      iterationNumber: 1,
       status: 'RUNNING',
     },
   });
@@ -107,20 +103,20 @@ async function handleStop(runId: string, run: { ralphMode: boolean }, reason?: s
   await prisma.runAbortReason.upsert({
     where: { runId },
     update: {
-      reason: 'MANUAL_ABORT',
-      details: { userReason: reason || 'Manual stop requested' },
+      reason: reason || 'Manual stop requested',
+      code: 'HUMAN_ABORT',
     },
     create: {
       runId,
-      reason: 'MANUAL_ABORT',
-      details: { userReason: reason || 'Manual stop requested' },
+      reason: reason || 'Manual stop requested',
+      code: 'HUMAN_ABORT',
     },
   });
 
   // Update current iteration to ABORTED
   await prisma.runIteration.updateMany({
     where: { runId, status: 'RUNNING' },
-    data: { status: 'ABORTED', endedAt: new Date() },
+    data: { status: 'ABORTED' },
   });
 
   // Disable Ralph Mode and mark run as failed
@@ -139,7 +135,7 @@ async function handleApprove(
   runId: string,
   run: {
     ralphMode: boolean;
-    iterations: Array<{ id: string; status: string; iteration: number }>;
+    iterations: Array<{ id: string; status: string; iterationNumber: number }>;
   }
 ) {
   if (!run.ralphMode) {
@@ -154,20 +150,20 @@ async function handleApprove(
   // Update the waiting iteration to indicate approval received
   await prisma.runIteration.update({
     where: { id: lastIteration.id },
-    data: { status: 'PASSED', endedAt: new Date() },
+    data: { status: 'PASSED' },
   });
 
   // Create next iteration
   const nextIteration = await prisma.runIteration.create({
     data: {
       runId,
-      iteration: lastIteration.iteration + 1,
+      iterationNumber: lastIteration.iterationNumber + 1,
       status: 'RUNNING',
     },
   });
 
   return NextResponse.json({
     message: 'Approval received, resuming Ralph Mode',
-    iteration: nextIteration.iteration,
+    iteration: nextIteration.iterationNumber,
   });
 }
