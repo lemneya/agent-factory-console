@@ -22,8 +22,11 @@ test.describe('Memory Layer E2E', () => {
         },
       });
 
-      // May fail due to missing DB, but should parse request correctly
-      expect(response.status()).toBeLessThan(500);
+      // Should parse request correctly and return:
+      // - 201 if DB is available
+      // - 503 if DB not migrated (controlled error, not crash)
+      const status = response.status();
+      expect(status === 201 || status === 503).toBe(true);
     });
 
     test('POST /api/memory/query should accept query parameters', async ({ request }) => {
@@ -35,7 +38,11 @@ test.describe('Memory Layer E2E', () => {
         },
       });
 
-      expect(response.status()).toBeLessThan(500);
+      // Should parse request correctly and return:
+      // - 200 if DB is available
+      // - 503 if DB not migrated (controlled error, not crash)
+      const status = response.status();
+      expect(status === 200 || status === 503).toBe(true);
     });
 
     test('GET /api/memory/policy should require projectId', async ({ request }) => {

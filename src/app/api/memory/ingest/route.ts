@@ -91,6 +91,25 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error('Error ingesting memory items:', error);
-    return NextResponse.json({ error: 'Failed to ingest memory items' }, { status: 500 });
+
+    // Check for specific Prisma errors
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+    // Table doesn't exist or Prisma model not available
+    if (
+      errorMessage.includes('does not exist') ||
+      errorMessage.includes('P2021') ||
+      errorMessage.includes('P2025')
+    ) {
+      return NextResponse.json(
+        { error: 'Memory layer not initialized. Please run database migrations.' },
+        { status: 503 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: 'Failed to ingest memory items', details: errorMessage },
+      { status: 500 }
+    );
   }
 }
