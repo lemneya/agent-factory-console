@@ -3,6 +3,7 @@
 import { useEffect, useState, use, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import RalphModePanel from '@/components/ralph/RalphModePanel';
 
 interface Task {
   id: string;
@@ -17,6 +18,7 @@ interface Run {
   id: string;
   name: string;
   status: string;
+  ralphMode: boolean;
   createdAt: string;
   project: {
     id: string;
@@ -307,6 +309,18 @@ export default function RunDetailPage({ params }: RunDetailPageProps) {
       {error && (
         <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700 dark:border-red-800 dark:bg-red-900/50 dark:text-red-400">
           {error}
+        </div>
+      )}
+
+      {/* AFC-1.4: Ralph Mode Panel */}
+      {run && (
+        <div className="mb-6">
+          <RalphModePanel
+            runId={run.id}
+            ralphMode={run.ralphMode}
+            runStatus={run.status}
+            onRefresh={fetchRun}
+          />
         </div>
       )}
 

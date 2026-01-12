@@ -144,6 +144,11 @@ model Run {
   threadId    String          @default(cuid()) // AFC-1.1: threadId = runId always
   tasks       Task[]
   checkpoints RunCheckpoint[]
+  // AFC-1.4: Ralph Mode fields
+  policy      RunPolicy?
+  iterations  RunIteration[]
+  abortReason RunAbortReason?
+  ralphMode   Boolean         @default(false)
   createdAt   DateTime        @default(now())
   completedAt DateTime?
 
@@ -152,18 +157,19 @@ model Run {
 
 // AFC-1.1: RunCheckpoint for deterministic pause/resume
 model RunCheckpoint {
-  id           String   @id @default(cuid())
+  id           String         @id @default(cuid())
   runId        String
-  run          Run      @relation(fields: [runId], references: [id], onDelete: Cascade)
-  threadId     String   // MUST equal runId for AFC-1.1
+  run          Run            @relation(fields: [runId], references: [id], onDelete: Cascade)
+  threadId     String         // MUST equal runId for AFC-1.1
   graphVersion String
   graphHash    String?
   checkpointId String
   nextNode     String?
-  status       String   // RunStatus value
-  stateJson    Json     // entire RunState "values" payload
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  status       String         // RunStatus value
+  stateJson    Json           // entire RunState "values" payload
+  iterations   RunIteration[] // AFC-1.4: Iterations that created this checkpoint
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 
   @@index([runId])
   @@index([threadId])
@@ -297,4 +303,72 @@ enum RiskLevel {
   LOW
   MEDIUM
   HIGH
+}
+
+// ============================================================================
+// AFC-1.4: Ralph Mode Runner Models
+// ============================================================================
+
+// RunPolicy: Stores loop/budget rules per run
+model RunPolicy {
+  id                      String   @id @default(cuid())
+  runId                   String   @unique
+  run                     Run      @relation(fields: [runId], references: [id], onDelete: Cascade)
+  maxIterations           Int      @default(25)
+  maxWallClockSeconds     Int      @default(14400) // 4 hours
+  maxFailures             Int      @default(10)
+  maxRepeatedError        Int      @default(3)
+  maxNoProgressIterations Int      @default(5)
+  requireHumanApprovalAt  Json?    // e.g. ["plan_review","pre_merge"]
+  verificationCommands    Json     @default("[\"npm run lint\",\"npm test\",\"npm run build\"]")
+  completionPromise       String   @default("<AFC_DONE/>")
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+}
+
+// RunIteration: Tracks each loop attempt
+model RunIteration {
+  id                  String           @id @default(cuid())
+  runId               String
+  run                 Run              @relation(fields: [runId], references: [id], onDelete: Cascade)
+  iteration           Int
+  status              IterationStatus  @default(RUNNING)
+  startedAt           DateTime         @default(now())
+  endedAt             DateTime?
+  verificationSummary Json?            // { lint: pass/fail, test: pass/fail, build: pass/fail }
+  errorFingerprint    String?          // hash of top error for thrash detection
+  diffStats           Json?            // { files: n, insertions: n, deletions: n }
+  checkpointId        String?
+  checkpoint          RunCheckpoint?   @relation(fields: [checkpointId], references: [id])
+  createdAt           DateTime         @default(now())
+
+  @@unique([runId, iteration])
+  @@index([runId])
+  @@index([errorFingerprint])
+}
+
+// RunAbortReason: Records why run was aborted
+model RunAbortReason {
+  id        String      @id @default(cuid())
+  runId     String      @unique
+  run       Run         @relation(fields: [runId], references: [id], onDelete: Cascade)
+  reason    AbortReason
+  details   Json?
+  createdAt DateTime    @default(now())
+}
+
+enum IterationStatus {
+  RUNNING
+  PASSED
+  FAILED
+  WAITING_FOR_APPROVAL
+  ABORTED
+}
+
+enum AbortReason {
+  TIME_BUDGET
+  ITERATION_BUDGET
+  FAILURE_BUDGET
+  THRASHING
+  MANUAL_ABORT
 }

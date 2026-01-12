@@ -213,6 +213,47 @@ export const prismaMock = {
     delete: jest.fn(),
     count: jest.fn(),
   },
+  // AFC-1.4: Ralph Mode mocks
+  runPolicy: {
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    findFirst: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    upsert: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn(),
+  },
+  runIteration: {
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    findFirst: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    upsert: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn(),
+  },
+  runAbortReason: {
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    findFirst: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    upsert: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn(),
+  },
+  runCheckpoint: {
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    findFirst: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    upsert: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn(),
+  },
 } as unknown as MockPrismaClient;
 
 // Reset all mocks helper
