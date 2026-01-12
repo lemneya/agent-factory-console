@@ -27,3 +27,8 @@ dist-ssr
 .env
 .env.local
 .env.*.local
+
+# Build artifacts
+.next/
+next-env.d.ts
+tsconfig.tsbuildinfo
