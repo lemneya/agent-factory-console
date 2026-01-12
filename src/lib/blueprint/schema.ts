@@ -304,9 +304,7 @@ export function validateBlueprintSpec(
     if (Array.isArray(mod2.depends_on_modules)) {
       for (const depId of mod2.depends_on_modules) {
         if (!seenModuleIds.has(depId as string)) {
-          warnings.push(
-            `modules[${i}].depends_on_modules references unknown module_id: ${depId}`
-          );
+          warnings.push(`modules[${i}].depends_on_modules references unknown module_id: ${depId}`);
         }
       }
     }

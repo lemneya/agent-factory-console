@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Transform to include dependency count
-    const transformed = workOrders.map((wo) => ({
+    const transformed = workOrders.map(wo => ({
       ...wo,
       dependsOnCount: wo.dependsOn.length,
       dependedOnByCount: wo._count.dependedOnBy,

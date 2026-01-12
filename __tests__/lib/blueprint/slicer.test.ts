@@ -32,9 +32,7 @@ describe('AFC-1.7: Slicer Algorithm', () => {
             acceptance: ['Invalidates session'],
           },
         ],
-        interfaces: [
-          { name: 'AuthDTO', path: 'types/auth.ts' },
-        ],
+        interfaces: [{ name: 'AuthDTO', path: 'types/auth.ts' }],
         owned_paths_hint: {
           BACKEND: ['src/app/api/auth/**'],
           FRONTEND: ['src/app/login/**'],
@@ -72,9 +70,7 @@ describe('AFC-1.7: Slicer Algorithm', () => {
       const result1 = sliceBlueprintToWorkOrders(sampleSpec, { projectId: 'proj-1' });
       const result2 = sliceBlueprintToWorkOrders(sampleSpec, { projectId: 'proj-1' });
 
-      expect(result1.workOrders.map((wo) => wo.key)).toEqual(
-        result2.workOrders.map((wo) => wo.key)
-      );
+      expect(result1.workOrders.map(wo => wo.key)).toEqual(result2.workOrders.map(wo => wo.key));
     });
 
     it('generates deterministic specHash', () => {
@@ -109,7 +105,7 @@ describe('AFC-1.7: Slicer Algorithm', () => {
     it('assigns correct domains', () => {
       const result = sliceBlueprintToWorkOrders(sampleSpec, { projectId: 'proj-1' });
 
-      const domains = result.workOrders.map((wo) => wo.domain);
+      const domains = result.workOrders.map(wo => wo.domain);
       expect(domains).toContain('BACKEND');
       expect(domains).toContain('FRONTEND');
       expect(domains).toContain('QA');
@@ -119,7 +115,7 @@ describe('AFC-1.7: Slicer Algorithm', () => {
       const result = sliceBlueprintToWorkOrders(sampleSpec, { projectId: 'proj-1' });
 
       const authBackend = result.workOrders.find(
-        (wo) => wo.moduleId === 'AUTH' && wo.domain === 'BACKEND'
+        wo => wo.moduleId === 'AUTH' && wo.domain === 'BACKEND'
       );
 
       expect(authBackend).toBeDefined();
@@ -131,7 +127,7 @@ describe('AFC-1.7: Slicer Algorithm', () => {
       const result = sliceBlueprintToWorkOrders(sampleSpec, { projectId: 'proj-1' });
 
       const authBackend = result.workOrders.find(
-        (wo) => wo.moduleId === 'AUTH' && wo.domain === 'BACKEND'
+        wo => wo.moduleId === 'AUTH' && wo.domain === 'BACKEND'
       );
 
       expect(authBackend!.ownedPaths).toContain('src/app/api/auth/**');
@@ -141,7 +137,7 @@ describe('AFC-1.7: Slicer Algorithm', () => {
       const result = sliceBlueprintToWorkOrders(sampleSpec, { projectId: 'proj-1' });
 
       const usersBackend = result.workOrders.find(
-        (wo) => wo.moduleId === 'USERS' && wo.domain === 'BACKEND'
+        wo => wo.moduleId === 'USERS' && wo.domain === 'BACKEND'
       );
 
       expect(usersBackend!.ownedPaths).toEqual(DEFAULT_OWNED_PATHS.BACKEND);
@@ -151,7 +147,7 @@ describe('AFC-1.7: Slicer Algorithm', () => {
       const result = sliceBlueprintToWorkOrders(sampleSpec, { projectId: 'proj-1' });
 
       const authBackend = result.workOrders.find(
-        (wo) => wo.moduleId === 'AUTH' && wo.domain === 'BACKEND'
+        wo => wo.moduleId === 'AUTH' && wo.domain === 'BACKEND'
       );
 
       expect(authBackend!.interfaces).toHaveLength(1);
@@ -162,7 +158,7 @@ describe('AFC-1.7: Slicer Algorithm', () => {
       const result = sliceBlueprintToWorkOrders(sampleSpec, { projectId: 'proj-1' });
 
       const authBackend = result.workOrders.find(
-        (wo) => wo.moduleId === 'AUTH' && wo.domain === 'BACKEND'
+        wo => wo.moduleId === 'AUTH' && wo.domain === 'BACKEND'
       );
 
       expect(authBackend!.assetsToUse).toContain('auth-shell');
@@ -172,7 +168,7 @@ describe('AFC-1.7: Slicer Algorithm', () => {
       const result = sliceBlueprintToWorkOrders(sampleSpec, { projectId: 'proj-1' });
 
       const authBackend = result.workOrders.find(
-        (wo) => wo.moduleId === 'AUTH' && wo.domain === 'BACKEND'
+        wo => wo.moduleId === 'AUTH' && wo.domain === 'BACKEND'
       );
 
       expect(authBackend!.acceptanceChecks).toContain('Returns JWT on success');
@@ -184,7 +180,7 @@ describe('AFC-1.7: Slicer Algorithm', () => {
       const result = sliceBlueprintToWorkOrders(sampleSpec, { projectId: 'proj-1' });
 
       const authBackend = result.workOrders.find(
-        (wo) => wo.moduleId === 'AUTH' && wo.domain === 'BACKEND'
+        wo => wo.moduleId === 'AUTH' && wo.domain === 'BACKEND'
       );
 
       expect(authBackend!.memoryHints).toContain('AUTH-001');
@@ -200,10 +196,10 @@ describe('AFC-1.7: Slicer Algorithm', () => {
       const result = sliceBlueprintToWorkOrders(sampleSpec, { projectId: 'proj-1' });
 
       const authFrontend = result.workOrders.find(
-        (wo) => wo.moduleId === 'AUTH' && wo.domain === 'FRONTEND'
+        wo => wo.moduleId === 'AUTH' && wo.domain === 'FRONTEND'
       );
       const authBackend = result.workOrders.find(
-        (wo) => wo.moduleId === 'AUTH' && wo.domain === 'BACKEND'
+        wo => wo.moduleId === 'AUTH' && wo.domain === 'BACKEND'
       );
 
       expect(authFrontend!.dependsOnKeys).toContain(authBackend!.key);
@@ -212,14 +208,12 @@ describe('AFC-1.7: Slicer Algorithm', () => {
     it('QA depends on FRONTEND and BACKEND', () => {
       const result = sliceBlueprintToWorkOrders(sampleSpec, { projectId: 'proj-1' });
 
-      const authQA = result.workOrders.find(
-        (wo) => wo.moduleId === 'AUTH' && wo.domain === 'QA'
-      );
+      const authQA = result.workOrders.find(wo => wo.moduleId === 'AUTH' && wo.domain === 'QA');
       const authBackend = result.workOrders.find(
-        (wo) => wo.moduleId === 'AUTH' && wo.domain === 'BACKEND'
+        wo => wo.moduleId === 'AUTH' && wo.domain === 'BACKEND'
       );
       const authFrontend = result.workOrders.find(
-        (wo) => wo.moduleId === 'AUTH' && wo.domain === 'FRONTEND'
+        wo => wo.moduleId === 'AUTH' && wo.domain === 'FRONTEND'
       );
 
       expect(authQA!.dependsOnKeys).toContain(authBackend!.key);
@@ -230,13 +224,11 @@ describe('AFC-1.7: Slicer Algorithm', () => {
       const result = sliceBlueprintToWorkOrders(sampleSpec, { projectId: 'proj-1' });
 
       const authBackend = result.workOrders.find(
-        (wo) => wo.moduleId === 'AUTH' && wo.domain === 'BACKEND'
+        wo => wo.moduleId === 'AUTH' && wo.domain === 'BACKEND'
       );
 
       // Only cross-module deps, no intra-module deps for BACKEND
-      const intraModuleDeps = authBackend!.dependsOnKeys.filter((key) =>
-        key.includes('AUTH')
-      );
+      const intraModuleDeps = authBackend!.dependsOnKeys.filter(key => key.includes('AUTH'));
       expect(intraModuleDeps).toHaveLength(0);
     });
   });
@@ -246,10 +238,10 @@ describe('AFC-1.7: Slicer Algorithm', () => {
       const result = sliceBlueprintToWorkOrders(sampleSpec, { projectId: 'proj-1' });
 
       const usersBackend = result.workOrders.find(
-        (wo) => wo.moduleId === 'USERS' && wo.domain === 'BACKEND'
+        wo => wo.moduleId === 'USERS' && wo.domain === 'BACKEND'
       );
       const authBackend = result.workOrders.find(
-        (wo) => wo.moduleId === 'AUTH' && wo.domain === 'BACKEND'
+        wo => wo.moduleId === 'AUTH' && wo.domain === 'BACKEND'
       );
 
       expect(usersBackend!.dependsOnKeys).toContain(authBackend!.key);
@@ -259,10 +251,10 @@ describe('AFC-1.7: Slicer Algorithm', () => {
       const result = sliceBlueprintToWorkOrders(sampleSpec, { projectId: 'proj-1' });
 
       const usersFrontend = result.workOrders.find(
-        (wo) => wo.moduleId === 'USERS' && wo.domain === 'FRONTEND'
+        wo => wo.moduleId === 'USERS' && wo.domain === 'FRONTEND'
       );
       const authFrontend = result.workOrders.find(
-        (wo) => wo.moduleId === 'AUTH' && wo.domain === 'FRONTEND'
+        wo => wo.moduleId === 'AUTH' && wo.domain === 'FRONTEND'
       );
 
       expect(usersFrontend!.dependsOnKeys).toContain(authFrontend!.key);
@@ -287,7 +279,7 @@ describe('AFC-1.7: Slicer Algorithm', () => {
       const result2 = sliceBlueprintToWorkOrders(sampleSpec, { projectId: 'proj-1' });
 
       for (const wo of result1.workOrders) {
-        const wo2 = result2.workOrders.find((w) => w.key === wo.key);
+        const wo2 = result2.workOrders.find(w => w.key === wo.key);
         expect(wo.dependsOnKeys).toEqual(wo2!.dependsOnKeys);
       }
     });
@@ -324,12 +316,7 @@ describe('AFC-1.7: Slicer Algorithm', () => {
       const result = sliceBlueprintToWorkOrders(sampleSpec, { projectId: 'proj-1' });
       const woData = result.workOrders[0];
 
-      const createInput = toWorkOrderCreateInput(
-        woData,
-        'version-1',
-        'proj-1',
-        'run-1'
-      );
+      const createInput = toWorkOrderCreateInput(woData, 'version-1', 'proj-1', 'run-1');
 
       expect(createInput.project).toEqual({ connect: { id: 'proj-1' } });
       expect(createInput.run).toEqual({ connect: { id: 'run-1' } });
@@ -367,13 +354,13 @@ describe('AFC-1.7: Slicer Algorithm', () => {
 
       const result = sliceBlueprintToWorkOrders(allDomainsSpec, { projectId: 'proj-1' });
 
-      const keys = result.workOrders.map((wo) => wo.key);
-      expect(keys.some((k) => k.includes('-UI-'))).toBe(true); // FRONTEND
-      expect(keys.some((k) => k.includes('-BE-'))).toBe(true); // BACKEND
-      expect(keys.some((k) => k.includes('-DO-'))).toBe(true); // DEVOPS
-      expect(keys.some((k) => k.includes('-QA-'))).toBe(true); // QA
-      expect(keys.some((k) => k.includes('-AL-'))).toBe(true); // ALGO
-      expect(keys.some((k) => k.includes('-IN-'))).toBe(true); // INTEGRATION
+      const keys = result.workOrders.map(wo => wo.key);
+      expect(keys.some(k => k.includes('-UI-'))).toBe(true); // FRONTEND
+      expect(keys.some(k => k.includes('-BE-'))).toBe(true); // BACKEND
+      expect(keys.some(k => k.includes('-DO-'))).toBe(true); // DEVOPS
+      expect(keys.some(k => k.includes('-QA-'))).toBe(true); // QA
+      expect(keys.some(k => k.includes('-AL-'))).toBe(true); // ALGO
+      expect(keys.some(k => k.includes('-IN-'))).toBe(true); // INTEGRATION
     });
   });
 });

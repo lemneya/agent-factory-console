@@ -200,7 +200,7 @@ describe('AFC-1.7: Blueprint Schema Validation', () => {
       const result = validateBlueprintSpec(spec);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some((e) => e.includes('invalid domain'))).toBe(true);
+      expect(result.errors.some(e => e.includes('invalid domain'))).toBe(true);
     });
 
     it('validates all valid domains', () => {
@@ -224,16 +224,14 @@ describe('AFC-1.7: Blueprint Schema Validation', () => {
         module_id: `MOD-${i}`,
         title: `Module ${i}`,
         domains: ['BACKEND'] as const,
-        spec_items: [
-          { spec_id: `SPEC-${i}`, must: 'Test', acceptance: [] },
-        ],
+        spec_items: [{ spec_id: `SPEC-${i}`, must: 'Test', acceptance: [] }],
       }));
 
       const spec = { ...validSpec, modules };
       const result = validateBlueprintSpec(spec, { maxModules: 50 });
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some((e) => e.includes('Too many modules'))).toBe(true);
+      expect(result.errors.some(e => e.includes('Too many modules'))).toBe(true);
     });
 
     it('enforces max spec items limit', () => {
@@ -250,7 +248,7 @@ describe('AFC-1.7: Blueprint Schema Validation', () => {
       const result = validateBlueprintSpec(spec, { maxSpecItems: 500 });
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some((e) => e.includes('Too many spec_items'))).toBe(true);
+      expect(result.errors.some(e => e.includes('Too many spec_items'))).toBe(true);
     });
 
     it('enforces max JSON size limit', () => {
@@ -259,7 +257,7 @@ describe('AFC-1.7: Blueprint Schema Validation', () => {
       const result = validateBlueprintSpec(spec);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some((e) => e.includes('exceeds maximum size'))).toBe(true);
+      expect(result.errors.some(e => e.includes('exceeds maximum size'))).toBe(true);
     });
 
     it('validates interfaces structure', () => {
@@ -275,7 +273,7 @@ describe('AFC-1.7: Blueprint Schema Validation', () => {
       const result = validateBlueprintSpec(spec);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some((e) => e.includes('interfaces[0].name'))).toBe(true);
+      expect(result.errors.some(e => e.includes('interfaces[0].name'))).toBe(true);
     });
 
     it('validates owned_paths_hint structure', () => {
@@ -293,7 +291,9 @@ describe('AFC-1.7: Blueprint Schema Validation', () => {
       const result = validateBlueprintSpec(spec as unknown as BlueprintSpec);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some((e) => e.includes('owned_paths_hint.BACKEND must be an array'))).toBe(true);
+      expect(result.errors.some(e => e.includes('owned_paths_hint.BACKEND must be an array'))).toBe(
+        true
+      );
     });
 
     it('warns about unknown module dependencies', () => {
@@ -309,7 +309,7 @@ describe('AFC-1.7: Blueprint Schema Validation', () => {
       const result = validateBlueprintSpec(spec);
 
       expect(result.valid).toBe(true); // Warning, not error
-      expect(result.warnings.some((w) => w.includes('unknown module_id'))).toBe(true);
+      expect(result.warnings.some(w => w.includes('unknown module_id'))).toBe(true);
     });
 
     it('collects all spec_ids', () => {
@@ -327,9 +327,7 @@ describe('AFC-1.7: Blueprint Schema Validation', () => {
             module_id: 'MOD-002',
             title: 'Module 2',
             domains: ['QA'] as const,
-            spec_items: [
-              { spec_id: 'SPEC-003', must: 'Test 3', acceptance: [] },
-            ],
+            spec_items: [{ spec_id: 'SPEC-003', must: 'Test 3', acceptance: [] }],
           },
         ],
       };

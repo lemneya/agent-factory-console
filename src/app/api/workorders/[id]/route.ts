@@ -25,10 +25,7 @@ const VALID_TRANSITIONS: Record<WorkOrderStatus, WorkOrderStatus[]> = {
   ABORTED: [], // Terminal state
 };
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const prisma = await getPrisma();
     const { id } = await params;
@@ -127,10 +124,7 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const prisma = await getPrisma();
     const { id } = await params;
@@ -182,7 +176,7 @@ export async function PATCH(
     }
 
     // Update WorkOrder and create audit event in transaction
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async tx => {
       // Update WorkOrder
       const updated = await tx.workOrder.update({
         where: { id },

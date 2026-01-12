@@ -142,8 +142,13 @@ export default function BlueprintDetailPage() {
     return (
       <main data-testid="page-root">
         <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center dark:border-red-800 dark:bg-red-900/50">
-          <h2 className="text-lg font-semibold text-red-800 dark:text-red-400">{error || 'Blueprint not found'}</h2>
-          <Link href="/blueprints" className="mt-4 inline-block text-blue-600 hover:underline dark:text-blue-400">
+          <h2 className="text-lg font-semibold text-red-800 dark:text-red-400">
+            {error || 'Blueprint not found'}
+          </h2>
+          <Link
+            href="/blueprints"
+            className="mt-4 inline-block text-blue-600 hover:underline dark:text-blue-400"
+          >
             Back to Blueprints
           </Link>
         </div>
@@ -163,14 +168,19 @@ export default function BlueprintDetailPage() {
         </div>
         <div className="mt-2 flex items-center justify-between">
           <div>
-            <h1 data-testid="page-title" className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h1
+              data-testid="page-title"
+              className="text-2xl font-bold text-gray-900 dark:text-white"
+            >
               {blueprint.name}
             </h1>
             <p className="mt-1 text-gray-600 dark:text-gray-400">
               {blueprint.project.repoFullName}
             </p>
           </div>
-          <span className={`rounded-full px-3 py-1 text-sm font-medium ${statusColors[blueprint.status]}`}>
+          <span
+            className={`rounded-full px-3 py-1 text-sm font-medium ${statusColors[blueprint.status]}`}
+          >
             {blueprint.status}
           </span>
         </div>
@@ -187,7 +197,7 @@ export default function BlueprintDetailPage() {
               {blueprint.versions.length === 0 ? (
                 <p className="text-sm text-gray-500 dark:text-gray-400">No versions yet</p>
               ) : (
-                blueprint.versions.map((version) => (
+                blueprint.versions.map(version => (
                   <button
                     key={version.id}
                     onClick={() => setSelectedVersion(version)}
@@ -199,7 +209,9 @@ export default function BlueprintDetailPage() {
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-medium text-gray-900 dark:text-white">v{version.version}</span>
+                      <span className="font-medium text-gray-900 dark:text-white">
+                        v{version.version}
+                      </span>
                       {version.publishedAt ? (
                         <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/50 dark:text-green-400">
                           Published
@@ -266,7 +278,9 @@ export default function BlueprintDetailPage() {
               <div className="mt-4 grid gap-4 text-sm md:grid-cols-2">
                 <div>
                   <span className="text-gray-500 dark:text-gray-400">Schema Version:</span>
-                  <span className="ml-2 text-gray-900 dark:text-white">{selectedVersion.schemaVersion}</span>
+                  <span className="ml-2 text-gray-900 dark:text-white">
+                    {selectedVersion.schemaVersion}
+                  </span>
                 </div>
                 <div>
                   <span className="text-gray-500 dark:text-gray-400">Spec Hash:</span>
@@ -276,12 +290,16 @@ export default function BlueprintDetailPage() {
                 </div>
                 <div>
                   <span className="text-gray-500 dark:text-gray-400">Created:</span>
-                  <span className="ml-2 text-gray-900 dark:text-white">{formatDate(selectedVersion.createdAt)}</span>
+                  <span className="ml-2 text-gray-900 dark:text-white">
+                    {formatDate(selectedVersion.createdAt)}
+                  </span>
                 </div>
                 {selectedVersion.publishedAt && (
                   <div>
                     <span className="text-gray-500 dark:text-gray-400">Published:</span>
-                    <span className="ml-2 text-gray-900 dark:text-white">{formatDate(selectedVersion.publishedAt)}</span>
+                    <span className="ml-2 text-gray-900 dark:text-white">
+                      {formatDate(selectedVersion.publishedAt)}
+                    </span>
                   </div>
                 )}
               </div>

@@ -77,7 +77,12 @@ export async function POST(request: NextRequest) {
 
     if (!name || typeof name !== 'string' || !name.trim()) {
       return NextResponse.json(
-        { error: { message: 'name is required and must be a non-empty string', code: 'VALIDATION_ERROR' } },
+        {
+          error: {
+            message: 'name is required and must be a non-empty string',
+            code: 'VALIDATION_ERROR',
+          },
+        },
         { status: 400 }
       );
     }

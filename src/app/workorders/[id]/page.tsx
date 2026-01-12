@@ -19,7 +19,14 @@ interface WorkOrder {
   title: string;
   summary: string;
   domain: 'FRONTEND' | 'BACKEND' | 'DEVOPS' | 'QA' | 'ALGO' | 'INTEGRATION';
-  status: 'PLANNED' | 'READY' | 'BLOCKED' | 'IN_PROGRESS' | 'WAITING_FOR_APPROVAL' | 'DONE' | 'ABORTED';
+  status:
+    | 'PLANNED'
+    | 'READY'
+    | 'BLOCKED'
+    | 'IN_PROGRESS'
+    | 'WAITING_FOR_APPROVAL'
+    | 'DONE'
+    | 'ABORTED';
   specIds: string[];
   ownedPaths: string[];
   interfaces: Array<{ name: string; path: string; description?: string }>;
@@ -192,8 +199,13 @@ export default function WorkOrderDetailPage() {
     return (
       <main data-testid="page-root">
         <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center dark:border-red-800 dark:bg-red-900/50">
-          <h2 className="text-lg font-semibold text-red-800 dark:text-red-400">{error || 'WorkOrder not found'}</h2>
-          <Link href="/workorders" className="mt-4 inline-block text-blue-600 hover:underline dark:text-blue-400">
+          <h2 className="text-lg font-semibold text-red-800 dark:text-red-400">
+            {error || 'WorkOrder not found'}
+          </h2>
+          <Link
+            href="/workorders"
+            className="mt-4 inline-block text-blue-600 hover:underline dark:text-blue-400"
+          >
             Back to WorkOrders
           </Link>
         </div>
@@ -216,13 +228,20 @@ export default function WorkOrderDetailPage() {
         <div className="mt-2 flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3">
-              <h1 data-testid="page-title" className="text-2xl font-bold text-gray-900 dark:text-white">
+              <h1
+                data-testid="page-title"
+                className="text-2xl font-bold text-gray-900 dark:text-white"
+              >
                 {workOrder.key}
               </h1>
-              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${domainColors[workOrder.domain]}`}>
+              <span
+                className={`rounded-full px-2 py-0.5 text-xs font-medium ${domainColors[workOrder.domain]}`}
+              >
                 {workOrder.domain}
               </span>
-              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[workOrder.status]}`}>
+              <span
+                className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[workOrder.status]}`}
+              >
                 {workOrder.status.replace(/_/g, ' ')}
               </span>
             </div>
@@ -241,9 +260,11 @@ export default function WorkOrderDetailPage() {
 
           {/* Spec IDs */}
           <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Spec IDs ({workOrder.specIds.length})</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Spec IDs ({workOrder.specIds.length})
+            </h2>
             <div className="mt-3 flex flex-wrap gap-2">
-              {workOrder.specIds.map((specId) => (
+              {workOrder.specIds.map(specId => (
                 <span
                   key={specId}
                   className="rounded-full bg-gray-100 px-3 py-1 text-sm font-mono text-gray-700 dark:bg-gray-700 dark:text-gray-300"
@@ -261,9 +282,22 @@ export default function WorkOrderDetailPage() {
             </h2>
             <ul className="mt-3 space-y-2">
               {workOrder.acceptanceChecks.map((check, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <li
+                  key={i}
+                  className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400"
+                >
+                  <svg
+                    className="mt-0.5 h-4 w-4 flex-shrink-0 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                   {check}
                 </li>
@@ -290,17 +324,34 @@ export default function WorkOrderDetailPage() {
               <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">No status changes yet</p>
             ) : (
               <div className="mt-3 space-y-3">
-                {workOrder.auditEvents.map((event) => (
-                  <div key={event.id} className="flex items-start gap-3 border-l-2 border-gray-200 pl-3 dark:border-gray-700">
+                {workOrder.auditEvents.map(event => (
+                  <div
+                    key={event.id}
+                    className="flex items-start gap-3 border-l-2 border-gray-200 pl-3 dark:border-gray-700"
+                  >
                     <div className="flex-1">
                       <div className="flex items-center gap-2 text-sm">
-                        <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${statusColors[event.fromStatus]}`}>
+                        <span
+                          className={`rounded px-1.5 py-0.5 text-xs font-medium ${statusColors[event.fromStatus]}`}
+                        >
                           {event.fromStatus}
                         </span>
-                        <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                        <svg
+                          className="h-4 w-4 text-gray-400"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={2}
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                          />
                         </svg>
-                        <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${statusColors[event.toStatus]}`}>
+                        <span
+                          className={`rounded px-1.5 py-0.5 text-xs font-medium ${statusColors[event.toStatus]}`}
+                        >
                           {event.toStatus}
                         </span>
                         {event.actor && (
@@ -308,9 +359,13 @@ export default function WorkOrderDetailPage() {
                         )}
                       </div>
                       {event.reason && (
-                        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{event.reason}</p>
+                        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                          {event.reason}
+                        </p>
                       )}
-                      <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">{formatDate(event.createdAt)}</p>
+                      <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                        {formatDate(event.createdAt)}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -336,14 +391,14 @@ export default function WorkOrderDetailPage() {
                   <input
                     type="text"
                     value={reason}
-                    onChange={(e) => setReason(e.target.value)}
+                    onChange={e => setReason(e.target.value)}
                     data-testid="status-reason-input"
                     className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                     placeholder="Why are you changing status?"
                   />
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {allowedTransitions.map((status) => (
+                  {allowedTransitions.map(status => (
                     <button
                       key={status}
                       onClick={() => handleStatusChange(status)}
@@ -368,19 +423,25 @@ export default function WorkOrderDetailPage() {
               <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">No dependencies</p>
             ) : (
               <div className="mt-3 space-y-2">
-                {workOrder.dependsOn.map((dep) => (
+                {workOrder.dependsOn.map(dep => (
                   <Link
                     key={dep.dependsOn.id}
                     href={`/workorders/${dep.dependsOn.id}`}
                     className="block rounded-lg border border-gray-200 p-2 hover:border-blue-300 dark:border-gray-700 dark:hover:border-blue-600"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs text-gray-500 dark:text-gray-400">{dep.dependsOn.key}</span>
-                      <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${statusColors[dep.dependsOn.status]}`}>
+                      <span className="font-mono text-xs text-gray-500 dark:text-gray-400">
+                        {dep.dependsOn.key}
+                      </span>
+                      <span
+                        className={`rounded px-1.5 py-0.5 text-xs font-medium ${statusColors[dep.dependsOn.status]}`}
+                      >
                         {dep.dependsOn.status}
                       </span>
                     </div>
-                    <p className="mt-1 truncate text-sm text-gray-700 dark:text-gray-300">{dep.dependsOn.title}</p>
+                    <p className="mt-1 truncate text-sm text-gray-700 dark:text-gray-300">
+                      {dep.dependsOn.title}
+                    </p>
                   </Link>
                 ))}
               </div>
@@ -396,19 +457,25 @@ export default function WorkOrderDetailPage() {
               <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">No dependents</p>
             ) : (
               <div className="mt-3 space-y-2">
-                {workOrder.dependedOnBy.map((dep) => (
+                {workOrder.dependedOnBy.map(dep => (
                   <Link
                     key={dep.workOrder.id}
                     href={`/workorders/${dep.workOrder.id}`}
                     className="block rounded-lg border border-gray-200 p-2 hover:border-blue-300 dark:border-gray-700 dark:hover:border-blue-600"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs text-gray-500 dark:text-gray-400">{dep.workOrder.key}</span>
-                      <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${statusColors[dep.workOrder.status]}`}>
+                      <span className="font-mono text-xs text-gray-500 dark:text-gray-400">
+                        {dep.workOrder.key}
+                      </span>
+                      <span
+                        className={`rounded px-1.5 py-0.5 text-xs font-medium ${statusColors[dep.workOrder.status]}`}
+                      >
                         {dep.workOrder.status}
                       </span>
                     </div>
-                    <p className="mt-1 truncate text-sm text-gray-700 dark:text-gray-300">{dep.workOrder.title}</p>
+                    <p className="mt-1 truncate text-sm text-gray-700 dark:text-gray-300">
+                      {dep.workOrder.title}
+                    </p>
                   </Link>
                 ))}
               </div>
@@ -430,7 +497,9 @@ export default function WorkOrderDetailPage() {
               </div>
               <div>
                 <span className="text-gray-500 dark:text-gray-400">Version:</span>
-                <span className="ml-2 text-gray-900 dark:text-white">v{workOrder.blueprintVersion.version}</span>
+                <span className="ml-2 text-gray-900 dark:text-white">
+                  v{workOrder.blueprintVersion.version}
+                </span>
               </div>
               <div>
                 <span className="text-gray-500 dark:text-gray-400">Spec Hash:</span>
@@ -440,7 +509,9 @@ export default function WorkOrderDetailPage() {
               </div>
               <div>
                 <span className="text-gray-500 dark:text-gray-400">Project:</span>
-                <span className="ml-2 text-gray-900 dark:text-white">{workOrder.project.repoFullName}</span>
+                <span className="ml-2 text-gray-900 dark:text-white">
+                  {workOrder.project.repoFullName}
+                </span>
               </div>
             </div>
           </div>

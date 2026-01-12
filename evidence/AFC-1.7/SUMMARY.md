@@ -52,21 +52,21 @@
 
 ### 3. API Routes
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/blueprints` | GET | List blueprints |
-| `/api/blueprints` | POST | Create blueprint |
-| `/api/blueprints/[id]` | GET | Get blueprint details |
-| `/api/blueprints/[id]` | PATCH | Update blueprint |
-| `/api/blueprints/[id]/versions` | GET | List versions |
-| `/api/blueprints/[id]/versions` | POST | Create version |
-| `/api/blueprints/versions/[versionId]/publish` | POST | Publish version (immutable) |
-| `/api/blueprints/versions/[versionId]/slice` | POST | Slice to WorkOrders |
-| `/api/blueprints/validate` | POST | Validate spec JSON |
-| `/api/workorders` | GET | List WorkOrders |
-| `/api/workorders/[id]` | GET | Get WorkOrder details |
-| `/api/workorders/[id]` | PATCH | Update status (audited) |
-| `/api/workorders/[id]/tree` | GET | Get dependency tree |
+| Endpoint                                       | Method | Description                 |
+| ---------------------------------------------- | ------ | --------------------------- |
+| `/api/blueprints`                              | GET    | List blueprints             |
+| `/api/blueprints`                              | POST   | Create blueprint            |
+| `/api/blueprints/[id]`                         | GET    | Get blueprint details       |
+| `/api/blueprints/[id]`                         | PATCH  | Update blueprint            |
+| `/api/blueprints/[id]/versions`                | GET    | List versions               |
+| `/api/blueprints/[id]/versions`                | POST   | Create version              |
+| `/api/blueprints/versions/[versionId]/publish` | POST   | Publish version (immutable) |
+| `/api/blueprints/versions/[versionId]/slice`   | POST   | Slice to WorkOrders         |
+| `/api/blueprints/validate`                     | POST   | Validate spec JSON          |
+| `/api/workorders`                              | GET    | List WorkOrders             |
+| `/api/workorders/[id]`                         | GET    | Get WorkOrder details       |
+| `/api/workorders/[id]`                         | PATCH  | Update status (audited)     |
+| `/api/workorders/[id]/tree`                    | GET    | Get dependency tree         |
 
 ### 4. UI Pages (Agent C - Frontend)
 
@@ -136,6 +136,7 @@ PLANNED → READY → IN_PROGRESS → WAITING_FOR_APPROVAL → DONE
 ## Files Changed
 
 ### New Files
+
 - `prisma/migrations/20260112300000_afc_1_7_blueprint_slicer/migration.sql`
 - `src/lib/blueprint/schema.ts`
 - `src/lib/blueprint/slicer.ts`
@@ -160,6 +161,7 @@ PLANNED → READY → IN_PROGRESS → WAITING_FOR_APPROVAL → DONE
 - `evidence/AFC-1.7/SUMMARY.md`
 
 ### Modified Files
+
 - `prisma/schema.prisma` (added Blueprint, WorkOrder models)
 - `src/app/page.tsx` (added Blueprints and WorkOrders links)
 

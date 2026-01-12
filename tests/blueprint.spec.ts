@@ -92,10 +92,9 @@ test.describe('AFC-1.7 Blueprint + Slicer E2E', () => {
       await page.goto('/workorders');
       // Either shows workorders or empty state
       const pageContent = await page.textContent('main');
-      expect(
-        pageContent?.includes('WorkOrders') ||
-        pageContent?.includes('No WorkOrders')
-      ).toBe(true);
+      expect(pageContent?.includes('WorkOrders') || pageContent?.includes('No WorkOrders')).toBe(
+        true
+      );
     });
   });
 
@@ -203,9 +202,7 @@ test.describe('AFC-1.7 Blueprint + Slicer E2E', () => {
             module_id: 'MOD-001',
             title: 'Module 1',
             domains: ['BACKEND', 'FRONTEND'],
-            spec_items: [
-              { spec_id: 'S1', must: 'Test', acceptance: ['Pass'] },
-            ],
+            spec_items: [{ spec_id: 'S1', must: 'Test', acceptance: ['Pass'] }],
           },
         ],
       };
@@ -310,9 +307,7 @@ test.describe('AFC-1.7 Blueprint + Slicer E2E', () => {
             title: 'Module',
             domains: ['BACKEND'],
             spec_items: [{ spec_id: 'S1', must: 'Test', acceptance: [] }],
-            interfaces: [
-              { name: 'TestDTO', path: 'types/test.ts', description: 'Test DTO' },
-            ],
+            interfaces: [{ name: 'TestDTO', path: 'types/test.ts', description: 'Test DTO' }],
           },
         ],
       };

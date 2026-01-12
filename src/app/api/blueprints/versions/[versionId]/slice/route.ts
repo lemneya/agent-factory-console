@@ -51,7 +51,9 @@ export async function POST(
     // Version must be published to slice
     if (!version.publishedAt) {
       return NextResponse.json(
-        { error: { message: 'Version must be published before slicing', code: 'VALIDATION_ERROR' } },
+        {
+          error: { message: 'Version must be published before slicing', code: 'VALIDATION_ERROR' },
+        },
         { status: 400 }
       );
     }
@@ -69,7 +71,9 @@ export async function POST(
       }
       if (run.projectId !== version.blueprint.projectId) {
         return NextResponse.json(
-          { error: { message: 'Run does not belong to the same project', code: 'VALIDATION_ERROR' } },
+          {
+            error: { message: 'Run does not belong to the same project', code: 'VALIDATION_ERROR' },
+          },
           { status: 400 }
         );
       }
@@ -116,7 +120,7 @@ export async function POST(
     }
 
     // Create WorkOrders and dependencies in a transaction
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async tx => {
       // Create all WorkOrders first
       const workOrderMap = new Map<string, string>(); // key -> id
 

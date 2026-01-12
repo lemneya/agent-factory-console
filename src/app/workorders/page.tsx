@@ -10,7 +10,14 @@ interface WorkOrder {
   title: string;
   summary: string;
   domain: 'FRONTEND' | 'BACKEND' | 'DEVOPS' | 'QA' | 'ALGO' | 'INTEGRATION';
-  status: 'PLANNED' | 'READY' | 'BLOCKED' | 'IN_PROGRESS' | 'WAITING_FOR_APPROVAL' | 'DONE' | 'ABORTED';
+  status:
+    | 'PLANNED'
+    | 'READY'
+    | 'BLOCKED'
+    | 'IN_PROGRESS'
+    | 'WAITING_FOR_APPROVAL'
+    | 'DONE'
+    | 'ABORTED';
   specIds: string[];
   ownedPaths: string[];
   blueprintVersion: {
@@ -79,12 +86,10 @@ function LoadingSkeleton() {
         <h1 data-testid="page-title" className="text-2xl font-bold text-gray-900 dark:text-white">
           WorkOrders
         </h1>
-        <p className="mt-1 text-gray-600 dark:text-gray-400">
-          Sliced work units from blueprints
-        </p>
+        <p className="mt-1 text-gray-600 dark:text-gray-400">Sliced work units from blueprints</p>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
+        {[1, 2, 3, 4, 5, 6].map(i => (
           <div
             key={i}
             className="animate-pulse rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800"
@@ -173,7 +178,8 @@ function WorkOrdersContent() {
                 href={`/blueprints/${workOrders[0].blueprintVersion.blueprint.id}`}
                 className="text-blue-600 hover:underline dark:text-blue-400"
               >
-                {workOrders[0].blueprintVersion.blueprint.name} v{workOrders[0].blueprintVersion.version}
+                {workOrders[0].blueprintVersion.blueprint.name} v
+                {workOrders[0].blueprintVersion.version}
               </Link>
             </span>
           )}
@@ -201,7 +207,9 @@ function WorkOrdersContent() {
               d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"
             />
           </svg>
-          <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">No WorkOrders yet</h3>
+          <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
+            No WorkOrders yet
+          </h3>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
             WorkOrders are created by slicing a published Blueprint version.
           </p>
@@ -219,13 +227,15 @@ function WorkOrdersContent() {
             .map(([domain, orders]) => (
               <div key={domain}>
                 <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${domainColors[domain]}`}>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${domainColors[domain]}`}
+                  >
                     {domain}
                   </span>
                   <span className="text-gray-500 dark:text-gray-400">({orders.length})</span>
                 </h2>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {orders.map((wo) => (
+                  {orders.map(wo => (
                     <Link
                       key={wo.id}
                       href={`/workorders/${wo.id}`}
@@ -235,8 +245,12 @@ function WorkOrdersContent() {
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-sm text-gray-500 dark:text-gray-400">{wo.key}</span>
-                            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[wo.status]}`}>
+                            <span className="font-mono text-sm text-gray-500 dark:text-gray-400">
+                              {wo.key}
+                            </span>
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[wo.status]}`}
+                            >
                               {wo.status.replace(/_/g, ' ')}
                             </span>
                           </div>
@@ -245,7 +259,9 @@ function WorkOrdersContent() {
                           </h3>
                         </div>
                       </div>
-                      <p className="mt-2 line-clamp-2 text-xs text-gray-600 dark:text-gray-400">{wo.summary}</p>
+                      <p className="mt-2 line-clamp-2 text-xs text-gray-600 dark:text-gray-400">
+                        {wo.summary}
+                      </p>
                       <div className="mt-3 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
                         <span title="Spec IDs">{wo.specCount} specs</span>
                         {wo.dependsOnCount > 0 && (

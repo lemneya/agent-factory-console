@@ -14,10 +14,7 @@ async function getPrisma() {
   return prisma;
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const prisma = await getPrisma();
     const { id } = await params;
@@ -62,10 +59,7 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const prisma = await getPrisma();
     const { id } = await params;
@@ -90,7 +84,12 @@ export async function PATCH(
       const validStatuses: BlueprintStatus[] = ['DRAFT', 'PUBLISHED', 'ARCHIVED'];
       if (!validStatuses.includes(status)) {
         return NextResponse.json(
-          { error: { message: `Invalid status. Must be one of: ${validStatuses.join(', ')}`, code: 'VALIDATION_ERROR' } },
+          {
+            error: {
+              message: `Invalid status. Must be one of: ${validStatuses.join(', ')}`,
+              code: 'VALIDATION_ERROR',
+            },
+          },
           { status: 400 }
         );
       }

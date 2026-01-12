@@ -84,10 +84,7 @@ function generateWorkOrderKey(
 /**
  * Get owned paths for a domain, using hints if available
  */
-function getOwnedPaths(
-  module: BlueprintModule,
-  domain: BlueprintDomain
-): string[] {
+function getOwnedPaths(module: BlueprintModule, domain: BlueprintDomain): string[] {
   if (module.owned_paths_hint?.[domain]) {
     return module.owned_paths_hint[domain] as string[];
   }
@@ -98,28 +95,22 @@ function getOwnedPaths(
  * Get spec IDs for a domain within a module
  * If spec items have domain tags, filter by domain; otherwise return all
  */
-function getSpecIdsForDomain(
-  module: BlueprintModule,
-  domain: BlueprintDomain
-): string[] {
-  const hasDomainTags = module.spec_items.some((item) => item.domain);
+function getSpecIdsForDomain(module: BlueprintModule, domain: BlueprintDomain): string[] {
+  const hasDomainTags = module.spec_items.some(item => item.domain);
 
   if (hasDomainTags) {
     return module.spec_items
-      .filter((item) => !item.domain || item.domain === domain)
-      .map((item) => item.spec_id);
+      .filter(item => !item.domain || item.domain === domain)
+      .map(item => item.spec_id);
   }
 
-  return module.spec_items.map((item) => item.spec_id);
+  return module.spec_items.map(item => item.spec_id);
 }
 
 /**
  * Get acceptance checks for a domain within a module
  */
-function getAcceptanceChecks(
-  module: BlueprintModule,
-  domain: BlueprintDomain
-): string[] {
+function getAcceptanceChecks(module: BlueprintModule, domain: BlueprintDomain): string[] {
   const specIds = new Set(getSpecIdsForDomain(module, domain));
   const checks: string[] = [];
 
@@ -140,11 +131,7 @@ function generateMemoryHints(
   domain: BlueprintDomain,
   specIds: string[]
 ): string[] {
-  const hints: string[] = [
-    ...specIds,
-    module.module_id,
-    `domain:${domain}`,
-  ];
+  const hints: string[] = [...specIds, module.module_id, `domain:${domain}`];
 
   // Add interface names as hints
   if (module.interfaces) {
@@ -277,9 +264,7 @@ export function sliceBlueprintToWorkOrders(
   let globalSeq = 1;
 
   // Sort modules by module_id for deterministic ordering
-  const sortedModules = [...spec.modules].sort((a, b) =>
-    a.module_id.localeCompare(b.module_id)
-  );
+  const sortedModules = [...spec.modules].sort((a, b) => a.module_id.localeCompare(b.module_id));
 
   for (const mod of sortedModules) {
     const moduleMap = new Map<BlueprintDomain, string>();

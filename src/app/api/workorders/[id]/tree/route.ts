@@ -22,10 +22,7 @@ interface TreeNode {
   dependedOnBy: TreeNode[];
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const prisma = await getPrisma();
     const { id } = await params;
@@ -74,7 +71,7 @@ export async function GET(
     });
 
     // Build lookup maps
-    const workOrderMap = new Map(allWorkOrders.map((wo) => [wo.id, wo]));
+    const workOrderMap = new Map(allWorkOrders.map(wo => [wo.id, wo]));
     const dependsOnMap = new Map<string, string[]>();
     const dependedOnByMap = new Map<string, string[]>();
 
@@ -98,19 +95,21 @@ export async function GET(
       visited.add(woId);
 
       const depIds = dependsOnMap.get(woId) || [];
-      return depIds.map((depId) => {
-        const wo = workOrderMap.get(depId);
-        if (!wo) return null;
-        return {
-          id: wo.id,
-          key: wo.key,
-          title: wo.title,
-          domain: wo.domain,
-          status: wo.status,
-          dependsOn: buildDependsOnTree(depId, new Set(visited), depth + 1),
-          dependedOnBy: [],
-        };
-      }).filter(Boolean) as TreeNode[];
+      return depIds
+        .map(depId => {
+          const wo = workOrderMap.get(depId);
+          if (!wo) return null;
+          return {
+            id: wo.id,
+            key: wo.key,
+            title: wo.title,
+            domain: wo.domain,
+            status: wo.status,
+            dependsOn: buildDependsOnTree(depId, new Set(visited), depth + 1),
+            dependedOnBy: [],
+          };
+        })
+        .filter(Boolean) as TreeNode[];
     }
 
     function buildDependedOnByTree(woId: string, visited: Set<string>, depth: number): TreeNode[] {
@@ -118,19 +117,21 @@ export async function GET(
       visited.add(woId);
 
       const depIds = dependedOnByMap.get(woId) || [];
-      return depIds.map((depId) => {
-        const wo = workOrderMap.get(depId);
-        if (!wo) return null;
-        return {
-          id: wo.id,
-          key: wo.key,
-          title: wo.title,
-          domain: wo.domain,
-          status: wo.status,
-          dependsOn: [],
-          dependedOnBy: buildDependedOnByTree(depId, new Set(visited), depth + 1),
-        };
-      }).filter(Boolean) as TreeNode[];
+      return depIds
+        .map(depId => {
+          const wo = workOrderMap.get(depId);
+          if (!wo) return null;
+          return {
+            id: wo.id,
+            key: wo.key,
+            title: wo.title,
+            domain: wo.domain,
+            status: wo.status,
+            dependsOn: [],
+            dependedOnBy: buildDependedOnByTree(depId, new Set(visited), depth + 1),
+          };
+        })
+        .filter(Boolean) as TreeNode[];
     }
 
     const tree: TreeNode = {
@@ -144,7 +145,7 @@ export async function GET(
     };
 
     // Also return flat list of all WorkOrders for visualization
-    const flatList = allWorkOrders.map((wo) => ({
+    const flatList = allWorkOrders.map(wo => ({
       ...wo,
       dependsOn: dependsOnMap.get(wo.id) || [],
       dependedOnBy: dependedOnByMap.get(wo.id) || [],
