@@ -70,6 +70,9 @@ model Project {
   runs             Run[]
   events           GitHubEvent[]
   councilDecisions CouncilDecision[]
+  // AFC-1.6: Memory Layer relations
+  memoryItems      MemoryItem[]
+  memoryPolicy     MemoryPolicy?
   createdAt        DateTime          @default(now())
 }
 
@@ -136,21 +139,23 @@ model Issue {
 }
 
 model Run {
-  id          String          @id @default(cuid())
-  projectId   String
-  project     Project         @relation(fields: [projectId], references: [id])
-  name        String
-  status      String          @default("ACTIVE")
-  threadId    String          @default(cuid()) // AFC-1.1: threadId = runId always
-  tasks       Task[]
-  checkpoints RunCheckpoint[]
+  id              String              @id @default(cuid())
+  projectId       String
+  project         Project             @relation(fields: [projectId], references: [id])
+  name            String
+  status          String              @default("ACTIVE")
+  threadId        String              @default(cuid()) // AFC-1.1: threadId = runId always
+  tasks           Task[]
+  checkpoints     RunCheckpoint[]
   // AFC-1.4: Ralph Mode fields
-  policy      RunPolicy?
-  iterations  RunIteration[]
-  abortReason RunAbortReason?
-  ralphMode   Boolean         @default(false)
-  createdAt   DateTime        @default(now())
-  completedAt DateTime?
+  policy          RunPolicy?
+  iterations      RunIteration[]
+  abortReason     RunAbortReason?
+  ralphMode       Boolean             @default(false)
+  // AFC-1.6: Memory Layer relations
+  memorySnapshots RunMemorySnapshot[]
+  createdAt       DateTime            @default(now())
+  completedAt     DateTime?
 
   @@index([threadId])
 }
@@ -371,4 +376,159 @@ enum AbortReason {
   FAILURE_BUDGET
   THRASHING
   MANUAL_ABORT
+}
+
+// ============================================================================
+// AFC-1.6: Memory Layer MVP Models
+// ============================================================================
+
+// MemoryScope: Defines the visibility scope of a memory item
+enum MemoryScope {
+  GLOBAL     // Available across all projects
+  PROJECT    // Available within a single project
+  RUN        // Available only within a single run
+}
+
+// MemoryCategory: Categorizes the type of memory content
+enum MemoryCategory {
+  CODE           // Code snippets, implementations
+  DOCUMENTATION  // Docs, READMEs, comments
+  DECISION       // Architectural decisions, ADRs
+  ERROR          // Error patterns, solutions
+  CONTEXT        // General context, background info
+  CUSTOM         // User-defined category
+}
+
+// MemoryItem: Core memory storage unit
+model MemoryItem {
+  id           String          @id @default(cuid())
+  projectId    String?
+  project      Project?        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  runId        String?         // Optional: for RUN-scoped items
+
+  contentHash  String          // SHA-256 hash for deduplication
+  content      String          @db.Text // The actual memory content
+  summary      String?         // Optional short summary
+
+  scope        MemoryScope     @default(PROJECT)
+  category     MemoryCategory  @default(CONTEXT)
+
+  source       String?         // Origin: file path, URL, manual, etc.
+  sourceType   String?         // file, url, manual, agent
+
+  score        Float           @default(1.0) // Relevance/importance score (0-1)
+  accessCount  Int             @default(0)   // Number of times accessed
+  lastAccessed DateTime?       // Last time this item was used
+
+  tokenCount   Int             @default(0)   // Estimated token count for budget
+
+  metadata     Json?           // Additional metadata (tags, etc.)
+
+  expiresAt    DateTime?       // Optional TTL
+  archived     Boolean         @default(false)
+
+  uses         MemoryUse[]     // Tracking usage
+  snapshots    RunMemorySnapshotItem[]
+
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@unique([projectId, contentHash]) // Dedupe within project
+  @@index([projectId])
+  @@index([runId])
+  @@index([scope])
+  @@index([category])
+  @@index([score])
+  @@index([contentHash])
+}
+
+// MemoryUse: Tracks when and how memory items are used in runs
+model MemoryUse {
+  id           String      @id @default(cuid())
+  memoryItemId String
+  memoryItem   MemoryItem  @relation(fields: [memoryItemId], references: [id], onDelete: Cascade)
+  runId        String
+
+  context      String?     @db.Text // Why/how it was used
+  queryText    String?     // The query that retrieved this item
+  relevance    Float?      // Relevance score for this use (0-1)
+
+  usedAt       DateTime    @default(now())
+
+  @@index([memoryItemId])
+  @@index([runId])
+  @@index([usedAt])
+}
+
+// MemoryPolicy: Project-level memory configuration
+model MemoryPolicy {
+  id                String           @id @default(cuid())
+  projectId         String           @unique
+  project           Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Budget enforcement
+  maxItems          Int              @default(1000)    // Max memory items per project
+  maxTokensPerQuery Int              @default(4000)    // Max tokens in query response
+  maxTokensTotal    Int              @default(100000)  // Max total tokens stored
+
+  // Scope filtering
+  enabledScopes     Json             @default("[\"PROJECT\", \"RUN\"]") // Enabled scopes
+
+  // Category filtering
+  enabledCategories Json             @default("[\"CODE\", \"DOCUMENTATION\", \"DECISION\", \"ERROR\", \"CONTEXT\", \"CUSTOM\"]")
+
+  // Retention settings
+  defaultTtlDays    Int?             // Default expiration in days
+  autoArchiveDays   Int?             // Auto-archive after N days of no access
+
+  // Deduplication settings
+  dedupeEnabled     Boolean          @default(true)
+  similarityThreshold Float          @default(0.95) // For fuzzy dedupe (future)
+
+  // Scoring settings
+  decayFactor       Float            @default(0.99)  // Daily score decay
+  accessBoost       Float            @default(0.1)   // Score boost per access
+
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@index([projectId])
+}
+
+// RunMemorySnapshot: Point-in-time snapshot of memory state for a run
+model RunMemorySnapshot {
+  id           String                   @id @default(cuid())
+  runId        String
+  run          Run                      @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  name         String?                  // Optional snapshot name
+  description  String?                  // Why snapshot was taken
+
+  totalItems   Int                      @default(0)
+  totalTokens  Int                      @default(0)
+
+  items        RunMemorySnapshotItem[]
+
+  metadata     Json?                    // Additional metadata
+
+  snapshotAt   DateTime                 @default(now())
+  createdAt    DateTime                 @default(now())
+
+  @@index([runId])
+  @@index([snapshotAt])
+}
+
+// RunMemorySnapshotItem: Join table for snapshot items
+model RunMemorySnapshotItem {
+  id           String              @id @default(cuid())
+  snapshotId   String
+  snapshot     RunMemorySnapshot   @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  memoryItemId String
+  memoryItem   MemoryItem          @relation(fields: [memoryItemId], references: [id], onDelete: Cascade)
+
+  scoreAtSnapshot Float            // Score at time of snapshot
+
+  @@unique([snapshotId, memoryItemId])
+  @@index([snapshotId])
+  @@index([memoryItemId])
 }

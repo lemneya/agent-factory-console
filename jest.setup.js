@@ -3,6 +3,24 @@
 
 import '@testing-library/jest-dom';
 
+// Polyfill for Web Crypto API
+import { TextEncoder, TextDecoder } from 'util';
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
+
+// Mock crypto.subtle for Jest
+const crypto = require('crypto');
+global.crypto = {
+  subtle: {
+    digest: async (algorithm, data) => {
+      const hash = crypto.createHash('sha256');
+      hash.update(Buffer.from(data));
+      return hash.digest();
+    },
+  },
+  getRandomValues: (arr) => crypto.randomBytes(arr.length),
+};
+
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
