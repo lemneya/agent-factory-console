@@ -70,6 +70,8 @@ model Project {
   runs             Run[]
   events           GitHubEvent[]
   councilDecisions CouncilDecision[]
+  // AFC-1.2: Asset Registry relations
+  assets           ProjectAsset[]
   // AFC-1.6: Memory Layer relations
   memoryItems      MemoryItem[]
   memoryPolicy     MemoryPolicy?
@@ -200,6 +202,10 @@ model Task {
   claimedAt        DateTime?         // when the task was claimed
   leaseExpiresAt   DateTime?         // when the lease expires (reclaimable after)
   attempts         Int               @default(0) // number of claim attempts
+  // AFC-1.2: Asset integration fields
+  assetVersionId   String?
+  assetVersion     AssetVersion?     @relation(fields: [assetVersionId], references: [id])
+  kind             String            @default("BUILD_CUSTOM") // INTEGRATE_ASSET | BUILD_CUSTOM | RESEARCH | QA
   // AFC-1.3: Council decision link
   councilDecisions CouncilDecision[]
   createdAt        DateTime          @default(now())
@@ -207,6 +213,7 @@ model Task {
 
   @@index([status])
   @@index([leaseExpiresAt])
+  @@index([assetVersionId])
 }
 
 // Worker model for Agent B implementation
@@ -267,30 +274,13 @@ model CouncilDecision {
   id              String       @id @default(cuid())
   projectId       String
   project         Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  taskId          String?      // Optional link to specific task
+  taskId          String?
   task            Task?        @relation(fields: [taskId], references: [id])
-
-  decision        DecisionType // ADOPT | ADAPT | BUILD
-  confidence      Float        // 0-1 confidence score
-
-  // Research findings
-  candidateName   String?      // Name of solution evaluated
-  candidateUrl    String?      // URL to solution
-  licenseType     String?      // MIT, Apache, GPL, etc.
-  maintenanceRisk RiskLevel    // LOW | MEDIUM | HIGH
-  integrationPlan String?      @db.Text // How to integrate
-  redTeamCritique String?      @db.Text // Potential issues/risks
-
-  // Evidence
-  sources         Json         // Array of source URLs/references
-  reasoning       String       @db.Text // Why this decision was made
-
-  // Override tracking
-  overrideOf      String?      // ID of decision being overridden
-  overrideReason  String?      @db.Text // Why override was needed
-
-  // Metadata
-  createdBy       String?
+  
+  decision        String       // APPROVED | REJECTED | NEEDS_REVISION
+  rationale       String       @db.Text
+  evidenceJson    Json?        // Links to research logs, benchmarks, etc.
+  
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
@@ -298,162 +288,118 @@ model CouncilDecision {
   @@index([taskId])
 }
 
-enum DecisionType {
-  ADOPT
-  ADAPT
-  BUILD
-}
-
-enum RiskLevel {
-  LOW
-  MEDIUM
-  HIGH
-}
-
 // ============================================================================
-// AFC-1.4: Ralph Mode Runner Models
+// AFC-1.4: Ralph Mode Models
 // ============================================================================
 
-// RunPolicy: Stores loop/budget rules per run
+// RunPolicy: Configuration for Ralph Mode execution
 model RunPolicy {
-  id                      String   @id @default(cuid())
-  runId                   String   @unique
-  run                     Run      @relation(fields: [runId], references: [id], onDelete: Cascade)
-  maxIterations           Int      @default(25)
-  maxWallClockSeconds     Int      @default(14400) // 4 hours
-  maxFailures             Int      @default(10)
-  maxRepeatedError        Int      @default(3)
-  maxNoProgressIterations Int      @default(5)
-  requireHumanApprovalAt  Json?    // e.g. ["plan_review","pre_merge"]
-  verificationCommands    Json     @default("[\"npm run lint\",\"npm test\",\"npm run build\"]")
-  completionPromise       String   @default("<AFC_DONE/>")
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+  id                String   @id @default(cuid())
+  runId             String   @unique
+  run               Run      @relation(fields: [runId], references: [id], onDelete: Cascade)
+  
+  maxIterations     Int      @default(5)
+  autoAbortOnFailure Boolean  @default(true)
+  requireHumanReview Boolean  @default(false)
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
-// RunIteration: Tracks each loop attempt
+// RunIteration: Tracks individual Ralph Mode loops
 model RunIteration {
-  id                  String           @id @default(cuid())
-  runId               String
-  run                 Run              @relation(fields: [runId], references: [id], onDelete: Cascade)
-  iteration           Int
-  status              IterationStatus  @default(RUNNING)
-  startedAt           DateTime         @default(now())
-  endedAt             DateTime?
-  verificationSummary Json?            // { lint: pass/fail, test: pass/fail, build: pass/fail }
-  errorFingerprint    String?          // hash of top error for thrash detection
-  diffStats           Json?            // { files: n, insertions: n, deletions: n }
-  checkpointId        String?
-  checkpoint          RunCheckpoint?   @relation(fields: [checkpointId], references: [id])
-  createdAt           DateTime         @default(now())
-
-  @@unique([runId, iteration])
-  @@index([runId])
-  @@index([errorFingerprint])
+  id              String         @id @default(cuid())
+  runId           String
+  run             Run            @relation(fields: [runId], references: [id], onDelete: Cascade)
+  checkpointId    String?
+  checkpoint      RunCheckpoint? @relation(fields: [checkpointId], references: [id])
+  
+  iterationNumber Int
+  inputJson       Json?
+  outputJson      Json?
+  status          String         // SUCCESS | FAILURE | IN_PROGRESS
+  
+  createdAt       DateTime       @default(now())
 }
 
-// RunAbortReason: Records why run was aborted
+// RunAbortReason: Why a Ralph Mode run was aborted
 model RunAbortReason {
-  id        String      @id @default(cuid())
-  runId     String      @unique
-  run       Run         @relation(fields: [runId], references: [id], onDelete: Cascade)
-  reason    AbortReason
-  details   Json?
-  createdAt DateTime    @default(now())
-}
-
-enum IterationStatus {
-  RUNNING
-  PASSED
-  FAILED
-  WAITING_FOR_APPROVAL
-  ABORTED
-}
-
-enum AbortReason {
-  TIME_BUDGET
-  ITERATION_BUDGET
-  FAILURE_BUDGET
-  THRASHING
-  MANUAL_ABORT
+  id        String   @id @default(cuid())
+  runId     String   @unique
+  run       Run      @relation(fields: [runId], references: [id], onDelete: Cascade)
+  
+  reason    String   @db.Text
+  code      String?  // MAX_ITERATIONS | SYSTEM_ERROR | HUMAN_ABORT
+  
+  createdAt DateTime @default(now())
 }
 
 // ============================================================================
-// AFC-1.6: Memory Layer MVP Models
+// AFC-1.6: Memory Layer Models
 // ============================================================================
 
-// MemoryScope: Defines the visibility scope of a memory item
-enum MemoryScope {
-  GLOBAL     // Available across all projects
-  PROJECT    // Available within a single project
-  RUN        // Available only within a single run
-}
-
-// MemoryCategory: Categorizes the type of memory content
-enum MemoryCategory {
-  CODE           // Code snippets, implementations
-  DOCUMENTATION  // Docs, READMEs, comments
-  DECISION       // Architectural decisions, ADRs
-  ERROR          // Error patterns, solutions
-  CONTEXT        // General context, background info
-  CUSTOM         // User-defined category
-}
-
-// MemoryItem: Core memory storage unit
+// MemoryItem: Individual unit of knowledge (code snippet, doc, decision)
 model MemoryItem {
-  id           String          @id @default(cuid())
-  projectId    String?
-  project      Project?        @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  runId        String?         // Optional: for RUN-scoped items
+  id          String                  @id @default(cuid())
+  projectId   String
+  project     Project                 @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  // Content
+  content     String                  @db.Text
+  summary     String?                 @db.Text
+  category    MemoryCategory          @default(CUSTOM)
+  scope       MemoryScope             @default(PROJECT)
+  
+  // Vector search metadata (actual embedding stored in separate vector DB if needed, 
+  // but we track metadata here for relational queries)
+  tags        String[]
+  metadata    Json?
+  
+  // Scoring & Retention
+  score       Float                   @default(1.0)
+  accessCount Int                     @default(0)
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  
+  // Relations
+  accessLogs  MemoryAccessLog[]
+  snapshots   RunMemorySnapshotItem[]
+  
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
 
-  contentHash  String          // SHA-256 hash for deduplication
-  content      String          @db.Text // The actual memory content
-  summary      String?         // Optional short summary
-
-  scope        MemoryScope     @default(PROJECT)
-  category     MemoryCategory  @default(CONTEXT)
-
-  source       String?         // Origin: file path, URL, manual, etc.
-  sourceType   String?         // file, url, manual, agent
-
-  score        Float           @default(1.0) // Relevance/importance score (0-1)
-  accessCount  Int             @default(0)   // Number of times accessed
-  lastAccessed DateTime?       // Last time this item was used
-
-  tokenCount   Int             @default(0)   // Estimated token count for budget
-
-  metadata     Json?           // Additional metadata (tags, etc.)
-
-  expiresAt    DateTime?       // Optional TTL
-  archived     Boolean         @default(false)
-
-  uses         MemoryUse[]     // Tracking usage
-  snapshots    RunMemorySnapshotItem[]
-
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-
-  @@unique([projectId, contentHash]) // Dedupe within project
   @@index([projectId])
-  @@index([runId])
-  @@index([scope])
   @@index([category])
-  @@index([score])
-  @@index([contentHash])
+  @@index([scope])
 }
 
-// MemoryUse: Tracks when and how memory items are used in runs
-model MemoryUse {
-  id           String      @id @default(cuid())
+enum MemoryCategory {
+  CODE
+  DOCUMENTATION
+  DECISION
+  ERROR
+  CONTEXT
+  CUSTOM
+}
+
+enum MemoryScope {
+  GLOBAL
+  PROJECT
+  RUN
+  USER
+}
+
+// MemoryAccessLog: Tracks when and how memory was used
+model MemoryAccessLog {
+  id           String     @id @default(cuid())
   memoryItemId String
-  memoryItem   MemoryItem  @relation(fields: [memoryItemId], references: [id], onDelete: Cascade)
-  runId        String
-
-  context      String?     @db.Text // Why/how it was used
-  queryText    String?     // The query that retrieved this item
-  relevance    Float?      // Relevance score for this use (0-1)
-
-  usedAt       DateTime    @default(now())
+  memoryItem   MemoryItem @relation(fields: [memoryItemId], references: [id], onDelete: Cascade)
+  
+  runId        String?
+  action       String     // QUERY | RETRIEVE | UPDATE | DELETE
+  relevance    Float?     // How relevant was this item to the query (0-1)
+  
+  usedAt       DateTime   @default(now())
 
   @@index([memoryItemId])
   @@index([runId])
@@ -625,6 +571,7 @@ enum CopilotDraftStatus {
   APPROVED
   REJECTED
   EXPIRED
+  PENDING
 }
 
 enum CopilotDraftEventType {
@@ -633,4 +580,68 @@ enum CopilotDraftEventType {
   APPROVED
   REJECTED
   EXPIRED
+}
+
+// ============================================================================
+// AFC-1.2: Asset Registry Models
+// ============================================================================
+
+// Asset: Reusable component definition (e.g., "nextauth-rbac", "crud-prisma")
+model Asset {
+  id             String         @id @default(cuid())
+  slug           String         @unique // e.g. "nextauth-rbac", "crud-prisma"
+  name           String
+  description    String?        @db.Text
+  category       String         // auth, crud, ui, infra, worker, etc.
+  defaultLicense String         @default("MIT") // MIT, Apache-2.0, etc.
+  versions       AssetVersion[]
+  tags           AssetTag[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+// AssetVersion: Specific version of an asset with installation recipe
+model AssetVersion {
+  id            String         @id @default(cuid())
+  assetId       String
+  asset         Asset          @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  version       String         // semver: "1.0.0", "2.1.3"
+  stackCompat   Json           // e.g. { "nextjs": ">=14", "prisma": "^5" }
+  source        Json           // e.g. { "type": "repo_path", "ref": "assets/nextauth-rbac" }
+  installRecipe Json           // steps + commands + files to copy
+  interfacesRef String?        // path to INTERFACES.md
+  boundariesRef String?        // path to BOUNDARIES.md
+  proofPack     Json?          // e.g. { "type": "evidence_path", "ref": "evidence/assets/nextauth-rbac/v1" }
+  status        String         @default("ACTIVE") // ACTIVE | DEPRECATED
+  projectAssets ProjectAsset[]
+  tasks         Task[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@unique([assetId, version])
+}
+
+// AssetTag: Searchable tags for assets
+model AssetTag {
+  id      String @id @default(cuid())
+  assetId String
+  asset   Asset  @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  tag     String
+
+  @@index([tag])
+  @@index([assetId])
+}
+
+// ProjectAsset: Links a project to a specific asset version
+model ProjectAsset {
+  id             String       @id @default(cuid())
+  projectId      String
+  project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assetVersionId String
+  assetVersion   AssetVersion @relation(fields: [assetVersionId], references: [id])
+  pinned         Boolean      @default(true) // if true, don't auto-upgrade
+  config         Json?        // project-specific configuration params
+  createdAt      DateTime     @default(now())
+
+  @@unique([projectId, assetVersionId])
 }
