@@ -13,6 +13,7 @@ Agent Factory Console (AFC) is a web-based dashboard that provides centralized m
 - **Run/Task Tracking** - Monitor and manage development runs with Kanban-style task boards
 - **GitHub Integration** - OAuth authentication and webhook-based event processing
 - **Multi-Agent Coordination** - Structured workflow for distributed AI agent development
+- **Terminal Matrix (AFC-1.5)** - Spawn/attach to worker sessions with audit trail and break-glass access
 
 ## Tech Stack
 
@@ -23,7 +24,7 @@ Agent Factory Console (AFC) is a web-based dashboard that provides centralized m
 | Database       | PostgreSQL                                            |
 | Authentication | NextAuth with GitHub OAuth                            |
 | DevOps         | Docker, Docker Compose, GitHub Actions                |
-| Testing        | Jest (unit), Playwright (E2E)                         |
+| Testing        | Jest (unit), Playwright (E2E), Vitest                 |
 
 ## Quick Start
 

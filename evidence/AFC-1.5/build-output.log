@@ -1,0 +1,13 @@
+
+> agent-factory-console@0.0.1 build
+> tsc -b && vite build
+
+vite v5.4.21 building for production...
+transforming...
+✓ 1598 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.47 kB │ gzip:  0.30 kB
+dist/assets/index-B5IPSfVH.css   21.52 kB │ gzip:  4.93 kB
+dist/assets/index-hLcGp0Tw.js   234.08 kB │ gzip: 68.50 kB
+✓ built in 6.83s

@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     'out/**',
     'build/**',
     'next-env.d.ts',
+    // AFC-1.5: Exclude docker CommonJS files from ESLint
+    'docker/**',
   ]),
 ]);
 
