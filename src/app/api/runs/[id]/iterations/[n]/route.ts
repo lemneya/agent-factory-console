@@ -11,10 +11,7 @@ export async function GET(
     const iterationNum = parseInt(n, 10);
 
     if (isNaN(iterationNum) || iterationNum < 1) {
-      return NextResponse.json(
-        { error: 'Invalid iteration number' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid iteration number' }, { status: 400 });
     }
 
     const run = await prisma.run.findUnique({ where: { id } });
@@ -32,10 +29,7 @@ export async function GET(
     });
 
     if (!iteration) {
-      return NextResponse.json(
-        { error: `Iteration ${iterationNum} not found` },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: `Iteration ${iterationNum} not found` }, { status: 404 });
     }
 
     return NextResponse.json({

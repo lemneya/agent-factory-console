@@ -146,9 +146,7 @@ test.describe('AFC-1.4 Ralph Mode Runner', () => {
             iteration: 1,
             passed: false,
             errorFingerprint: 'abc123hash',
-            commandResults: [
-              { cmd: 'npm test', exitCode: 1, duration: 10000 },
-            ],
+            commandResults: [{ cmd: 'npm test', exitCode: 1, duration: 10000 }],
           },
         });
         expect([200, 404, 400, 409]).toContain(response.status());
@@ -252,9 +250,7 @@ test.describe('AFC-1.4 Ralph Mode Runner', () => {
           iteration: 1,
           passed: false,
           errorFingerprint: 'xyz789fingerprint',
-          commandResults: [
-            { cmd: 'npm test', exitCode: 1 },
-          ],
+          commandResults: [{ cmd: 'npm test', exitCode: 1 }],
         },
       });
       expect([200, 404, 400, 409]).toContain(response.status());
@@ -269,9 +265,7 @@ test.describe('AFC-1.4 Ralph Mode Runner', () => {
           iteration: 3,
           passed: false,
           errorFingerprint: 'repeated-error-hash',
-          commandResults: [
-            { cmd: 'npm test', exitCode: 1 },
-          ],
+          commandResults: [{ cmd: 'npm test', exitCode: 1 }],
         },
       });
       expect([200, 404, 400, 409]).toContain(response.status());

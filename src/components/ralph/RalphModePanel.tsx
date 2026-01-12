@@ -170,8 +170,18 @@ export default function RalphModePanel({
       >
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-800">
-            <svg className="h-5 w-5 text-purple-600 dark:text-purple-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            <svg
+              className="h-5 w-5 text-purple-600 dark:text-purple-300"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
             </svg>
           </div>
           <div>
@@ -276,7 +286,9 @@ export default function RalphModePanel({
                       <span className="font-mono text-sm text-gray-600 dark:text-gray-400">
                         #{iter.iteration}
                       </span>
-                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${getStatusColor(iter.status)}`}>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${getStatusColor(iter.status)}`}
+                      >
                         {iter.status}
                       </span>
                     </div>
@@ -289,8 +301,11 @@ export default function RalphModePanel({
                       {iter.endedAt && (
                         <span>
                           {Math.round(
-                            (new Date(iter.endedAt).getTime() - new Date(iter.startedAt).getTime()) / 1000
-                          )}s
+                            (new Date(iter.endedAt).getTime() -
+                              new Date(iter.startedAt).getTime()) /
+                              1000
+                          )}
+                          s
                         </span>
                       )}
                     </div>

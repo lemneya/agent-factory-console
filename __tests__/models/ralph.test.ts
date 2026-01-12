@@ -487,9 +487,26 @@ describe('AFC-1.4 Ralph Mode Runner', () => {
     describe('thrash detection', () => {
       it('should detect repeated errorFingerprint', async () => {
         const iterations = [
-          { ...mockRunIteration, iteration: 1, errorFingerprint: 'abc123', status: 'FAILED' as const },
-          { ...mockRunIteration, id: 'iter-2', iteration: 2, errorFingerprint: 'abc123', status: 'FAILED' as const },
-          { ...mockRunIteration, id: 'iter-3', iteration: 3, errorFingerprint: 'abc123', status: 'FAILED' as const },
+          {
+            ...mockRunIteration,
+            iteration: 1,
+            errorFingerprint: 'abc123',
+            status: 'FAILED' as const,
+          },
+          {
+            ...mockRunIteration,
+            id: 'iter-2',
+            iteration: 2,
+            errorFingerprint: 'abc123',
+            status: 'FAILED' as const,
+          },
+          {
+            ...mockRunIteration,
+            id: 'iter-3',
+            iteration: 3,
+            errorFingerprint: 'abc123',
+            status: 'FAILED' as const,
+          },
         ];
         prismaMock.runIteration.findMany.mockResolvedValue(iterations);
 
@@ -499,14 +516,33 @@ describe('AFC-1.4 Ralph Mode Runner', () => {
 
         // 3 repeated errors should trigger thrash detection
         expect(result).toHaveLength(3);
-        expect(result.every(i => i.errorFingerprint === 'abc123')).toBe(true);
+        expect(
+          result.every((i: { errorFingerprint: string | null }) => i.errorFingerprint === 'abc123')
+        ).toBe(true);
       });
 
       it('should not trigger for different error fingerprints', async () => {
         const iterations = [
-          { ...mockRunIteration, iteration: 1, errorFingerprint: 'abc123', status: 'FAILED' as const },
-          { ...mockRunIteration, id: 'iter-2', iteration: 2, errorFingerprint: 'def456', status: 'FAILED' as const },
-          { ...mockRunIteration, id: 'iter-3', iteration: 3, errorFingerprint: 'ghi789', status: 'FAILED' as const },
+          {
+            ...mockRunIteration,
+            iteration: 1,
+            errorFingerprint: 'abc123',
+            status: 'FAILED' as const,
+          },
+          {
+            ...mockRunIteration,
+            id: 'iter-2',
+            iteration: 2,
+            errorFingerprint: 'def456',
+            status: 'FAILED' as const,
+          },
+          {
+            ...mockRunIteration,
+            id: 'iter-3',
+            iteration: 3,
+            errorFingerprint: 'ghi789',
+            status: 'FAILED' as const,
+          },
         ];
         prismaMock.runIteration.findMany.mockResolvedValue(iterations);
 
@@ -515,7 +551,9 @@ describe('AFC-1.4 Ralph Mode Runner', () => {
         });
 
         // Different fingerprints = no thrashing
-        const fingerprints = new Set(result.map(i => i.errorFingerprint));
+        const fingerprints = new Set(
+          result.map((i: { errorFingerprint: string | null }) => i.errorFingerprint)
+        );
         expect(fingerprints.size).toBe(3);
       });
     });

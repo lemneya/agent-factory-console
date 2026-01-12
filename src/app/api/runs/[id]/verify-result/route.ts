@@ -20,10 +20,7 @@ interface VerifyResultPayload {
 }
 
 // POST /api/runs/[id]/verify-result - Record verification result for an iteration
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const body: VerifyResultPayload = await request.json();
@@ -152,7 +149,8 @@ export async function POST(
       await prisma.runAbortReason.create({
         data: {
           runId: id,
-          reason: iteration >= (policy?.maxIterations || 25) ? 'ITERATION_BUDGET' : 'FAILURE_BUDGET',
+          reason:
+            iteration >= (policy?.maxIterations || 25) ? 'ITERATION_BUDGET' : 'FAILURE_BUDGET',
           details: { reason: abortReason },
         },
       });
@@ -180,7 +178,8 @@ export async function POST(
       iteration: updatedIteration,
       nextAction,
       abortReason,
-      runStatus: nextAction === 'complete' ? 'COMPLETED' : nextAction === 'abort' ? 'FAILED' : 'ACTIVE',
+      runStatus:
+        nextAction === 'complete' ? 'COMPLETED' : nextAction === 'abort' ? 'FAILED' : 'ACTIVE',
     });
   } catch (error) {
     console.error('Error recording verify result:', error);

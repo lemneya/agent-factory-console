@@ -3,10 +3,7 @@ import prisma from '@/lib/prisma';
 
 // POST /api/runs/[id]/ralph - Ralph mode control (start/stop/approve)
 // Accepts action in body: { action: 'start' | 'stop' | 'approve' }
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const body = await request.json();
@@ -101,11 +98,7 @@ async function handleStart(
   });
 }
 
-async function handleStop(
-  runId: string,
-  run: { ralphMode: boolean },
-  reason?: string
-) {
+async function handleStop(runId: string, run: { ralphMode: boolean }, reason?: string) {
   if (!run.ralphMode) {
     return NextResponse.json({ error: 'Ralph Mode is not enabled' }, { status: 409 });
   }
@@ -155,10 +148,7 @@ async function handleApprove(
 
   const lastIteration = run.iterations[0];
   if (!lastIteration || lastIteration.status !== 'WAITING_FOR_APPROVAL') {
-    return NextResponse.json(
-      { error: 'No iteration waiting for approval' },
-      { status: 409 }
-    );
+    return NextResponse.json({ error: 'No iteration waiting for approval' }, { status: 409 });
   }
 
   // Update the waiting iteration to indicate approval received
