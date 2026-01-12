@@ -36,10 +36,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error getting memory policy:', error);
-    return NextResponse.json(
-      { error: 'Failed to get memory policy' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to get memory policy' }, { status: 500 });
   }
 }
 
@@ -63,18 +60,12 @@ export async function PUT(request: NextRequest) {
     const body: PolicyUpdateBody = await request.json();
 
     if (!body.projectId) {
-      return NextResponse.json(
-        { error: 'Missing required field: projectId' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing required field: projectId' }, { status: 400 });
     }
 
     // Validate numeric fields
     if (body.maxItems !== undefined && body.maxItems < 1) {
-      return NextResponse.json(
-        { error: 'maxItems must be at least 1' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'maxItems must be at least 1' }, { status: 400 });
     }
     if (body.maxTokensPerQuery !== undefined && body.maxTokensPerQuery < 100) {
       return NextResponse.json(
@@ -83,16 +74,10 @@ export async function PUT(request: NextRequest) {
       );
     }
     if (body.decayFactor !== undefined && (body.decayFactor < 0 || body.decayFactor > 1)) {
-      return NextResponse.json(
-        { error: 'decayFactor must be between 0 and 1' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'decayFactor must be between 0 and 1' }, { status: 400 });
     }
     if (body.accessBoost !== undefined && (body.accessBoost < 0 || body.accessBoost > 1)) {
-      return NextResponse.json(
-        { error: 'accessBoost must be between 0 and 1' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'accessBoost must be between 0 and 1' }, { status: 400 });
     }
 
     const provider = getMemoryProvider(prisma);
@@ -122,9 +107,6 @@ export async function PUT(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error updating memory policy:', error);
-    return NextResponse.json(
-      { error: 'Failed to update memory policy' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update memory policy' }, { status: 500 });
   }
 }

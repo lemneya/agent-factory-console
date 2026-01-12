@@ -118,8 +118,7 @@ export default function MemoryPanel({ runId, projectId }: MemoryPanelProps) {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([fetchItems(), fetchUses(), fetchSnapshots()])
-      .finally(() => setLoading(false));
+    Promise.all([fetchItems(), fetchUses(), fetchSnapshots()]).finally(() => setLoading(false));
   }, [fetchItems, fetchUses, fetchSnapshots]);
 
   const tabs = [
@@ -179,15 +178,9 @@ export default function MemoryPanel({ runId, projectId }: MemoryPanelProps) {
       )}
 
       <div className="p-4">
-        {activeTab === 'items' && (
-          <ItemsList items={items} />
-        )}
-        {activeTab === 'uses' && (
-          <UsesList uses={uses} />
-        )}
-        {activeTab === 'snapshots' && (
-          <SnapshotsList snapshots={snapshots} />
-        )}
+        {activeTab === 'items' && <ItemsList items={items} />}
+        {activeTab === 'uses' && <UsesList uses={uses} />}
+        {activeTab === 'snapshots' && <SnapshotsList snapshots={snapshots} />}
       </div>
     </div>
   );
@@ -205,10 +198,7 @@ function ItemsList({ items }: { items: MemoryItem[] }) {
   return (
     <div className="space-y-3">
       {items.map(item => (
-        <div
-          key={item.id}
-          className="rounded-lg border border-gray-200 p-4 dark:border-gray-600"
-        >
+        <div key={item.id} className="rounded-lg border border-gray-200 p-4 dark:border-gray-600">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2">
               <span
@@ -223,9 +213,7 @@ function ItemsList({ items }: { items: MemoryItem[] }) {
                 {item.tokenCount} tokens
               </span>
             </div>
-            <span className="text-xs text-gray-400">
-              {item.accessCount} uses
-            </span>
+            <span className="text-xs text-gray-400">{item.accessCount} uses</span>
           </div>
           <p className="mt-2 line-clamp-3 text-sm text-gray-700 dark:text-gray-300">
             {item.summary || item.content}
@@ -248,19 +236,14 @@ function UsesList({ uses }: { uses: MemoryUse[] }) {
   return (
     <div className="space-y-3">
       {uses.map((use, idx) => (
-        <div
-          key={idx}
-          className="rounded-lg border border-gray-200 p-4 dark:border-gray-600"
-        >
+        <div key={idx} className="rounded-lg border border-gray-200 p-4 dark:border-gray-600">
           <div className="flex items-center justify-between">
             <span
               className={`rounded-full px-2 py-0.5 text-xs font-medium ${CATEGORY_COLORS[use.memoryItem.category] || CATEGORY_COLORS.CONTEXT}`}
             >
               {use.memoryItem.category}
             </span>
-            <span className="text-xs text-gray-400">
-              {new Date(use.usedAt).toLocaleString()}
-            </span>
+            <span className="text-xs text-gray-400">{new Date(use.usedAt).toLocaleString()}</span>
           </div>
           <p className="mt-2 line-clamp-2 text-sm text-gray-700 dark:text-gray-300">
             {use.memoryItem.summary || use.memoryItem.content}

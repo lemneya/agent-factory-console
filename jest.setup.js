@@ -18,7 +18,7 @@ global.crypto = {
       return hash.digest();
     },
   },
-  getRandomValues: (arr) => crypto.randomBytes(arr.length),
+  getRandomValues: arr => crypto.randomBytes(arr.length),
 };
 
 // Mock Next.js router

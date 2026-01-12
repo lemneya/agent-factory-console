@@ -39,10 +39,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     });
   } catch (error) {
     console.error('Error getting memory snapshots:', error);
-    return NextResponse.json(
-      { error: 'Failed to get memory snapshots' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to get memory snapshots' }, { status: 500 });
   }
 }
 
@@ -97,9 +94,6 @@ export async function POST(request: NextRequest, context: RouteContext) {
     );
   } catch (error) {
     console.error('Error creating memory snapshot:', error);
-    return NextResponse.json(
-      { error: 'Failed to create memory snapshot' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create memory snapshot' }, { status: 500 });
   }
 }

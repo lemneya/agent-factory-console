@@ -194,7 +194,9 @@ export default function PolicyEditor({ projectId, onSave }: PolicyEditorProps) {
                         ? 'bg-yellow-500'
                         : 'bg-green-500'
                   }`}
-                  style={{ width: `${Math.min(100, (budget.tokenCount / budget.maxTokens) * 100)}%` }}
+                  style={{
+                    width: `${Math.min(100, (budget.tokenCount / budget.maxTokens) * 100)}%`,
+                  }}
                 />
               </div>
             </div>
@@ -220,21 +222,29 @@ export default function PolicyEditor({ projectId, onSave }: PolicyEditorProps) {
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 dark:text-gray-400">Max Tokens/Query</label>
+              <label className="block text-xs text-gray-500 dark:text-gray-400">
+                Max Tokens/Query
+              </label>
               <input
                 type="number"
                 value={policy.maxTokensPerQuery}
-                onChange={e => setPolicy({ ...policy, maxTokensPerQuery: parseInt(e.target.value) || 0 })}
+                onChange={e =>
+                  setPolicy({ ...policy, maxTokensPerQuery: parseInt(e.target.value) || 0 })
+                }
                 className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 min={100}
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 dark:text-gray-400">Max Total Tokens</label>
+              <label className="block text-xs text-gray-500 dark:text-gray-400">
+                Max Total Tokens
+              </label>
               <input
                 type="number"
                 value={policy.maxTokensTotal}
-                onChange={e => setPolicy({ ...policy, maxTokensTotal: parseInt(e.target.value) || 0 })}
+                onChange={e =>
+                  setPolicy({ ...policy, maxTokensTotal: parseInt(e.target.value) || 0 })
+                }
                 className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 min={1000}
               />
@@ -299,7 +309,9 @@ export default function PolicyEditor({ projectId, onSave }: PolicyEditorProps) {
               <input
                 type="number"
                 value={policy.decayFactor}
-                onChange={e => setPolicy({ ...policy, decayFactor: parseFloat(e.target.value) || 0 })}
+                onChange={e =>
+                  setPolicy({ ...policy, decayFactor: parseFloat(e.target.value) || 0 })
+                }
                 className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 min={0}
                 max={1}
@@ -313,7 +325,9 @@ export default function PolicyEditor({ projectId, onSave }: PolicyEditorProps) {
               <input
                 type="number"
                 value={policy.accessBoost}
-                onChange={e => setPolicy({ ...policy, accessBoost: parseFloat(e.target.value) || 0 })}
+                onChange={e =>
+                  setPolicy({ ...policy, accessBoost: parseFloat(e.target.value) || 0 })
+                }
                 className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 min={0}
                 max={1}
@@ -349,10 +363,12 @@ export default function PolicyEditor({ projectId, onSave }: PolicyEditorProps) {
               <input
                 type="number"
                 value={policy.defaultTtlDays ?? ''}
-                onChange={e => setPolicy({
-                  ...policy,
-                  defaultTtlDays: e.target.value ? parseInt(e.target.value) : null,
-                })}
+                onChange={e =>
+                  setPolicy({
+                    ...policy,
+                    defaultTtlDays: e.target.value ? parseInt(e.target.value) : null,
+                  })
+                }
                 placeholder="No expiration"
                 className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 min={1}
@@ -365,10 +381,12 @@ export default function PolicyEditor({ projectId, onSave }: PolicyEditorProps) {
               <input
                 type="number"
                 value={policy.autoArchiveDays ?? ''}
-                onChange={e => setPolicy({
-                  ...policy,
-                  autoArchiveDays: e.target.value ? parseInt(e.target.value) : null,
-                })}
+                onChange={e =>
+                  setPolicy({
+                    ...policy,
+                    autoArchiveDays: e.target.value ? parseInt(e.target.value) : null,
+                  })
+                }
                 placeholder="No auto-archive"
                 className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 min={1}
@@ -381,9 +399,7 @@ export default function PolicyEditor({ projectId, onSave }: PolicyEditorProps) {
       {/* Footer */}
       <div className="flex items-center justify-between border-t border-gray-200 p-4 dark:border-gray-700">
         <div>
-          {error && (
-            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-          )}
+          {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
           {success && (
             <p className="text-sm text-green-600 dark:text-green-400">Policy saved successfully</p>
           )}

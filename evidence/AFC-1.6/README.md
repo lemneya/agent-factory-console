@@ -28,27 +28,32 @@ AFC-1.6 implements the Memory Layer MVP for the Agent Factory Console, providing
 ## Key Features
 
 ### Deduplication
+
 - Content hashing using SHA-256
 - Automatic deduplication on ingest
 - Access count and score boost for duplicates
 
 ### Scoring System
+
 - Score-based ranking (0-1 scale)
 - Daily decay factor for aging content
 - Access boost for frequently used items
 
 ### Scope Filtering
+
 - GLOBAL: Available across all projects
 - PROJECT: Available within a single project
 - RUN: Available only within a single run
 
 ### Budget Enforcement
+
 - Max items per project
 - Max tokens per query
 - Max total tokens stored
 - Automatic archiving of low-score items when at limit
 
 ### Categories
+
 - CODE - Code snippets, implementations
 - DOCUMENTATION - Docs, READMEs, comments
 - DECISION - Architectural decisions, ADRs
@@ -66,6 +71,7 @@ Tests:       6 skipped, 204 passed, 210 total
 ## Build Output
 
 The build successfully includes all memory API routes:
+
 - /api/memory/ingest
 - /api/memory/policy
 - /api/memory/query

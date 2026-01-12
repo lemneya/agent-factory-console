@@ -53,10 +53,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     });
   } catch (error) {
     console.error('Error getting memory uses:', error);
-    return NextResponse.json(
-      { error: 'Failed to get memory uses' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to get memory uses' }, { status: 500 });
   }
 }
 
@@ -73,10 +70,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const body: RecordUseBody = await request.json();
 
     if (!body.memoryItemId) {
-      return NextResponse.json(
-        { error: 'Missing required field: memoryItemId' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing required field: memoryItemId' }, { status: 400 });
     }
 
     // Verify run exists
@@ -101,9 +95,6 @@ export async function POST(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ success: true }, { status: 201 });
   } catch (error) {
     console.error('Error recording memory use:', error);
-    return NextResponse.json(
-      { error: 'Failed to record memory use' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to record memory use' }, { status: 500 });
   }
 }

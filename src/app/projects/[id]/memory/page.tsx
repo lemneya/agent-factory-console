@@ -105,8 +105,7 @@ export default function ProjectMemoryPage({ params }: ProjectMemoryPageProps) {
   useEffect(() => {
     if (authStatus === 'authenticated') {
       setLoading(true);
-      Promise.all([fetchProject(), fetchMemoryItems()])
-        .finally(() => setLoading(false));
+      Promise.all([fetchProject(), fetchMemoryItems()]).finally(() => setLoading(false));
     } else if (authStatus === 'unauthenticated') {
       setLoading(false);
     }

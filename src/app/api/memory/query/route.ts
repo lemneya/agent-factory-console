@@ -86,9 +86,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error querying memory:', error);
-    return NextResponse.json(
-      { error: 'Failed to query memory' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to query memory' }, { status: 500 });
   }
 }
