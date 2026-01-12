@@ -116,10 +116,12 @@ No type errors.
 ## Files Created/Modified
 
 ### Database
+
 - `prisma/schema.prisma` - Added Asset, AssetVersion, AssetTag, ProjectAsset models; updated Task model
 - `prisma/migrations/20260112000000_afc_1_2_asset_registry/migration.sql` - Migration SQL
 
 ### API Routes
+
 - `src/app/api/assets/route.ts` - GET (list/search) and POST (create) assets
 - `src/app/api/assets/[id]/route.ts` - GET, PUT, DELETE single asset
 - `src/app/api/assets/[id]/versions/route.ts` - GET and POST versions
@@ -129,16 +131,19 @@ No type errors.
 - `src/app/api/projects/[id]/assets/generate-tasks/route.ts` - POST generate tasks
 
 ### UI Pages
+
 - `src/app/assets/page.tsx` - Asset list with search/filter
 - `src/app/assets/new/page.tsx` - Create new asset form
 - `src/app/assets/[id]/page.tsx` - Asset detail with versions
 - `src/app/projects/[id]/assets/page.tsx` - Project assets management
 
 ### Tests
+
 - `__tests__/models/asset.test.ts` - Unit tests (33 tests)
 - `tests/assets.spec.ts` - E2E tests (25 tests)
 
 ### Evidence
+
 - `evidence/AFC-1.2/migration.log` - Migration documentation
 - `evidence/AFC-1.2/unit-test.log` - Unit test output
 - `evidence/AFC-1.2/test-summary.md` - This file

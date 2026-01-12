@@ -10,7 +10,11 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
 
     const where: {
-      OR?: Array<{ name?: { contains: string; mode: 'insensitive' }; slug?: { contains: string; mode: 'insensitive' }; description?: { contains: string; mode: 'insensitive' } }>;
+      OR?: Array<{
+        name?: { contains: string; mode: 'insensitive' };
+        slug?: { contains: string; mode: 'insensitive' };
+        description?: { contains: string; mode: 'insensitive' };
+      }>;
       tags?: { some: { tag: string } };
       category?: string;
     } = {};

@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
 // POST /api/projects/[id]/assets/detach - Detach an asset version from a project
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const body = await request.json();
@@ -49,10 +46,7 @@ export async function POST(
     }
 
     if (!projectAsset) {
-      return NextResponse.json(
-        { error: 'Asset is not attached to this project' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Asset is not attached to this project' }, { status: 404 });
     }
 
     // Delete the project asset

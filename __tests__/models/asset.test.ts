@@ -254,7 +254,7 @@ describe('Asset Registry Models', () => {
     it('should have valid kind values', () => {
       const validKinds: TaskKind[] = ['INTEGRATE_ASSET', 'BUILD_CUSTOM', 'RESEARCH', 'QA'];
 
-      validKinds.forEach((kind) => {
+      validKinds.forEach(kind => {
         const task = createIntegrationTask({ kind });
         expect(validKinds).toContain(task.kind);
       });
@@ -317,7 +317,7 @@ describe('Asset Registry Models', () => {
     function searchAssets(query: string): Asset[] {
       const q = query.toLowerCase();
       return testAssets.filter(
-        (a) =>
+        a =>
           a.name.toLowerCase().includes(q) ||
           a.slug.toLowerCase().includes(q) ||
           (a.description && a.description.toLowerCase().includes(q))
@@ -325,11 +325,11 @@ describe('Asset Registry Models', () => {
     }
 
     function filterByCategory(category: string): Asset[] {
-      return testAssets.filter((a) => a.category === category);
+      return testAssets.filter(a => a.category === category);
     }
 
     function filterByTag(tag: string): Asset[] {
-      return testAssets.filter((a) => a.tags.some((t) => t.tag === tag));
+      return testAssets.filter(a => a.tags.some(t => t.tag === tag));
     }
 
     it('should search by name', () => {
@@ -430,14 +430,14 @@ describe('Asset Registry Models', () => {
 
     it('should set all tasks as INTEGRATE_ASSET kind', () => {
       const tasks = generateTasksFromRecipe(testRecipe, 'Test Asset', 'run1', 'version1');
-      tasks.forEach((task) => {
+      tasks.forEach(task => {
         expect(task.kind).toBe('INTEGRATE_ASSET');
       });
     });
 
     it('should link all tasks to asset version', () => {
       const tasks = generateTasksFromRecipe(testRecipe, 'Test Asset', 'run1', 'version1');
-      tasks.forEach((task) => {
+      tasks.forEach(task => {
         expect(task.assetVersionId).toBe('version1');
       });
     });
@@ -451,7 +451,7 @@ describe('Asset Registry Models', () => {
 
     it('should include asset name in description', () => {
       const tasks = generateTasksFromRecipe(testRecipe, 'Test Asset', 'run1', 'version1');
-      tasks.forEach((task) => {
+      tasks.forEach(task => {
         expect(task.description).toContain('Test Asset');
       });
     });
