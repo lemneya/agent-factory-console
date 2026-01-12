@@ -1,4 +1,4 @@
-import { Project, Run, Notification } from '../types';
+import { Project, Run, Notification, TerminalSession, TerminalEvent } from '../types';
 
 export const mockProjects: Project[] = [
   {
@@ -207,5 +207,106 @@ export const mockNotifications: Notification[] = [
     timestamp: '2024-12-10T10:15:00Z',
     read: false,
     projectId: 'proj-1',
+  },
+];
+
+// AFC-1.5: Terminal Matrix Mock Data
+export const mockTerminalSessions: TerminalSession[] = [
+  {
+    id: 'term-1',
+    projectId: 'proj-1',
+    runId: 'run-1',
+    workerId: 'worker-orchestrator-1',
+    name: 'Orchestrator',
+    mode: 'READ_ONLY',
+    status: 'ACTIVE',
+    createdByUserId: 'user-1',
+    createdAt: '2024-12-10T10:30:00Z',
+    updatedAt: '2024-12-10T10:30:00Z',
+  },
+  {
+    id: 'term-2',
+    projectId: 'proj-1',
+    runId: 'run-1',
+    workerId: 'worker-backend-1',
+    name: 'Backend Pod',
+    mode: 'READ_ONLY',
+    status: 'ACTIVE',
+    createdByUserId: 'user-1',
+    createdAt: '2024-12-10T10:31:00Z',
+    updatedAt: '2024-12-10T10:31:00Z',
+  },
+  {
+    id: 'term-3',
+    projectId: 'proj-1',
+    runId: 'run-1',
+    workerId: 'worker-frontend-1',
+    name: 'Frontend Pod',
+    mode: 'INTERACTIVE',
+    status: 'ACTIVE',
+    createdByUserId: 'user-1',
+    createdAt: '2024-12-10T10:32:00Z',
+    updatedAt: '2024-12-10T10:35:00Z',
+  },
+  {
+    id: 'term-4',
+    projectId: 'proj-4',
+    runId: 'run-2',
+    workerId: 'worker-qa-1',
+    name: 'QA Pod',
+    mode: 'READ_ONLY',
+    status: 'CLOSED',
+    createdByUserId: 'user-1',
+    createdAt: '2024-12-10T09:00:00Z',
+    updatedAt: '2024-12-10T09:45:00Z',
+    closedAt: '2024-12-10T09:45:00Z',
+  },
+];
+
+export const mockTerminalEvents: TerminalEvent[] = [
+  {
+    id: 'evt-1',
+    terminalSessionId: 'term-1',
+    ts: '2024-12-10T10:30:00Z',
+    type: 'CONNECT',
+    actorUserId: 'user-1',
+    seq: 1,
+    data: { message: 'Session started' },
+  },
+  {
+    id: 'evt-2',
+    terminalSessionId: 'term-1',
+    ts: '2024-12-10T10:30:01Z',
+    type: 'OUTPUT',
+    actorAgentId: 'worker-orchestrator-1',
+    seq: 2,
+    data: { text: '$ Starting code review analysis...\n' },
+  },
+  {
+    id: 'evt-3',
+    terminalSessionId: 'term-1',
+    ts: '2024-12-10T10:30:05Z',
+    type: 'OUTPUT',
+    actorAgentId: 'worker-orchestrator-1',
+    seq: 3,
+    data: { text: 'Analyzing PR #42: Add authentication middleware\n' },
+  },
+  {
+    id: 'evt-4',
+    terminalSessionId: 'term-3',
+    ts: '2024-12-10T10:35:00Z',
+    type: 'MODE_CHANGE',
+    actorUserId: 'user-1',
+    seq: 10,
+    data: { from: 'READ_ONLY', to: 'INTERACTIVE', reason: 'Break-glass access requested' },
+  },
+  {
+    id: 'evt-5',
+    terminalSessionId: 'term-3',
+    ts: '2024-12-10T10:35:15Z',
+    type: 'INPUT',
+    actorUserId: 'user-1',
+    seq: 11,
+    data: { text: 'npm run test\n' },
   },
 ];

@@ -57,3 +57,42 @@ export interface Notification {
   projectId?: string;
   runId?: string;
 }
+
+// AFC-1.5: Terminal Matrix Types
+export type TerminalMode = 'READ_ONLY' | 'INTERACTIVE';
+export type TerminalStatus = 'ACTIVE' | 'CLOSED' | 'ERROR';
+export type TerminalEventType = 'OUTPUT' | 'INPUT' | 'MODE_CHANGE' | 'CONNECT' | 'DISCONNECT' | 'KILL';
+
+export interface TerminalSession {
+  id: string;
+  projectId: string;
+  runId?: string;
+  workerId?: string;
+  name: string;
+  mode: TerminalMode;
+  status: TerminalStatus;
+  createdByUserId: string;
+  createdAt: string;
+  updatedAt: string;
+  closedAt?: string;
+}
+
+export interface TerminalEvent {
+  id: string;
+  terminalSessionId: string;
+  ts: string;
+  type: TerminalEventType;
+  actorUserId?: string;
+  actorAgentId?: string;
+  parentId?: string;
+  data?: Record<string, unknown>;
+  seq: number;
+}
+
+export interface TerminalToken {
+  id: string;
+  terminalSessionId: string;
+  token: string;
+  expiresAt: string;
+  createdAt: string;
+}

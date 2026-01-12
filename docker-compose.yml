@@ -1,0 +1,70 @@
+# AFC-1.5: Terminal Matrix Docker Configuration
+# Provides terminal gateway service for secure worker session access
+
+version: '3.8'
+
+services:
+  # AFC-1.5: Terminal Gateway Service
+  # Routes terminal connections through controlled endpoint
+  # IMPORTANT: Terminals are disabled by default in production
+  terminal-gateway:
+    build:
+      context: ./docker/terminal-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "${TERMINAL_GATEWAY_PORT:-7681}:7681"
+    environment:
+      # Safety: Disabled by default, must be explicitly enabled
+      - TERMINAL_ENABLED=${TERMINAL_ENABLED:-false}
+      # Auth token for gateway access (required)
+      - GATEWAY_AUTH_TOKEN=${GATEWAY_AUTH_TOKEN:-}
+      # Default mode is READ_ONLY for safety
+      - DEFAULT_MODE=READ_ONLY
+      # Logging configuration
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - AUDIT_LOG_PATH=/var/log/terminal-gateway/audit.log
+    volumes:
+      # Audit logs persisted to host
+      - terminal-logs:/var/log/terminal-gateway
+      # Socket for worker communication (internal only)
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - afc-internal
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7681/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "com.afc.service=terminal-gateway"
+      - "com.afc.feature=AFC-1.5"
+
+  # Worker container template (for reference)
+  # Workers should have tmux installed for session management
+  worker-template:
+    build:
+      context: ./docker/worker
+      dockerfile: Dockerfile
+    profiles:
+      - worker
+    environment:
+      - WORKER_ID=${WORKER_ID:-}
+      - TERMINAL_ATTACH_ENABLED=${TERMINAL_ENABLED:-false}
+    volumes:
+      - worker-data:/app/data
+    networks:
+      - afc-internal
+    labels:
+      - "com.afc.service=worker"
+
+volumes:
+  terminal-logs:
+    driver: local
+  worker-data:
+    driver: local
+
+networks:
+  afc-internal:
+    driver: bridge
+    internal: false

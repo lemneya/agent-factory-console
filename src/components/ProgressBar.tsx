@@ -3,12 +3,12 @@ interface ProgressBarProps {
   max: number;
   className?: string;
   showLabel?: boolean;
-  size?: 'sm' | 'md';
+  size?: 'sm' | 'md' | 'lg';
 }
 
 export function ProgressBar({ value, max, className = '', showLabel = false, size = 'md' }: ProgressBarProps) {
   const percentage = Math.round((value / max) * 100);
-  const heightClass = size === 'sm' ? 'h-1.5' : 'h-2';
+  const heightClass = size === 'sm' ? 'h-1.5' : size === 'lg' ? 'h-3' : 'h-2';
 
   return (
     <div className={className}>

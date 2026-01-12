@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Play,
   Pause,
@@ -8,6 +9,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Timer,
+  ChevronRight,
 } from 'lucide-react';
 import {
   PageHeader,
@@ -22,6 +24,7 @@ import { mockRuns } from '../data/mockData';
 import { RunStatus } from '../types';
 
 export function Runs() {
+  const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState<RunStatus | 'all'>('all');
 
   const filteredRuns = mockRuns.filter((run) => {
@@ -163,7 +166,11 @@ export function Runs() {
       <Card>
         <div className="divide-y divide-dark-700">
           {filteredRuns.map((run) => (
-            <div key={run.id} className="p-5 hover:bg-dark-800/50 transition-colors">
+            <div
+              key={run.id}
+              className="p-5 hover:bg-dark-800/50 transition-colors cursor-pointer"
+              onClick={() => navigate(`/runs/${run.id}`)}
+            >
               <div className="flex items-start gap-4">
                 {/* Status Icon */}
                 <div className="flex-shrink-0 mt-1">{getStatusIcon(run.status)}</div>
@@ -203,7 +210,7 @@ export function Runs() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                   {run.status === 'running' && (
                     <>
                       <button className="p-2 rounded-lg text-dark-400 hover:text-white hover:bg-dark-700 transition-colors">
@@ -224,6 +231,7 @@ export function Runs() {
                       <RefreshCw className="w-4 h-4" />
                     </button>
                   )}
+                  <ChevronRight className="w-5 h-5 text-dark-500" />
                 </div>
               </div>
             </div>
