@@ -1,0 +1,36 @@
+{
+  "id": "council-sample-001",
+  "projectId": "proj-123",
+  "project": {
+    "id": "proj-123",
+    "repoName": "agent-factory-console",
+    "repoFullName": "anthropics/agent-factory-console"
+  },
+  "taskId": "task-456",
+  "task": {
+    "id": "task-456",
+    "title": "Implement authentication system",
+    "status": "TODO",
+    "kind": "BUILD_CUSTOM"
+  },
+  "decision": "ADOPT",
+  "confidence": 0.92,
+  "candidateName": "NextAuth.js",
+  "candidateUrl": "https://next-auth.js.org",
+  "licenseType": "ISC",
+  "maintenanceRisk": "LOW",
+  "integrationPlan": "1. Install next-auth package\n2. Configure providers in [...nextauth]/route.ts\n3. Set up session provider wrapper\n4. Add protected route middleware\n5. Configure database adapter for Prisma",
+  "redTeamCritique": "- Version upgrades may introduce breaking changes (monitor v4 to v5 migration)\n- GitHub OAuth scope changes may require updates\n- Session token storage needs security review\n- Consider rate limiting for auth endpoints",
+  "sources": [
+    "https://next-auth.js.org/getting-started/introduction",
+    "https://github.com/nextauthjs/next-auth",
+    "https://www.npmjs.com/package/next-auth",
+    "https://authjs.dev/getting-started/installation"
+  ],
+  "reasoning": "NextAuth.js is the de facto standard for authentication in Next.js applications. It provides:\n\n1. **Native Next.js Integration**: Built specifically for Next.js App Router\n2. **GitHub OAuth Built-in**: First-class support for GitHub provider\n3. **Prisma Adapter**: Official adapter available for our database setup\n4. **Active Maintenance**: 16k+ GitHub stars, regular releases, funded development\n5. **Security Best Practices**: CSRF protection, secure cookies, JWT handling\n\nBuilding custom auth would require 2-3 weeks and introduce security risks. NextAuth covers all our requirements with minimal configuration.",
+  "overrideOf": null,
+  "overrideReason": null,
+  "createdBy": "Agent-A (Backend)",
+  "createdAt": "2026-01-12T10:30:00.000Z",
+  "updatedAt": "2026-01-12T10:30:00.000Z"
+}
