@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
 // POST /api/runs/:id/checkpoints - Create a new checkpoint
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: runId } = await params;
     const body = await request.json();
@@ -49,10 +46,7 @@ export async function POST(
 }
 
 // GET /api/runs/:id/checkpoints - List all checkpoints for a run
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: runId } = await params;
 

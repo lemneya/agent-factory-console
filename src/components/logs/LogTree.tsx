@@ -106,10 +106,7 @@ function LogNode({ log, level }: LogNodeProps) {
       )}
 
       {/* Log entry */}
-      <div
-        className="flex items-start gap-2 py-1"
-        style={{ paddingLeft: `${level * 24}px` }}
-      >
+      <div className="flex items-start gap-2 py-1" style={{ paddingLeft: `${level * 24}px` }}>
         {/* Expand/collapse button */}
         {hasChildren ? (
           <button

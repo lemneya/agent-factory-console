@@ -11,10 +11,7 @@ const STATUS_CHECK_INTERVAL_MS = 2 * 1000;
  * AFC-1.1: SSE endpoint for real-time run status updates
  * Includes keepalive ping every 15 seconds
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: runId } = await params;
 
   // Verify run exists

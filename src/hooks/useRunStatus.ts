@@ -60,7 +60,6 @@ export function useRunStatus(runId: string, options: UseRunStatusOptions = {}) {
     }
   }, [runId]);
 
-
   // Disconnect from SSE
   const disconnect = useCallback(() => {
     if (eventSourceRef.current) {
