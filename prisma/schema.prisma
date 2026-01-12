@@ -59,18 +59,19 @@ model VerificationToken {
 }
 
 model Project {
-  id           String         @id @default(cuid())
-  userId       String
-  user         User           @relation(fields: [userId], references: [id])
-  repoName     String
-  repoFullName String
-  description  String?
-  htmlUrl      String
-  lastUpdated  DateTime
-  runs         Run[]
-  events       GitHubEvent[]
-  assets       ProjectAsset[]
-  createdAt    DateTime       @default(now())
+  id               String            @id @default(cuid())
+  userId           String
+  user             User              @relation(fields: [userId], references: [id])
+  repoName         String
+  repoFullName     String
+  description      String?
+  htmlUrl          String
+  lastUpdated      DateTime
+  runs             Run[]
+  events           GitHubEvent[]
+  assets           ProjectAsset[]
+  councilDecisions CouncilDecision[]
+  createdAt        DateTime          @default(now())
 }
 
 model Repository {
@@ -170,31 +171,33 @@ model RunCheckpoint {
 }
 
 model Task {
-  id             String        @id @default(cuid())
-  runId          String
-  run            Run           @relation(fields: [runId], references: [id])
-  title          String
-  description    String?       @db.Text
-  status         String        @default("TODO")
-  priority       Int           @default(0)
-  assignee       String?
-  workerId       String?
-  worker         Worker?       @relation(fields: [workerId], references: [id])
-  result         Json?
-  errorMsg       String?       @db.Text
-  startedAt      DateTime?
-  completedAt    DateTime?
+  id               String            @id @default(cuid())
+  runId            String
+  run              Run               @relation(fields: [runId], references: [id])
+  title            String
+  description      String?           @db.Text
+  status           String            @default("TODO")
+  priority         Int               @default(0)
+  assignee         String?
+  workerId         String?
+  worker           Worker?           @relation(fields: [workerId], references: [id])
+  result           Json?
+  errorMsg         String?           @db.Text
+  startedAt        DateTime?
+  completedAt      DateTime?
   // AFC-1.1: Queue lease self-healing fields
-  claimedBy      String?       // worker ID that claimed this task
-  claimedAt      DateTime?     // when the task was claimed
-  leaseExpiresAt DateTime?     // when the lease expires (reclaimable after)
-  attempts       Int           @default(0) // number of claim attempts
+  claimedBy        String?           // worker ID that claimed this task
+  claimedAt        DateTime?         // when the task was claimed
+  leaseExpiresAt   DateTime?         // when the lease expires (reclaimable after)
+  attempts         Int               @default(0) // number of claim attempts
   // AFC-1.2: Asset integration fields
-  assetVersionId String?
-  assetVersion   AssetVersion? @relation(fields: [assetVersionId], references: [id])
-  kind           String        @default("BUILD_CUSTOM") // INTEGRATE_ASSET | BUILD_CUSTOM | RESEARCH | QA
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  assetVersionId   String?
+  assetVersion     AssetVersion?     @relation(fields: [assetVersionId], references: [id])
+  kind             String            @default("BUILD_CUSTOM") // INTEGRATE_ASSET | BUILD_CUSTOM | RESEARCH | QA
+  // AFC-1.3: Council decision link
+  councilDecisions CouncilDecision[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 
   @@index([status])
   @@index([leaseExpiresAt])
@@ -312,4 +315,56 @@ model ProjectAsset {
   createdAt      DateTime     @default(now())
 
   @@unique([projectId, assetVersionId])
+}
+
+// ============================================================================
+// AFC-1.3: Adoptability Council Models
+// ============================================================================
+
+// CouncilDecision: Mandatory research gate decision before BUILD tasks
+model CouncilDecision {
+  id              String       @id @default(cuid())
+  projectId       String
+  project         Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  taskId          String?      // Optional link to specific task
+  task            Task?        @relation(fields: [taskId], references: [id])
+
+  decision        DecisionType // ADOPT | ADAPT | BUILD
+  confidence      Float        // 0-1 confidence score
+
+  // Research findings
+  candidateName   String?      // Name of solution evaluated
+  candidateUrl    String?      // URL to solution
+  licenseType     String?      // MIT, Apache, GPL, etc.
+  maintenanceRisk RiskLevel    // LOW | MEDIUM | HIGH
+  integrationPlan String?      @db.Text // How to integrate
+  redTeamCritique String?      @db.Text // Potential issues/risks
+
+  // Evidence
+  sources         Json         // Array of source URLs/references
+  reasoning       String       @db.Text // Why this decision was made
+
+  // Override tracking
+  overrideOf      String?      // ID of decision being overridden
+  overrideReason  String?      @db.Text // Why override was needed
+
+  // Metadata
+  createdBy       String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([projectId])
+  @@index([taskId])
+}
+
+enum DecisionType {
+  ADOPT
+  ADAPT
+  BUILD
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
 }
