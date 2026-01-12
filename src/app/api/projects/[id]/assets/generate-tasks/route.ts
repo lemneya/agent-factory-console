@@ -15,10 +15,7 @@ interface InstallRecipe {
 }
 
 // POST /api/projects/[id]/assets/generate-tasks - Generate integration tasks from asset
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const body = await request.json();
@@ -107,10 +104,13 @@ export async function POST(
       },
     });
 
-    return NextResponse.json({
-      message: `Created ${createdTasks.count} integration tasks`,
-      tasks,
-    }, { status: 201 });
+    return NextResponse.json(
+      {
+        message: `Created ${createdTasks.count} integration tasks`,
+        tasks,
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error('Error generating tasks from asset:', error);
     return NextResponse.json({ error: 'Failed to generate tasks' }, { status: 500 });

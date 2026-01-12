@@ -51,7 +51,8 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
     version: '',
     stackCompat: '{\n  "nextjs": ">=14",\n  "prisma": "^5"\n}',
     source: '{\n  "type": "repo_path",\n  "ref": "assets/"\n}',
-    installRecipe: '{\n  "steps": [\n    {\n      "title": "Install dependencies",\n      "command": "npm install"\n    }\n  ]\n}',
+    installRecipe:
+      '{\n  "steps": [\n    {\n      "title": "Install dependencies",\n      "command": "npm install"\n    }\n  ]\n}',
     interfacesRef: '',
     boundariesRef: '',
   });
@@ -121,11 +122,12 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
         version: '',
         stackCompat: '{\n  "nextjs": ">=14",\n  "prisma": "^5"\n}',
         source: '{\n  "type": "repo_path",\n  "ref": "assets/"\n}',
-        installRecipe: '{\n  "steps": [\n    {\n      "title": "Install dependencies",\n      "command": "npm install"\n    }\n  ]\n}',
+        installRecipe:
+          '{\n  "steps": [\n    {\n      "title": "Install dependencies",\n      "command": "npm install"\n    }\n  ]\n}',
         interfacesRef: '',
         boundariesRef: '',
       });
-      setRefreshCounter((c) => c + 1);
+      setRefreshCounter(c => c + 1);
     } catch (err) {
       setVersionError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
@@ -181,16 +183,11 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
             </span>
           </div>
 
-          {asset.description && (
-            <p className="text-gray-600 mb-4">{asset.description}</p>
-          )}
+          {asset.description && <p className="text-gray-600 mb-4">{asset.description}</p>}
 
           <div className="flex flex-wrap gap-2 mb-4">
-            {asset.tags.map((tag) => (
-              <span
-                key={tag.id}
-                className="px-2 py-1 text-sm bg-gray-100 text-gray-700 rounded"
-              >
+            {asset.tags.map(tag => (
+              <span key={tag.id} className="px-2 py-1 text-sm bg-gray-100 text-gray-700 rounded">
                 {tag.tag}
               </span>
             ))}
@@ -231,7 +228,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                 <input
                   type="text"
                   value={versionForm.version}
-                  onChange={(e) => setVersionForm({ ...versionForm, version: e.target.value })}
+                  onChange={e => setVersionForm({ ...versionForm, version: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono"
                   placeholder="1.0.0"
                   required
@@ -244,7 +241,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                 </label>
                 <textarea
                   value={versionForm.stackCompat}
-                  onChange={(e) => setVersionForm({ ...versionForm, stackCompat: e.target.value })}
+                  onChange={e => setVersionForm({ ...versionForm, stackCompat: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
                   rows={3}
                   required
@@ -257,7 +254,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                 </label>
                 <textarea
                   value={versionForm.source}
-                  onChange={(e) => setVersionForm({ ...versionForm, source: e.target.value })}
+                  onChange={e => setVersionForm({ ...versionForm, source: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
                   rows={3}
                   required
@@ -270,7 +267,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                 </label>
                 <textarea
                   value={versionForm.installRecipe}
-                  onChange={(e) => setVersionForm({ ...versionForm, installRecipe: e.target.value })}
+                  onChange={e => setVersionForm({ ...versionForm, installRecipe: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
                   rows={6}
                   required
@@ -285,7 +282,9 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                   <input
                     type="text"
                     value={versionForm.interfacesRef}
-                    onChange={(e) => setVersionForm({ ...versionForm, interfacesRef: e.target.value })}
+                    onChange={e =>
+                      setVersionForm({ ...versionForm, interfacesRef: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                     placeholder="docs/INTERFACES.md"
                   />
@@ -297,7 +296,9 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                   <input
                     type="text"
                     value={versionForm.boundariesRef}
-                    onChange={(e) => setVersionForm({ ...versionForm, boundariesRef: e.target.value })}
+                    onChange={e =>
+                      setVersionForm({ ...versionForm, boundariesRef: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                     placeholder="docs/BOUNDARIES.md"
                   />
@@ -323,7 +324,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
             </p>
           ) : (
             <div className="space-y-4">
-              {asset.versions.map((version) => (
+              {asset.versions.map(version => (
                 <div
                   key={version.id}
                   className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors"
@@ -358,12 +359,11 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                       {version.installRecipe.steps?.length || 0}
                     </div>
                     <div>
-                      <span className="text-gray-500">Used in:</span>{' '}
-                      {version._count.projectAssets} project(s)
+                      <span className="text-gray-500">Used in:</span> {version._count.projectAssets}{' '}
+                      project(s)
                     </div>
                     <div>
-                      <span className="text-gray-500">Tasks:</span>{' '}
-                      {version._count.tasks}
+                      <span className="text-gray-500">Tasks:</span> {version._count.tasks}
                     </div>
                   </div>
                 </div>

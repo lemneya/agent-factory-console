@@ -83,9 +83,7 @@ export default function AssetsPage() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Asset Registry</h1>
-            <p className="text-gray-600 mt-1">
-              Reusable components for your projects
-            </p>
+            <p className="text-gray-600 mt-1">Reusable components for your projects</p>
           </div>
           <Link
             href="/assets/new"
@@ -103,17 +101,17 @@ export default function AssetsPage() {
                 type="text"
                 placeholder="Search assets..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={e => setSearchQuery(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             <select
               value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
+              onChange={e => setSelectedCategory(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             >
               <option value="">All Categories</option>
-              {categories.map((cat) => (
+              {categories.map(cat => (
                 <option key={cat} value={cat}>
                   {cat.charAt(0).toUpperCase() + cat.slice(1)}
                 </option>
@@ -123,7 +121,7 @@ export default function AssetsPage() {
               type="text"
               placeholder="Filter by tag..."
               value={selectedTag}
-              onChange={(e) => setSelectedTag(e.target.value)}
+              onChange={e => setSelectedTag(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -145,17 +143,14 @@ export default function AssetsPage() {
         ) : assets.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-lg shadow">
             <p className="text-gray-500 text-lg">No assets found</p>
-            <Link
-              href="/assets/new"
-              className="text-blue-600 hover:underline mt-2 inline-block"
-            >
+            <Link href="/assets/new" className="text-blue-600 hover:underline mt-2 inline-block">
               Create your first asset
             </Link>
           </div>
         ) : (
           /* Asset Grid */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {assets.map((asset) => (
+            {assets.map(asset => (
               <Link
                 key={asset.id}
                 href={`/assets/${asset.id}`}
@@ -163,9 +158,7 @@ export default function AssetsPage() {
               >
                 <div className="flex justify-between items-start mb-3">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {asset.name}
-                    </h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{asset.name}</h3>
                     <code className="text-sm text-gray-500">{asset.slug}</code>
                   </div>
                   <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">
@@ -174,13 +167,11 @@ export default function AssetsPage() {
                 </div>
 
                 {asset.description && (
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                    {asset.description}
-                  </p>
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">{asset.description}</p>
                 )}
 
                 <div className="flex flex-wrap gap-1 mb-4">
-                  {asset.tags.slice(0, 5).map((tag) => (
+                  {asset.tags.slice(0, 5).map(tag => (
                     <span
                       key={tag.id}
                       className="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded"

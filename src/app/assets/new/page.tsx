@@ -29,8 +29,8 @@ export default function NewAssetPage() {
     try {
       const tags = formData.tags
         .split(',')
-        .map((t) => t.trim())
-        .filter((t) => t.length > 0);
+        .map(t => t.trim())
+        .filter(t => t.length > 0);
 
       const response = await fetch('/api/assets', {
         method: 'POST',
@@ -71,16 +71,11 @@ export default function NewAssetPage() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <Link
-            href="/assets"
-            className="text-blue-600 hover:underline text-sm mb-2 inline-block"
-          >
+          <Link href="/assets" className="text-blue-600 hover:underline text-sm mb-2 inline-block">
             &larr; Back to Assets
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">Create New Asset</h1>
-          <p className="text-gray-600 mt-1">
-            Define a reusable component for your projects
-          </p>
+          <p className="text-gray-600 mt-1">Define a reusable component for your projects</p>
         </div>
 
         {/* Error Message */}
@@ -100,7 +95,7 @@ export default function NewAssetPage() {
             <input
               type="text"
               value={formData.name}
-              onChange={(e) => {
+              onChange={e => {
                 setFormData({
                   ...formData,
                   name: e.target.value,
@@ -121,9 +116,7 @@ export default function NewAssetPage() {
             <input
               type="text"
               value={formData.slug}
-              onChange={(e) =>
-                setFormData({ ...formData, slug: e.target.value })
-              }
+              onChange={e => setFormData({ ...formData, slug: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
               placeholder="nextauth-rbac"
               pattern="[a-z0-9-]+"
@@ -142,14 +135,12 @@ export default function NewAssetPage() {
             </label>
             <select
               value={formData.category}
-              onChange={(e) =>
-                setFormData({ ...formData, category: e.target.value })
-              }
+              onChange={e => setFormData({ ...formData, category: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               required
             >
               <option value="">Select a category</option>
-              {categories.map((cat) => (
+              {categories.map(cat => (
                 <option key={cat} value={cat}>
                   {cat.charAt(0).toUpperCase() + cat.slice(1)}
                 </option>
@@ -159,14 +150,10 @@ export default function NewAssetPage() {
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <textarea
               value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
+              onChange={e => setFormData({ ...formData, description: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               rows={3}
               placeholder="A brief description of what this asset does..."
@@ -175,17 +162,13 @@ export default function NewAssetPage() {
 
           {/* Default License */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Default License
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Default License</label>
             <select
               value={formData.defaultLicense}
-              onChange={(e) =>
-                setFormData({ ...formData, defaultLicense: e.target.value })
-              }
+              onChange={e => setFormData({ ...formData, defaultLicense: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             >
-              {licenses.map((license) => (
+              {licenses.map(license => (
                 <option key={license} value={license}>
                   {license}
                 </option>
@@ -195,29 +178,20 @@ export default function NewAssetPage() {
 
           {/* Tags */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Tags
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
             <input
               type="text"
               value={formData.tags}
-              onChange={(e) =>
-                setFormData({ ...formData, tags: e.target.value })
-              }
+              onChange={e => setFormData({ ...formData, tags: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="rbac, authentication, security"
             />
-            <p className="text-sm text-gray-500 mt-1">
-              Comma-separated list of tags for search
-            </p>
+            <p className="text-sm text-gray-500 mt-1">Comma-separated list of tags for search</p>
           </div>
 
           {/* Submit Button */}
           <div className="flex justify-end gap-4 pt-4">
-            <Link
-              href="/assets"
-              className="px-4 py-2 text-gray-700 hover:text-gray-900"
-            >
+            <Link href="/assets" className="px-4 py-2 text-gray-700 hover:text-gray-900">
               Cancel
             </Link>
             <button

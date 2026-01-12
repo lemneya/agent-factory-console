@@ -74,7 +74,9 @@ export default function ProjectAssetsPage({ params }: { params: Promise<{ id: st
   const [selectedProjectAsset, setSelectedProjectAsset] = useState<ProjectAsset | null>(null);
   const [selectedRunId, setSelectedRunId] = useState('');
   const [generateLoading, setGenerateLoading] = useState(false);
-  const [generateResult, setGenerateResult] = useState<{ message: string; count: number } | null>(null);
+  const [generateResult, setGenerateResult] = useState<{ message: string; count: number } | null>(
+    null
+  );
   const [refreshCounter, setRefreshCounter] = useState(0);
 
   useEffect(() => {
@@ -143,7 +145,7 @@ export default function ProjectAssetsPage({ params }: { params: Promise<{ id: st
       setShowAttachModal(false);
       setSelectedAssetId('');
       setSelectedVersionId('');
-      setRefreshCounter((c) => c + 1);
+      setRefreshCounter(c => c + 1);
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to attach asset');
     } finally {
@@ -166,7 +168,7 @@ export default function ProjectAssetsPage({ params }: { params: Promise<{ id: st
         throw new Error(data.error || 'Failed to detach asset');
       }
 
-      setRefreshCounter((c) => c + 1);
+      setRefreshCounter(c => c + 1);
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to detach asset');
     }
@@ -202,7 +204,7 @@ export default function ProjectAssetsPage({ params }: { params: Promise<{ id: st
     }
   }
 
-  const selectedAsset = availableAssets.find((a) => a.id === selectedAssetId);
+  const selectedAsset = availableAssets.find(a => a.id === selectedAssetId);
 
   if (loading) {
     return (
@@ -235,7 +237,10 @@ export default function ProjectAssetsPage({ params }: { params: Promise<{ id: st
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <Link href={`/projects/${id}`} className="text-blue-600 hover:underline text-sm mb-2 inline-block">
+          <Link
+            href={`/projects/${id}`}
+            className="text-blue-600 hover:underline text-sm mb-2 inline-block"
+          >
             &larr; Back to Project
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">Project Assets</h1>
@@ -265,7 +270,7 @@ export default function ProjectAssetsPage({ params }: { params: Promise<{ id: st
           </div>
         ) : (
           <div className="space-y-4">
-            {projectAssets.map((pa) => (
+            {projectAssets.map(pa => (
               <div
                 key={pa.id}
                 className="bg-white rounded-lg shadow p-4 flex justify-between items-center"
@@ -291,9 +296,7 @@ export default function ProjectAssetsPage({ params }: { params: Promise<{ id: st
                     )}
                   </div>
                   {pa.assetVersion.asset.description && (
-                    <p className="text-gray-600 text-sm">
-                      {pa.assetVersion.asset.description}
-                    </p>
+                    <p className="text-gray-600 text-sm">{pa.assetVersion.asset.description}</p>
                   )}
                 </div>
                 <div className="flex gap-2">
@@ -330,7 +333,7 @@ export default function ProjectAssetsPage({ params }: { params: Promise<{ id: st
                   </label>
                   <select
                     value={selectedAssetId}
-                    onChange={(e) => {
+                    onChange={e => {
                       setSelectedAssetId(e.target.value);
                       setSelectedVersionId('');
                     }}
@@ -338,7 +341,7 @@ export default function ProjectAssetsPage({ params }: { params: Promise<{ id: st
                     required
                   >
                     <option value="">Choose an asset...</option>
-                    {availableAssets.map((asset) => (
+                    {availableAssets.map(asset => (
                       <option key={asset.id} value={asset.id}>
                         {asset.name} ({asset.category})
                       </option>
@@ -353,14 +356,14 @@ export default function ProjectAssetsPage({ params }: { params: Promise<{ id: st
                     </label>
                     <select
                       value={selectedVersionId}
-                      onChange={(e) => setSelectedVersionId(e.target.value)}
+                      onChange={e => setSelectedVersionId(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                       required
                     >
                       <option value="">Choose a version...</option>
                       {selectedAsset.versions
-                        .filter((v) => v.status === 'ACTIVE')
-                        .map((version) => (
+                        .filter(v => v.status === 'ACTIVE')
+                        .map(version => (
                           <option key={version.id} value={version.id}>
                             v{version.version}
                           </option>
@@ -417,20 +420,20 @@ export default function ProjectAssetsPage({ params }: { params: Promise<{ id: st
                     </label>
                     <select
                       value={selectedRunId}
-                      onChange={(e) => setSelectedRunId(e.target.value)}
+                      onChange={e => setSelectedRunId(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                       required
                     >
                       <option value="">Choose a run...</option>
                       {runs
-                        .filter((r) => r.status === 'ACTIVE')
-                        .map((run) => (
+                        .filter(r => r.status === 'ACTIVE')
+                        .map(run => (
                           <option key={run.id} value={run.id}>
                             {run.name}
                           </option>
                         ))}
                     </select>
-                    {runs.filter((r) => r.status === 'ACTIVE').length === 0 && (
+                    {runs.filter(r => r.status === 'ACTIVE').length === 0 && (
                       <p className="text-sm text-amber-600 mt-1">
                         No active runs available. Create a run first.
                       </p>
