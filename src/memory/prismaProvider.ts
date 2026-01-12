@@ -192,14 +192,6 @@ export class PrismaMemoryProvider implements MemoryProvider {
       where.category = { in: query.categories };
     }
 
-    // Text search (simple contains)
-    if (query.searchText) {
-      where.OR = [
-        { content: { contains: query.searchText, mode: 'insensitive' } },
-        { summary: { contains: query.searchText, mode: 'insensitive' } },
-      ];
-    }
-
     // Score filtering
     if (query.minScore !== undefined) {
       where.score = { gte: query.minScore };
@@ -210,8 +202,20 @@ export class PrismaMemoryProvider implements MemoryProvider {
       where.archived = false;
     }
 
-    // Expired filtering
+    // Expired filtering - items must not be expired
     where.OR = [{ expiresAt: null }, { expiresAt: { gt: new Date() } }];
+
+    // Text search (simple contains) - wrap with AND to combine with expired filter
+    if (query.searchText) {
+      where.AND = [
+        {
+          OR: [
+            { content: { contains: query.searchText, mode: 'insensitive' } },
+            { summary: { contains: query.searchText, mode: 'insensitive' } },
+          ],
+        },
+      ];
+    }
 
     // Get total count
     const total = await this.prisma.memoryItem.count({ where });

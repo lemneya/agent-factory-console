@@ -328,13 +328,14 @@ export interface MemoryProvider {
 
 /**
  * Generate SHA-256 hash of content for deduplication
+ * Uses Node.js crypto module for server-side compatibility
  */
 export async function hashContent(content: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(content);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  // Use Node.js crypto module for server-side compatibility
+  const { createHash } = await import('crypto');
+  const hash = createHash('sha256');
+  hash.update(content);
+  return hash.digest('hex');
 }
 
 /**
