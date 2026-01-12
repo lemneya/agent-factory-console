@@ -89,10 +89,11 @@ export default function NewAssetPage() {
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-6">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
               Name <span className="text-red-500">*</span>
             </label>
             <input
+              id="name"
               type="text"
               value={formData.name}
               onChange={e => {
@@ -110,10 +111,11 @@ export default function NewAssetPage() {
 
           {/* Slug */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-1">
               Slug <span className="text-red-500">*</span>
             </label>
             <input
+              id="slug"
               type="text"
               value={formData.slug}
               onChange={e => setFormData({ ...formData, slug: e.target.value })}
@@ -130,10 +132,11 @@ export default function NewAssetPage() {
 
           {/* Category */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
               Category <span className="text-red-500">*</span>
             </label>
             <select
+              id="category"
               value={formData.category}
               onChange={e => setFormData({ ...formData, category: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -150,8 +153,11 @@ export default function NewAssetPage() {
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+              Description
+            </label>
             <textarea
+              id="description"
               value={formData.description}
               onChange={e => setFormData({ ...formData, description: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -162,8 +168,14 @@ export default function NewAssetPage() {
 
           {/* Default License */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Default License</label>
+            <label
+              htmlFor="defaultLicense"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Default License
+            </label>
             <select
+              id="defaultLicense"
               value={formData.defaultLicense}
               onChange={e => setFormData({ ...formData, defaultLicense: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -178,8 +190,11 @@ export default function NewAssetPage() {
 
           {/* Tags */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+            <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-1">
+              Tags
+            </label>
             <input
+              id="tags"
               type="text"
               value={formData.tags}
               onChange={e => setFormData({ ...formData, tags: e.target.value })}
