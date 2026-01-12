@@ -7,7 +7,6 @@ interface Task {
   id: string;
   title: string;
   status: string;
-  kind: string;
 }
 
 interface CouncilDecision {

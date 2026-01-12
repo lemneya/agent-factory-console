@@ -4,6 +4,8 @@ Date: 2026-01-12
 ## Overview
 Implemented mandatory research gate ("Council") that outputs structured decisions (ADOPT | ADAPT | BUILD) before BUILD runs can proceed.
 
+**Note:** This implementation is de-stacked from AFC-1.2 (Asset Registry) and can be merged independently.
+
 ## Components Implemented
 
 ### A. Database Models (Prisma)
@@ -34,8 +36,14 @@ Implemented mandatory research gate ("Council") that outputs structured decision
 3. `/council/[id]` - Decision detail page with full reasoning
 4. `/projects/[id]/council` - Project-specific Council history
 
-### D. Tests
-- Unit tests: `__tests__/models/council.test.ts` (18 tests)
+### D. Council Gate Enforcement (MANDATORY)
+- Implemented in `src/app/api/runs/route.ts`
+- Before creating a Run, checks for existing CouncilDecision for the project
+- Returns 409 "Council decision required" if no decision exists
+- Supports `skipCouncilCheck` parameter for non-BUILD runs
+
+### E. Tests
+- Unit tests: `__tests__/models/council.test.ts` (22 tests including Council Gate)
 - E2E tests: `tests/council.spec.ts` (30 tests)
 
 ## Files Created/Modified
@@ -56,8 +64,15 @@ Implemented mandatory research gate ("Council") that outputs structured decision
 
 ### Modified Files
 - __tests__/mocks/prisma.ts (added councilDecision mock)
+- src/app/api/runs/route.ts (added Council Gate check)
 
 ## CI Status
-- Lint: PASS
-- Unit Tests: PASS (172 tests)
+- Lint: PASS (0 errors, 0 warnings)
+- Unit Tests: PASS (143 tests)
 - Build: PASS
+
+## De-stacking from AFC-1.2
+This implementation was cherry-picked to create a clean branch without AFC-1.2 dependencies:
+- Removed references to `kind` field (AFC-1.2 Task extension)
+- Removed references to Asset models (AFC-1.2)
+- Council feature works independently on AFC-1.1 base

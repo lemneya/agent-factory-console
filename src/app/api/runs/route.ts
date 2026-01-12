@@ -40,13 +40,36 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { projectId, name, status } = body;
+    const { projectId, name, status, skipCouncilCheck } = body;
 
     if (!projectId || !name) {
       return NextResponse.json(
         { error: 'Missing required fields: projectId, name' },
         { status: 400 }
       );
+    }
+
+    // AFC-1.3: Council Gate - require a decision before BUILD runs
+    // Only enforce if not explicitly skipped (e.g., for non-build runs)
+    if (!skipCouncilCheck) {
+      const councilDecision = await prisma.councilDecision.findFirst({
+        where: {
+          projectId,
+          decision: { in: ['ADOPT', 'ADAPT', 'BUILD'] },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (!councilDecision) {
+        return NextResponse.json(
+          {
+            error: 'Council decision required',
+            message: 'No Council decision exists for this project. Create a Council evaluation before starting a BUILD run.',
+            code: 'COUNCIL_DECISION_REQUIRED',
+          },
+          { status: 409 }
+        );
+      }
     }
 
     // AFC-1.1: Create run first, then set threadId = id (threadId binding rule)

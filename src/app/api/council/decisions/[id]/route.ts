@@ -23,7 +23,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             title: true,
             description: true,
             status: true,
-            kind: true,
           },
         },
       },

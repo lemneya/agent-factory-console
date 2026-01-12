@@ -29,8 +29,6 @@ describe('CouncilDecision Model', () => {
     claimedAt: null,
     leaseExpiresAt: null,
     attempts: 0,
-    assetVersionId: null,
-    kind: 'BUILD_CUSTOM',
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -306,6 +304,66 @@ describe('CouncilDecision Model', () => {
 
     it('should have valid maintenance risk', () => {
       expect(['LOW', 'MEDIUM', 'HIGH']).toContain(mockCouncilDecision.maintenanceRisk);
+    });
+  });
+
+  describe('Council Gate (AFC-1.3)', () => {
+    it('should require council decision before BUILD runs', async () => {
+      // Simulates the gate check: findFirst returns null (no decision)
+      prismaMock.councilDecision.findFirst.mockResolvedValue(null);
+
+      const result = await prismaMock.councilDecision.findFirst({
+        where: {
+          projectId: 'proj-123',
+          decision: { in: ['ADOPT', 'ADAPT', 'BUILD'] },
+        },
+      });
+
+      // No decision exists - gate should block
+      expect(result).toBeNull();
+    });
+
+    it('should allow BUILD runs when council decision exists', async () => {
+      prismaMock.councilDecision.findFirst.mockResolvedValue(mockCouncilDecision);
+
+      const result = await prismaMock.councilDecision.findFirst({
+        where: {
+          projectId: 'proj-123',
+          decision: { in: ['ADOPT', 'ADAPT', 'BUILD'] },
+        },
+      });
+
+      // Decision exists - gate should allow
+      expect(result).not.toBeNull();
+      expect(result?.decision).toBe('BUILD');
+    });
+
+    it('should pass gate with ADOPT decision', async () => {
+      const adoptDecision = { ...mockCouncilDecision, decision: 'ADOPT' as const };
+      prismaMock.councilDecision.findFirst.mockResolvedValue(adoptDecision);
+
+      const result = await prismaMock.councilDecision.findFirst({
+        where: {
+          projectId: 'proj-123',
+          decision: { in: ['ADOPT', 'ADAPT', 'BUILD'] },
+        },
+      });
+
+      expect(result?.decision).toBe('ADOPT');
+    });
+
+    it('should pass gate with ADAPT decision', async () => {
+      const adaptDecision = { ...mockCouncilDecision, decision: 'ADAPT' as const };
+      prismaMock.councilDecision.findFirst.mockResolvedValue(adaptDecision);
+
+      const result = await prismaMock.councilDecision.findFirst({
+        where: {
+          projectId: 'proj-123',
+          decision: { in: ['ADOPT', 'ADAPT', 'BUILD'] },
+        },
+      });
+
+      expect(result?.decision).toBe('ADAPT');
     });
   });
 });

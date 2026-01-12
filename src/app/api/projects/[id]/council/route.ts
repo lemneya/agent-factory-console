@@ -34,7 +34,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
               id: true,
               title: true,
               status: true,
-              kind: true,
             },
           },
         },

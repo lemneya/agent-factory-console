@@ -15,7 +15,6 @@ interface Task {
   title: string;
   description: string | null;
   status: string;
-  kind: string;
 }
 
 interface CouncilDecision {
@@ -276,9 +275,6 @@ export default function CouncilDecisionPage({ params }: { params: Promise<{ id: 
                 <div className="flex gap-2 mt-2">
                   <span className="px-2 py-0.5 text-xs bg-gray-100 text-gray-700 rounded">
                     {decision.task.status}
-                  </span>
-                  <span className="px-2 py-0.5 text-xs bg-gray-100 text-gray-700 rounded">
-                    {decision.task.kind}
                   </span>
                 </div>
               </div>
