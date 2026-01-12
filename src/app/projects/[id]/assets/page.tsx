@@ -75,40 +75,53 @@ export default function ProjectAssetsPage({ params }: { params: Promise<{ id: st
   const [selectedRunId, setSelectedRunId] = useState('');
   const [generateLoading, setGenerateLoading] = useState(false);
   const [generateResult, setGenerateResult] = useState<{ message: string; count: number } | null>(null);
+  const [refreshCounter, setRefreshCounter] = useState(0);
 
   useEffect(() => {
+    let isMounted = true;
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [projectRes, assetsRes, availableRes, runsRes] = await Promise.all([
+          fetch(`/api/projects/${id}`),
+          fetch(`/api/projects/${id}/assets`),
+          fetch('/api/assets'),
+          fetch(`/api/runs?projectId=${id}`),
+        ]);
+
+        if (!projectRes.ok) throw new Error('Project not found');
+
+        const [projectData, assetsData, availableData, runsData] = await Promise.all([
+          projectRes.json(),
+          assetsRes.json(),
+          availableRes.json(),
+          runsRes.json(),
+        ]);
+
+        if (isMounted) {
+          setProject(projectData);
+          setProjectAssets(assetsData);
+          setAvailableAssets(availableData);
+          setRuns(runsData);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : 'Unknown error');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
     fetchData();
-  }, [id]);
 
-  async function fetchData() {
-    try {
-      setLoading(true);
-      const [projectRes, assetsRes, availableRes, runsRes] = await Promise.all([
-        fetch(`/api/projects/${id}`),
-        fetch(`/api/projects/${id}/assets`),
-        fetch('/api/assets'),
-        fetch(`/api/runs?projectId=${id}`),
-      ]);
-
-      if (!projectRes.ok) throw new Error('Project not found');
-
-      const [projectData, assetsData, availableData, runsData] = await Promise.all([
-        projectRes.json(),
-        assetsRes.json(),
-        availableRes.json(),
-        runsRes.json(),
-      ]);
-
-      setProject(projectData);
-      setProjectAssets(assetsData);
-      setAvailableAssets(availableData);
-      setRuns(runsData);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
-      setLoading(false);
-    }
-  }
+    return () => {
+      isMounted = false;
+    };
+  }, [id, refreshCounter]);
 
   async function handleAttach(e: React.FormEvent) {
     e.preventDefault();
@@ -130,7 +143,7 @@ export default function ProjectAssetsPage({ params }: { params: Promise<{ id: st
       setShowAttachModal(false);
       setSelectedAssetId('');
       setSelectedVersionId('');
-      fetchData();
+      setRefreshCounter((c) => c + 1);
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to attach asset');
     } finally {
@@ -153,7 +166,7 @@ export default function ProjectAssetsPage({ params }: { params: Promise<{ id: st
         throw new Error(data.error || 'Failed to detach asset');
       }
 
-      fetchData();
+      setRefreshCounter((c) => c + 1);
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to detach asset');
     }
