@@ -59,9 +59,9 @@ model VerificationToken {
 }
 
 model Project {
-  id           String        @id @default(cuid())
+  id           String         @id @default(cuid())
   userId       String
-  user         User          @relation(fields: [userId], references: [id])
+  user         User           @relation(fields: [userId], references: [id])
   repoName     String
   repoFullName String
   description  String?
@@ -69,7 +69,8 @@ model Project {
   lastUpdated  DateTime
   runs         Run[]
   events       GitHubEvent[]
-  createdAt    DateTime      @default(now())
+  assets       ProjectAsset[]
+  createdAt    DateTime       @default(now())
 }
 
 model Repository {
@@ -169,30 +170,35 @@ model RunCheckpoint {
 }
 
 model Task {
-  id             String    @id @default(cuid())
+  id             String        @id @default(cuid())
   runId          String
-  run            Run       @relation(fields: [runId], references: [id])
+  run            Run           @relation(fields: [runId], references: [id])
   title          String
-  description    String?   @db.Text
-  status         String    @default("TODO")
-  priority       Int       @default(0)
+  description    String?       @db.Text
+  status         String        @default("TODO")
+  priority       Int           @default(0)
   assignee       String?
   workerId       String?
-  worker         Worker?   @relation(fields: [workerId], references: [id])
+  worker         Worker?       @relation(fields: [workerId], references: [id])
   result         Json?
-  errorMsg       String?   @db.Text
+  errorMsg       String?       @db.Text
   startedAt      DateTime?
   completedAt    DateTime?
   // AFC-1.1: Queue lease self-healing fields
-  claimedBy      String?   // worker ID that claimed this task
-  claimedAt      DateTime? // when the task was claimed
-  leaseExpiresAt DateTime? // when the lease expires (reclaimable after)
-  attempts       Int       @default(0) // number of claim attempts
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  claimedBy      String?       // worker ID that claimed this task
+  claimedAt      DateTime?     // when the task was claimed
+  leaseExpiresAt DateTime?     // when the lease expires (reclaimable after)
+  attempts       Int           @default(0) // number of claim attempts
+  // AFC-1.2: Asset integration fields
+  assetVersionId String?
+  assetVersion   AssetVersion? @relation(fields: [assetVersionId], references: [id])
+  kind           String        @default("BUILD_CUSTOM") // INTEGRATE_ASSET | BUILD_CUSTOM | RESEARCH | QA
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   @@index([status])
   @@index([leaseExpiresAt])
+  @@index([assetVersionId])
 }
 
 // Worker model for Agent B implementation
@@ -242,4 +248,68 @@ model GitHubEvent {
   senderAvatarUrl String?
   payload         Json
   receivedAt      DateTime @default(now())
+}
+
+// ============================================================================
+// AFC-1.2: Asset Registry Models
+// ============================================================================
+
+// Asset: Reusable component definition (e.g., "nextauth-rbac", "crud-prisma")
+model Asset {
+  id             String         @id @default(cuid())
+  slug           String         @unique // e.g. "nextauth-rbac", "crud-prisma"
+  name           String
+  description    String?        @db.Text
+  category       String         // auth, crud, ui, infra, worker, etc.
+  defaultLicense String         @default("MIT") // MIT, Apache-2.0, etc.
+  versions       AssetVersion[]
+  tags           AssetTag[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+// AssetVersion: Specific version of an asset with installation recipe
+model AssetVersion {
+  id            String         @id @default(cuid())
+  assetId       String
+  asset         Asset          @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  version       String         // semver: "1.0.0", "2.1.3"
+  stackCompat   Json           // e.g. { "nextjs": ">=14", "prisma": "^5" }
+  source        Json           // e.g. { "type": "repo_path", "ref": "assets/nextauth-rbac" }
+  installRecipe Json           // steps + commands + files to copy
+  interfacesRef String?        // path to INTERFACES.md
+  boundariesRef String?        // path to BOUNDARIES.md
+  proofPack     Json?          // e.g. { "type": "evidence_path", "ref": "evidence/assets/nextauth-rbac/v1" }
+  status        String         @default("ACTIVE") // ACTIVE | DEPRECATED
+  projectAssets ProjectAsset[]
+  tasks         Task[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@unique([assetId, version])
+}
+
+// AssetTag: Searchable tags for assets
+model AssetTag {
+  id      String @id @default(cuid())
+  assetId String
+  asset   Asset  @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  tag     String
+
+  @@index([tag])
+  @@index([assetId])
+}
+
+// ProjectAsset: Links a project to a specific asset version
+model ProjectAsset {
+  id             String       @id @default(cuid())
+  projectId      String
+  project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assetVersionId String
+  assetVersion   AssetVersion @relation(fields: [assetVersionId], references: [id])
+  pinned         Boolean      @default(true) // if true, don't auto-upgrade
+  config         Json?        // project-specific configuration params
+  createdAt      DateTime     @default(now())
+
+  @@unique([projectId, assetVersionId])
 }
