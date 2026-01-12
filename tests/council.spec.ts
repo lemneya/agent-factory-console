@@ -9,7 +9,7 @@ test.describe('AFC-1.3 Adoptability Council', () => {
 
     test('should display page header', async ({ page }) => {
       await page.goto('/council');
-      await expect(page.locator('h1')).toContainText('Adoptability Council');
+      await expect(page.locator('h1').nth(1)).toContainText('Adoptability Council');
     });
 
     test('should have new evaluation button', async ({ page }) => {
@@ -45,7 +45,7 @@ test.describe('AFC-1.3 Adoptability Council', () => {
   test.describe('New Evaluation Page', () => {
     test('should load new evaluation page', async ({ page }) => {
       await page.goto('/council/new');
-      await expect(page.locator('h1')).toContainText('New Council Evaluation');
+      await expect(page.locator('h1').nth(1)).toContainText('New Council Evaluation');
     });
 
     test('should have back link to council', async ({ page }) => {
