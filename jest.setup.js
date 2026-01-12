@@ -2,6 +2,7 @@
 // Add any global test setup here
 
 import '@testing-library/jest-dom';
+import * as crypto from 'crypto';
 
 // Polyfill for Web Crypto API
 import { TextEncoder, TextDecoder } from 'util';
@@ -9,7 +10,6 @@ global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
 
 // Mock crypto.subtle for Jest
-const crypto = require('crypto');
 global.crypto = {
   subtle: {
     digest: async (algorithm, data) => {
