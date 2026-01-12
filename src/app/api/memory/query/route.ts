@@ -6,10 +6,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
-import { getMemoryProvider } from '@/memory/prismaProvider';
 import type { MemoryQuery } from '@/memory/provider';
-import { MemoryScope, MemoryCategory } from '@prisma/client';
+import type { MemoryScope, MemoryCategory } from '@prisma/client';
 
 interface QueryRequestBody {
   projectId?: string;
@@ -29,6 +27,10 @@ interface QueryRequestBody {
 export async function POST(request: NextRequest) {
   try {
     const body: QueryRequestBody = await request.json();
+
+    // Dynamic imports to avoid import-time Prisma initialization errors
+    const { default: prisma } = await import('@/lib/prisma');
+    const { getMemoryProvider } = await import('@/memory/prismaProvider');
 
     const provider = getMemoryProvider(prisma);
 
