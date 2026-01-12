@@ -1,0 +1,40 @@
+# AFC-1.2 Lint Fix 2 Evidence Log
+# Date: 2026-01-12
+# Issue: React Hook useEffect missing dependencies in asset pages
+
+## Files Fixed
+1. src/app/assets/page.tsx (L46) - fetchAssets dependency
+2. src/app/assets/[id]/page.tsx (L63) - fetchAsset dependency
+
+## Fix Applied
+- Moved fetch functions inside useEffect
+- Added isMounted cleanup pattern
+- Added refreshCounter state for [id] page to trigger re-fetches
+
+## Lint Output After Fix
+
+$ npm run lint
+> agent-factory-console@0.1.0 lint
+> eslint
+
+(no output = 0 errors, 0 warnings)
+
+## Test Output
+
+$ npm test
+Test Suites: 10 passed, 10 total
+Tests:       154 passed, 154 total
+
+## Build Output
+
+$ npm run build
+Build successful - all pages compiled
+
+## Commit
+Hash: f14a410
+Message: fix: resolve remaining useEffect dependency lint in assets pages
+
+## CI Status
+- Lint: PASS (0 errors, 0 warnings)
+- Tests: PASS (154/154)
+- Build: PASS
