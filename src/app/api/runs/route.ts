@@ -64,7 +64,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           {
             error: 'Council decision required',
-            message: 'No Council decision exists for this project. Create a Council evaluation before starting a BUILD run.',
+            message:
+              'No Council decision exists for this project. Create a Council evaluation before starting a BUILD run.',
             code: 'COUNCIL_DECISION_REQUIRED',
           },
           { status: 409 }
