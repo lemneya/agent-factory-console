@@ -1,0 +1,59 @@
+AFC-1.2 Asset Registry MVP - Migration Log
+==========================================
+Date: 2026-01-12
+Migration: 20260112000000_afc_1_2_asset_registry
+
+Schema Changes:
+---------------
+1. Added Asset model:
+   - id (cuid, primary key)
+   - slug (unique, indexed)
+   - name
+   - description (text)
+   - category (string: auth, crud, ui, infra, worker, etc.)
+   - defaultLicense (default: MIT)
+   - createdAt, updatedAt
+
+2. Added AssetVersion model:
+   - id (cuid, primary key)
+   - assetId (foreign key to Asset, cascade delete)
+   - version (semver string)
+   - stackCompat (JSON: e.g. { "nextjs": ">=14", "prisma": "^5" })
+   - source (JSON: e.g. { "type": "repo_path", "ref": "assets/nextauth-rbac" })
+   - installRecipe (JSON: steps + commands + files to copy)
+   - interfacesRef (nullable string: path to INTERFACES.md)
+   - boundariesRef (nullable string: path to BOUNDARIES.md)
+   - proofPack (JSON: e.g. { "type": "evidence_path", "ref": "evidence/assets/..." })
+   - status (ACTIVE | DEPRECATED)
+   - createdAt, updatedAt
+   - Unique constraint: (assetId, version)
+
+3. Added AssetTag model:
+   - id (cuid, primary key)
+   - assetId (foreign key to Asset, cascade delete)
+   - tag (indexed for search)
+
+4. Added ProjectAsset model:
+   - id (cuid, primary key)
+   - projectId (foreign key to Project, cascade delete)
+   - assetVersionId (foreign key to AssetVersion)
+   - pinned (boolean, default true)
+   - config (JSON: project-specific params)
+   - createdAt
+   - Unique constraint: (projectId, assetVersionId)
+
+5. Updated Task model:
+   - Added assetVersionId (nullable foreign key to AssetVersion)
+   - Added kind (string: INTEGRATE_ASSET | BUILD_CUSTOM | RESEARCH | QA)
+   - Added index on assetVersionId
+
+Prisma Client Generation:
+-------------------------
+✓ Prisma Client (v5.22.0) generated successfully
+
+Migration File:
+---------------
+Created: prisma/migrations/20260112000000_afc_1_2_asset_registry/migration.sql
+
+Status: READY FOR APPLICATION
+Note: Migration will be applied when database is available via `npx prisma migrate deploy`
