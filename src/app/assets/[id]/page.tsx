@@ -57,27 +57,40 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
   });
   const [versionLoading, setVersionLoading] = useState(false);
   const [versionError, setVersionError] = useState<string | null>(null);
+  const [refreshCounter, setRefreshCounter] = useState(0);
 
   useEffect(() => {
-    fetchAsset();
-  }, [id]);
+    let isMounted = true;
 
-  async function fetchAsset() {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/assets/${id}`);
-      if (!response.ok) {
-        if (response.status === 404) throw new Error('Asset not found');
-        throw new Error('Failed to fetch asset');
+    const fetchAsset = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/assets/${id}`);
+        if (!response.ok) {
+          if (response.status === 404) throw new Error('Asset not found');
+          throw new Error('Failed to fetch asset');
+        }
+        const data = await response.json();
+        if (isMounted) {
+          setAsset(data);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : 'Unknown error');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
-      const data = await response.json();
-      setAsset(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
-      setLoading(false);
-    }
-  }
+    };
+
+    fetchAsset();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id, refreshCounter]);
 
   async function handleAddVersion(e: React.FormEvent) {
     e.preventDefault();
@@ -112,7 +125,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
         interfacesRef: '',
         boundariesRef: '',
       });
-      fetchAsset();
+      setRefreshCounter((c) => c + 1);
     } catch (err) {
       setVersionError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
