@@ -1,0 +1,22 @@
+  startedAt      DateTime?
+  completedAt    DateTime?
+  // AFC-1.1: Queue lease self-healing fields
+  claimedBy      String?   // worker ID that claimed this task
+  claimedAt      DateTime? // when the task was claimed
+  leaseExpiresAt DateTime? // when the lease expires (reclaimable after)
+  attempts       Int       @default(0) // number of claim attempts
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([status])
+  @@index([leaseExpiresAt])
+}
+
+// Worker model for Agent B implementation
+// Workers are AI agents that can claim and execute tasks
+model Worker {
+  id           String    @id @default(cuid())
+  name         String
+  type         String    @default("AGENT")
+  status       String    @default("IDLE")
+  capabilities String[]

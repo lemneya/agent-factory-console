@@ -1,0 +1,21 @@
+// AFC-1.1: Added parentId for nested logs (pods/subagents)
+model WorkerLog {
+  id        String      @id @default(cuid())
+  workerId  String
+  taskId    String?
+  parentId  String?     // AFC-1.1: parent log ID for nested structure
+  parent    WorkerLog?  @relation("LogHierarchy", fields: [parentId], references: [id])
+  children  WorkerLog[] @relation("LogHierarchy")
+  action    String
+  details   Json?
+  createdAt DateTime    @default(now())
+
+  @@index([workerId])
+  @@index([taskId])
+  @@index([parentId])
+}
+
+model GitHubEvent {
+  id              String   @id @default(cuid())
+  deliveryId      String?
+  projectId       String?

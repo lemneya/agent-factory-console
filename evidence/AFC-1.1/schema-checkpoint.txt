@@ -1,0 +1,31 @@
+model RunCheckpoint {
+  id           String   @id @default(cuid())
+  runId        String
+  run          Run      @relation(fields: [runId], references: [id], onDelete: Cascade)
+  threadId     String   // MUST equal runId for AFC-1.1
+  graphVersion String
+  graphHash    String?
+  checkpointId String
+  nextNode     String?
+  status       String   // RunStatus value
+  stateJson    Json     // entire RunState "values" payload
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([runId])
+  @@index([threadId])
+}
+
+model Task {
+  id             String    @id @default(cuid())
+  runId          String
+  run            Run       @relation(fields: [runId], references: [id])
+  title          String
+  description    String?   @db.Text
+  status         String    @default("TODO")
+  priority       Int       @default(0)
+  assignee       String?
+  workerId       String?
+  worker         Worker?   @relation(fields: [workerId], references: [id])
+  result         Json?
+  errorMsg       String?   @db.Text

@@ -1,0 +1,35 @@
+# AFC-1.3 Migration Fix Log
+Date: 2026-01-12
+
+## Issue
+E2E tests failing with "table public.CouncilDecision does not exist"
+
+## Root Cause
+The CouncilDecision migration was not generated/committed. Only 3 migrations existed:
+- 20260111000000_initial_schema
+- 20260111000001_add_worker_system
+- 20260111100000_afc_1_1_worker_contract_v02
+
+## Fix Applied
+Created migration file: `prisma/migrations/20260112000000_add_council_decision/migration.sql`
+
+### Migration Contents
+- CREATE TYPE "DecisionType" AS ENUM ('ADOPT', 'ADAPT', 'BUILD')
+- CREATE TYPE "RiskLevel" AS ENUM ('LOW', 'MEDIUM', 'HIGH')
+- CREATE TABLE "CouncilDecision" with all required columns:
+  - id, projectId, taskId, decision, confidence
+  - candidateName, candidateUrl, licenseType
+  - maintenanceRisk, integrationPlan, redTeamCritique
+  - sources (JSONB), reasoning
+  - overrideOf, overrideReason
+  - createdBy, createdAt, updatedAt
+- CREATE INDEX on projectId and taskId
+- ADD FOREIGN KEY constraints to Project and Task
+
+## Verification
+- Lint: PASS
+- Unit Tests: 143/143 PASS
+- Build: PASS
+
+## Commit
+`3785505 fix(afc-1.3): add CouncilDecision migration`

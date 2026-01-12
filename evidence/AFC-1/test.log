@@ -1,0 +1,19 @@
+
+> agent-factory-console@0.1.0 test
+> jest
+
+PASS __tests__/workers/api.test.ts
+PASS __tests__/workers/types.test.ts
+PASS __tests__/models/task.test.ts
+PASS __tests__/models/run.test.ts
+PASS __tests__/lib/github/signature.test.ts
+PASS __tests__/models/project.test.ts
+PASS __tests__/api/health.test.ts
+PASS __tests__/lib/prisma.test.ts
+PASS __tests__/example.test.ts
+
+Test Suites: 9 passed, 9 total
+Tests:       121 passed, 121 total
+Snapshots:   0 total
+Time:        5.423 s
+Ran all test suites.

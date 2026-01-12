@@ -1,0 +1,78 @@
+# AFC-1.3 Adoptability Council MVP Implementation Log
+Date: 2026-01-12
+
+## Overview
+Implemented mandatory research gate ("Council") that outputs structured decisions (ADOPT | ADAPT | BUILD) before BUILD runs can proceed.
+
+**Note:** This implementation is de-stacked from AFC-1.2 (Asset Registry) and can be merged independently.
+
+## Components Implemented
+
+### A. Database Models (Prisma)
+- `CouncilDecision` model with all required fields:
+  - Decision type (ADOPT | ADAPT | BUILD)
+  - Confidence score (0-1)
+  - Candidate solution (name, URL, license)
+  - Maintenance risk (LOW | MEDIUM | HIGH)
+  - Integration plan
+  - Red team critique
+  - Sources (JSON array)
+  - Reasoning
+  - Override tracking
+- `DecisionType` enum
+- `RiskLevel` enum
+- Relations to Project and Task models
+
+### B. API Routes (5 endpoints)
+1. `POST /api/council/evaluate` - Create new Council evaluation
+2. `GET /api/council/decisions` - List all decisions with filters
+3. `GET /api/council/decisions/[id]` - Get specific decision details
+4. `GET /api/projects/[id]/council` - Get project-specific decisions
+5. `POST /api/council/decisions/[id]/override` - Override existing decision
+
+### C. UI Pages (4 pages)
+1. `/council` - Dashboard with stats, filters, and decision list
+2. `/council/new` - Form for new Council evaluation
+3. `/council/[id]` - Decision detail page with full reasoning
+4. `/projects/[id]/council` - Project-specific Council history
+
+### D. Council Gate Enforcement (MANDATORY)
+- Implemented in `src/app/api/runs/route.ts`
+- Before creating a Run, checks for existing CouncilDecision for the project
+- Returns 409 "Council decision required" if no decision exists
+- Supports `skipCouncilCheck` parameter for non-BUILD runs
+
+### E. Tests
+- Unit tests: `__tests__/models/council.test.ts` (22 tests including Council Gate)
+- E2E tests: `tests/council.spec.ts` (30 tests)
+
+## Files Created/Modified
+
+### New Files
+- prisma/schema.prisma (updated with CouncilDecision model)
+- src/app/api/council/evaluate/route.ts
+- src/app/api/council/decisions/route.ts
+- src/app/api/council/decisions/[id]/route.ts
+- src/app/api/council/decisions/[id]/override/route.ts
+- src/app/api/projects/[id]/council/route.ts
+- src/app/council/page.tsx
+- src/app/council/new/page.tsx
+- src/app/council/[id]/page.tsx
+- src/app/projects/[id]/council/page.tsx
+- __tests__/models/council.test.ts
+- tests/council.spec.ts
+
+### Modified Files
+- __tests__/mocks/prisma.ts (added councilDecision mock)
+- src/app/api/runs/route.ts (added Council Gate check)
+
+## CI Status
+- Lint: PASS (0 errors, 0 warnings)
+- Unit Tests: PASS (143 tests)
+- Build: PASS
+
+## De-stacking from AFC-1.2
+This implementation was cherry-picked to create a clean branch without AFC-1.2 dependencies:
+- Removed references to `kind` field (AFC-1.2 Task extension)
+- Removed references to Asset models (AFC-1.2)
+- Council feature works independently on AFC-1.1 base

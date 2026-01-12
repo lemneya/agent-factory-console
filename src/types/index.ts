@@ -1,3 +1,13 @@
+/**
+ * Type Definitions Index
+ *
+ * Central export point for all TypeScript types used in Agent Factory Console.
+ */
+
+// API types for requests and responses
+export * from './api';
+
+// Legacy frontend types (for Vite-based prototype)
 export type ProjectStatus = 'active' | 'paused' | 'completed' | 'error';
 export type RunStatus = 'running' | 'pending' | 'completed' | 'failed' | 'cancelled';
 export type NotificationType = 'info' | 'success' | 'warning' | 'error';

@@ -1,9 +1,61 @@
-# AFC-1.5: Terminal Matrix Docker Configuration
-# Provides terminal gateway service for secure worker session access
-
-version: '3.8'
-
 services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/agent_factory
+      - NEXTAUTH_SECRET=dev-secret-change-in-production
+      - NEXTAUTH_URL=http://localhost:3000
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      db:
+        condition: service_healthy
+    command: npm run dev
+    networks:
+      - afc-internal
+
+  db:
+    image: postgres:15-alpine
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=agent_factory
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - afc-internal
+
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/agent_factory
+    depends_on:
+      db:
+        condition: service_healthy
+    command: npx prisma migrate deploy
+    profiles:
+      - migrate
+    networks:
+      - afc-internal
+
   # AFC-1.5: Terminal Gateway Service
   # Routes terminal connections through controlled endpoint
   # IMPORTANT: Terminals are disabled by default in production
@@ -36,6 +88,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    profiles:
+      - terminal
     labels:
       - "com.afc.service=terminal-gateway"
       - "com.afc.feature=AFC-1.5"
@@ -59,6 +113,7 @@ services:
       - "com.afc.service=worker"
 
 volumes:
+  pgdata:
   terminal-logs:
     driver: local
   worker-data:
@@ -67,4 +122,3 @@ volumes:
 networks:
   afc-internal:
     driver: bridge
-    internal: false
