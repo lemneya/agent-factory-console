@@ -4,6 +4,7 @@ import { useEffect, useState, use, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import RalphModePanel from '@/components/ralph/RalphModePanel';
+import { MemoryPanel } from '@/components/memory';
 
 interface Task {
   id: string;
@@ -321,6 +322,13 @@ export default function RunDetailPage({ params }: RunDetailPageProps) {
             runStatus={run.status}
             onRefresh={fetchRun}
           />
+        </div>
+      )}
+
+      {/* AFC-1.6: Memory Panel */}
+      {run && (
+        <div className="mb-6">
+          <MemoryPanel runId={run.id} projectId={run.project.id} />
         </div>
       )}
 

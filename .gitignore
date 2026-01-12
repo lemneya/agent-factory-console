@@ -86,3 +86,5 @@ tsconfig.tsbuildinfo
 
 # Misc
 .turbo
+playwright-report/
+test-results/
