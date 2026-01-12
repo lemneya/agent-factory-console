@@ -71,7 +71,13 @@ export interface Notification {
 // AFC-1.5: Terminal Matrix Types
 export type TerminalMode = 'READ_ONLY' | 'INTERACTIVE';
 export type TerminalStatus = 'ACTIVE' | 'CLOSED' | 'ERROR';
-export type TerminalEventType = 'OUTPUT' | 'INPUT' | 'MODE_CHANGE' | 'CONNECT' | 'DISCONNECT' | 'KILL';
+export type TerminalEventType =
+  | 'OUTPUT'
+  | 'INPUT'
+  | 'MODE_CHANGE'
+  | 'CONNECT'
+  | 'DISCONNECT'
+  | 'KILL';
 
 export interface TerminalSession {
   id: string;

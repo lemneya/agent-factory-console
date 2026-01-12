@@ -64,7 +64,7 @@ services:
       context: ./docker/terminal-gateway
       dockerfile: Dockerfile
     ports:
-      - "${TERMINAL_GATEWAY_PORT:-7681}:7681"
+      - '${TERMINAL_GATEWAY_PORT:-7681}:7681'
     environment:
       # Safety: Disabled by default, must be explicitly enabled
       - TERMINAL_ENABLED=${TERMINAL_ENABLED:-false}
@@ -84,15 +84,15 @@ services:
       - afc-internal
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7681/health"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:7681/health']
       interval: 30s
       timeout: 10s
       retries: 3
     profiles:
       - terminal
     labels:
-      - "com.afc.service=terminal-gateway"
-      - "com.afc.feature=AFC-1.5"
+      - 'com.afc.service=terminal-gateway'
+      - 'com.afc.feature=AFC-1.5'
 
   # Worker container template (for reference)
   # Workers should have tmux installed for session management
@@ -110,7 +110,7 @@ services:
     networks:
       - afc-internal
     labels:
-      - "com.afc.service=worker"
+      - 'com.afc.service=worker'
 
 volumes:
   pgdata:

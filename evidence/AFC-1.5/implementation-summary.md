@@ -7,21 +7,25 @@ Added a Terminal Matrix to AFC that lets you spawn/attach to long-running worker
 ## Key Safety Features
 
 ### 1. Read-Only by Default
+
 - All terminal sessions start in `READ_ONLY` mode
 - Users can only view output, not send input
 - Prevents accidental interference with automated workflows
 
 ### 2. Break-Glass Input
+
 - Interactive mode requires explicit "Enable Input" action
 - Warning modal shown before enabling
 - All mode changes are audited with user ID and reason
 
 ### 3. Full Audit Trail
+
 - All terminal I/O recorded as `TerminalEvent` records
 - Event types: `OUTPUT`, `INPUT`, `MODE_CHANGE`, `CONNECT`, `DISCONNECT`, `KILL`
 - Each event includes timestamp, actor (user or agent), and sequence number
 
 ### 4. Gateway Isolation
+
 - Terminal connections routed through `terminal-gateway` service
 - No direct worker IP access from frontend
 - Gateway enforces authentication and logging
@@ -29,11 +33,13 @@ Added a Terminal Matrix to AFC that lets you spawn/attach to long-running worker
 ## Deliverables
 
 ### A) Docker Configuration
+
 - `docker-compose.yml` - Terminal gateway service
 - `docker/terminal-gateway/` - Gateway Dockerfile and Node.js application
 - `docker/worker/` - Worker template with tmux support
 
 ### B) TypeScript Types
+
 - `TerminalSession` - Session metadata
 - `TerminalEvent` - Audit log entries
 - `TerminalToken` - Ephemeral auth tokens
@@ -42,6 +48,7 @@ Added a Terminal Matrix to AFC that lets you spawn/attach to long-running worker
 - `TerminalEventType` - Event type enum
 
 ### C) API Service
+
 - `createTerminalSession()` - Create new session (READ_ONLY default)
 - `getTerminalSessions()` - List sessions for a run
 - `enableInteractiveMode()` - Break-glass switch
@@ -51,11 +58,13 @@ Added a Terminal Matrix to AFC that lets you spawn/attach to long-running worker
 - `generateTerminalToken()` - Create ephemeral token
 
 ### D) UI Components
+
 - `TerminalMatrix` - Grid view with spawn/kill/enable-input controls
 - `TerminalView` - Terminal output display with input form
 - `RunDetail` - Page with Terminals tab
 
 ### E) Tests
+
 - 12 unit tests covering:
   - Session creation (READ_ONLY default)
   - Break-glass mode change + audit
@@ -75,6 +84,7 @@ Added a Terminal Matrix to AFC that lets you spawn/attach to long-running worker
 ## Files Modified/Created
 
 ### New Files
+
 - `docker-compose.yml`
 - `docker/terminal-gateway/Dockerfile`
 - `docker/terminal-gateway/package.json`
@@ -91,6 +101,7 @@ Added a Terminal Matrix to AFC that lets you spawn/attach to long-running worker
 - `vitest.config.ts`
 
 ### Modified Files
+
 - `src/types/index.ts` - Added terminal types
 - `src/data/mockData.ts` - Added mock terminal data
 - `src/components/index.ts` - Export terminal components

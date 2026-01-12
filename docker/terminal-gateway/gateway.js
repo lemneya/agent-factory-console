@@ -34,14 +34,11 @@ if (!fs.existsSync(logDir)) {
 // Configure audit logger
 const auditLogger = winston.createLogger({
   level: 'info',
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.json()
-  ),
+  format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
   transports: [
     new winston.transports.File({ filename: AUDIT_LOG_PATH }),
-    new winston.transports.Console()
-  ]
+    new winston.transports.Console(),
+  ],
 });
 
 // In-memory session store (replace with Redis in production)
@@ -56,7 +53,7 @@ app.get('/health', (req, res) => {
     status: 'healthy',
     terminalEnabled: TERMINAL_ENABLED,
     defaultMode: DEFAULT_MODE,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -65,11 +62,11 @@ const checkTerminalsEnabled = (req, res, next) => {
   if (!TERMINAL_ENABLED) {
     auditLogger.warn('Terminal access attempted while disabled', {
       ip: req.ip,
-      path: req.path
+      path: req.path,
     });
     return res.status(503).json({
       error: 'Terminals are disabled',
-      message: 'Set TERMINAL_ENABLED=true to enable terminal access'
+      message: 'Set TERMINAL_ENABLED=true to enable terminal access',
     });
   }
   next();
@@ -88,7 +85,7 @@ const authenticate = (req, res, next) => {
     auditLogger.warn('Authentication failed', {
       ip: req.ip,
       path: req.path,
-      providedToken: token ? '[REDACTED]' : 'none'
+      providedToken: token ? '[REDACTED]' : 'none',
     });
     return res.status(401).json({ error: 'Unauthorized' });
   }
@@ -113,7 +110,7 @@ app.post('/sessions', checkTerminalsEnabled, authenticate, (req, res) => {
     mode: DEFAULT_MODE,
     status: 'ACTIVE',
     createdAt: new Date().toISOString(),
-    events: []
+    events: [],
   };
 
   sessions.set(sessionId, session);
@@ -124,7 +121,7 @@ app.post('/sessions', checkTerminalsEnabled, authenticate, (req, res) => {
     workerId,
     userId,
     mode: DEFAULT_MODE,
-    eventType: 'CONNECT'
+    eventType: 'CONNECT',
   });
 
   res.status(201).json(session);
@@ -160,7 +157,7 @@ app.post('/sessions/:id/enable-input', checkTerminalsEnabled, authenticate, (req
     type: 'MODE_CHANGE',
     timestamp: new Date().toISOString(),
     actorUserId: userId,
-    data: { from: previousMode, to: 'INTERACTIVE', reason }
+    data: { from: previousMode, to: 'INTERACTIVE', reason },
   });
 
   // Audit log: Mode change (CRITICAL - break-glass action)
@@ -170,7 +167,7 @@ app.post('/sessions/:id/enable-input', checkTerminalsEnabled, authenticate, (req
     userId,
     reason,
     previousMode,
-    eventType: 'MODE_CHANGE'
+    eventType: 'MODE_CHANGE',
   });
 
   res.json(session);
@@ -189,11 +186,11 @@ app.post('/sessions/:id/input', checkTerminalsEnabled, authenticate, (req, res) 
     auditLogger.warn('Input attempted in READ_ONLY mode', {
       sessionId: session.id,
       userId,
-      eventType: 'INPUT_BLOCKED'
+      eventType: 'INPUT_BLOCKED',
     });
     return res.status(403).json({
       error: 'Session is in READ_ONLY mode',
-      message: 'Use /enable-input to switch to INTERACTIVE mode'
+      message: 'Use /enable-input to switch to INTERACTIVE mode',
     });
   }
 
@@ -205,7 +202,7 @@ app.post('/sessions/:id/input', checkTerminalsEnabled, authenticate, (req, res) 
     type: 'INPUT',
     timestamp: new Date().toISOString(),
     actorUserId: userId,
-    data: { text: input }
+    data: { text: input },
   });
 
   // Audit log: Input received
@@ -214,7 +211,7 @@ app.post('/sessions/:id/input', checkTerminalsEnabled, authenticate, (req, res) 
     workerId: session.workerId,
     userId,
     inputLength: input.length,
-    eventType: 'INPUT'
+    eventType: 'INPUT',
   });
 
   // In production, forward input to ttyd/tmux session
@@ -236,7 +233,7 @@ app.post('/sessions/:id/kill', checkTerminalsEnabled, authenticate, (req, res) =
     type: 'KILL',
     timestamp: new Date().toISOString(),
     actorUserId: userId,
-    data: { reason: reason || 'User requested termination' }
+    data: { reason: reason || 'User requested termination' },
   });
 
   // Audit log: Session killed
@@ -245,7 +242,7 @@ app.post('/sessions/:id/kill', checkTerminalsEnabled, authenticate, (req, res) =
     workerId: session.workerId,
     userId,
     reason: reason || 'User requested termination',
-    eventType: 'KILL'
+    eventType: 'KILL',
   });
 
   res.json(session);
@@ -289,7 +286,9 @@ app.get('/sessions/:id/stream', checkTerminalsEnabled, authenticate, (req, res) 
       res.end();
       return;
     }
-    res.write(`data: ${JSON.stringify({ type: 'heartbeat', timestamp: new Date().toISOString() })}\n\n`);
+    res.write(
+      `data: ${JSON.stringify({ type: 'heartbeat', timestamp: new Date().toISOString() })}\n\n`
+    );
   }, 5000);
 
   // Clean up on client disconnect
@@ -297,7 +296,7 @@ app.get('/sessions/:id/stream', checkTerminalsEnabled, authenticate, (req, res) 
     clearInterval(heartbeat);
     auditLogger.info('Stream disconnected', {
       sessionId: session.id,
-      eventType: 'DISCONNECT'
+      eventType: 'DISCONNECT',
     });
   });
 });
@@ -307,7 +306,7 @@ app.listen(PORT, () => {
   auditLogger.info('Terminal Gateway started', {
     port: PORT,
     terminalEnabled: TERMINAL_ENABLED,
-    defaultMode: DEFAULT_MODE
+    defaultMode: DEFAULT_MODE,
   });
 
   if (!TERMINAL_ENABLED) {
