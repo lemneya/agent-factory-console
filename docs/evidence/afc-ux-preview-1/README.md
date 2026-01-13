@@ -7,12 +7,14 @@ This feature adds preset-based URL switching, persistence, and improved route he
 ## Features Implemented
 
 ### 1. Preset-Based URL Switcher
+
 - Dropdown selector for switching between preview environments
 - Default presets: Local, Staging, Production
 - Environment variable support via `NEXT_PUBLIC_PREVIEW_URL`
 - Presets stored in localStorage for persistence
 
 ### 2. PresetEditorModal Component
+
 - Full CRUD operations for managing presets
 - Add new presets with name and URL
 - Edit existing preset names and URLs
@@ -20,26 +22,31 @@ This feature adds preset-based URL switching, persistence, and improved route he
 - Validation for name (required) and URL (must start with http:// or https://)
 
 ### 3. Route Persistence
+
 - Current path persisted to localStorage
 - Active preset selection persisted to localStorage
 - State restored on page load
 
 ### 4. Deep Link Support
+
 - URL query parameters: `?path=/runs&preset=local`
 - Shareable links for specific routes and presets
 - Parameters applied on page load
 
 ### 5. Open Current Route Button
+
 - Opens the current preview URL in a new browser tab
 - Disabled when no URL is configured
 
 ### 6. Improved Route Health API
+
 - Detects HTTP redirects (301, 302, 307, 308)
 - Identifies auth redirects (redirects to /login, /signin, /auth)
 - Returns redirect URL in response
 - Measures latency for all requests
 
 ### 7. Updated RouteHealthGrid UI
+
 - New status icons:
   - ✅ 200 OK
   - 🔒 Auth redirect
@@ -52,11 +59,13 @@ This feature adds preset-based URL switching, persistence, and improved route he
 ## Files Changed
 
 ### New Files
+
 - `src/components/preview/PresetEditorModal.tsx` - Modal for editing presets
 - `src/components/preview/usePreviewPresets.ts` - Hook for preset management
 - `tests/preview-presets.spec.ts` - E2E tests for preset functionality
 
 ### Modified Files
+
 - `src/app/preview/page.tsx` - Added preset selector, deep linking, open current button
 - `src/app/api/preview/route-health/route.ts` - Added redirect detection
 - `src/components/preview/RouteHealthGrid.tsx` - Added baseUrl prop, redirect icons
@@ -65,6 +74,7 @@ This feature adds preset-based URL switching, persistence, and improved route he
 ## E2E Tests
 
 11 new tests covering:
+
 - Page renders with preset dropdown
 - Default presets shown in dropdown
 - Edit presets button opens modal
@@ -82,6 +92,7 @@ This feature adds preset-based URL switching, persistence, and improved route he
 ### POST /api/preview/route-health
 
 Request body now accepts optional `baseUrl`:
+
 ```json
 {
   "path": "/runs",
@@ -90,6 +101,7 @@ Request body now accepts optional `baseUrl`:
 ```
 
 Response now includes redirect information:
+
 ```json
 {
   "path": "/runs",

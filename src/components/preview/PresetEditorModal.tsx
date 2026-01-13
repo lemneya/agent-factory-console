@@ -118,9 +118,13 @@ export function PresetEditorModal({ isOpen, onClose, presets, onSave }: PresetEd
     }
 
     // Save without error fields
-    const cleanPresets: PreviewPreset[] = validated.map(
-      ({ nameError: _ne, urlError: _ue, ...rest }) => rest
-    );
+    const cleanPresets: PreviewPreset[] = validated.map(p => {
+      const { nameError, urlError, ...rest } = p;
+      // Suppress unused variable warnings
+      void nameError;
+      void urlError;
+      return rest;
+    });
     onSave(cleanPresets);
     onClose();
   };
