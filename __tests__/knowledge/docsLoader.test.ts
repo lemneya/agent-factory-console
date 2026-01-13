@@ -3,8 +3,7 @@
  * UX-GATE-COPILOT-0: Test docs chunking and retrieval
  */
 
-import { describe, it, expect } from 'vitest';
-import { splitByHeadings, retrieveChunks, DocChunk } from './docsLoader';
+import { splitByHeadings, retrieveChunks, DocChunk } from '@/knowledge/docsLoader';
 
 describe('docsLoader', () => {
   describe('splitByHeadings', () => {
