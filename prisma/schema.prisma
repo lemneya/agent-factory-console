@@ -532,3 +532,32 @@ model RunMemorySnapshotItem {
   @@index([snapshotId])
   @@index([memoryItemId])
 }
+
+
+// ============================================================================
+// UX-GATE-COPILOT-0: Copilot Audit Logging
+// ============================================================================
+
+// CopilotMessage: Audit log for all Copilot interactions
+model CopilotMessage {
+  id          String              @id @default(cuid())
+  createdAt   DateTime            @default(now())
+  
+  userId      String?             // nullable if demo/signed-out
+  projectId   String?             // nullable - scope context
+  runId       String?             // nullable - scope context
+  
+  role        CopilotRole         // USER | ASSISTANT
+  content     String              @db.Text
+  sourcesJson Json?               // nullable - sources for assistant messages
+  
+  @@index([userId])
+  @@index([projectId])
+  @@index([runId])
+  @@index([createdAt])
+}
+
+enum CopilotRole {
+  USER
+  ASSISTANT
+}
