@@ -107,7 +107,7 @@ function ProjectsContent() {
           </p>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3].map((i) => (
+          {[1, 2, 3].map(i => (
             <div
               key={i}
               className="animate-pulse rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800"
@@ -235,7 +235,7 @@ function ProjectsContent() {
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {projects.map((project) => (
+          {projects.map(project => (
             <Link
               key={project.id}
               href={`/projects/${project.id}`}
@@ -254,7 +254,7 @@ function ProjectsContent() {
                   href={project.htmlUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={e => e.stopPropagation()}
                   className="ml-2 flex-shrink-0 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
                 >
                   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -316,7 +316,10 @@ export default function ProjectsPage() {
       fallback={
         <main data-testid="page-root">
           <div className="mb-8">
-            <h1 data-testid="page-title" className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h1
+              data-testid="page-title"
+              className="text-2xl font-bold text-gray-900 dark:text-white"
+            >
               Projects
             </h1>
           </div>

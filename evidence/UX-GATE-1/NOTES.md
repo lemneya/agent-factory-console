@@ -12,6 +12,7 @@
    - Direct URL navigation to any page with `?demo=1` parameter
 
 2. **Detection Logic** (`useDemoMode` hook):
+
    ```typescript
    // Check URL param first
    const demoParam = searchParams.get('demo');
@@ -33,13 +34,13 @@
 
 ### Behavior in Demo Mode
 
-| Feature | Demo Mode | Authenticated |
-|---------|-----------|---------------|
-| View lists | ✅ Allowed | ✅ Allowed |
-| View details | ✅ Allowed | ✅ Allowed |
-| Create/Edit | ❌ Disabled | ✅ Allowed |
-| Delete | ❌ Disabled | ✅ Allowed |
-| Sync repos | ❌ Disabled | ✅ Allowed |
+| Feature      | Demo Mode   | Authenticated |
+| ------------ | ----------- | ------------- |
+| View lists   | ✅ Allowed  | ✅ Allowed    |
+| View details | ✅ Allowed  | ✅ Allowed    |
+| Create/Edit  | ❌ Disabled | ✅ Allowed    |
+| Delete       | ❌ Disabled | ✅ Allowed    |
+| Sync repos   | ❌ Disabled | ✅ Allowed    |
 
 ### DEV Bypass
 

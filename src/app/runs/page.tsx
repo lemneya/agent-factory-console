@@ -150,7 +150,7 @@ function RunsContent() {
           <div className="animate-pulse p-6">
             <div className="h-4 w-1/4 rounded bg-gray-200 dark:bg-gray-700" />
             <div className="mt-4 space-y-3">
-              {[1, 2, 3].map((i) => (
+              {[1, 2, 3].map(i => (
                 <div key={i} className="h-12 rounded bg-gray-200 dark:bg-gray-700" />
               ))}
             </div>
@@ -293,7 +293,7 @@ function RunsContent() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {runs.map((run) => (
+              {runs.map(run => (
                 <tr key={run.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/50">
                   <td className="whitespace-nowrap px-6 py-4">
                     <Link
@@ -338,12 +338,12 @@ function RunsContent() {
                 </label>
                 <select
                   value={newRun.projectId}
-                  onChange={(e) => setNewRun({ ...newRun, projectId: e.target.value })}
+                  onChange={e => setNewRun({ ...newRun, projectId: e.target.value })}
                   className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                   required
                 >
                   <option value="">Select a project</option>
-                  {projects.map((p) => (
+                  {projects.map(p => (
                     <option key={p.id} value={p.id}>
                       {p.repoFullName}
                     </option>
@@ -357,7 +357,7 @@ function RunsContent() {
                 <input
                   type="text"
                   value={newRun.name}
-                  onChange={(e) => setNewRun({ ...newRun, name: e.target.value })}
+                  onChange={e => setNewRun({ ...newRun, name: e.target.value })}
                   className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                   placeholder="e.g., Feature Implementation"
                   required
@@ -393,7 +393,10 @@ export default function RunsPage() {
       fallback={
         <main data-testid="page-root">
           <div className="mb-8">
-            <h1 data-testid="page-title" className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h1
+              data-testid="page-title"
+              className="text-2xl font-bold text-gray-900 dark:text-white"
+            >
               Runs
             </h1>
           </div>
