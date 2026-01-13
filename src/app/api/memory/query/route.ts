@@ -6,7 +6,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import type { MemoryQuery } from '@/memory/provider';
+import { PrismaClient } from '@prisma/client';
+import type { MemoryQuery, MemoryItem } from '@/memory/provider';
 import type { MemoryScope, MemoryCategory } from '@prisma/client';
 
 interface QueryRequestBody {
@@ -29,10 +30,11 @@ export async function POST(request: NextRequest) {
     const body: QueryRequestBody = await request.json();
 
     // Dynamic imports to avoid import-time Prisma initialization errors
-    const { default: prisma } = await import('@/lib/prisma');
+
     const { getMemoryProvider } = await import('@/memory/prismaProvider');
 
-    const provider = getMemoryProvider(prisma);
+    const { default: prisma } = await import('@/lib/prisma');
+    const provider = getMemoryProvider(prisma as PrismaClient);
 
     // Build query from request body
     const query: MemoryQuery = {
@@ -54,7 +56,7 @@ export async function POST(request: NextRequest) {
 
     // Optionally record usage for returned items
     if (body.recordUse && body.runId) {
-      for (const item of result.items) {
+      for (const item of result.items as MemoryItem[]) {
         await provider.recordUse({
           memoryItemId: item.id,
           runId: body.runId,
@@ -65,7 +67,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      items: result.items.map(item => ({
+      items: result.items.map((item: MemoryItem) => ({
         id: item.id,
         content: item.content,
         summary: item.summary,
