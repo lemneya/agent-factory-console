@@ -75,24 +75,17 @@ export interface DraftPayload {
   };
 }
 
-interface PlanOptions {
-  dryRun?: boolean;
-}
-
 /**
  * Plan the actions that will be taken when a draft is approved.
  * This function is deterministic and does NOT perform any mutations.
  */
-export async function planDraftActions(
-  draft: {
-    id: string;
-    kind: DraftKind;
-    payloadJson: string;
-    projectId: string | null;
-    sourcesJson?: any;
-  },
-  _options?: PlanOptions
-): Promise<DraftPlan> {
+export async function planDraftActions(draft: {
+  id: string;
+  kind: DraftKind;
+  payloadJson: string;
+  projectId: string | null;
+  sourcesJson?: unknown;
+}): Promise<DraftPlan> {
   const payload: DraftPayload = JSON.parse(draft.payloadJson);
   const operations: DraftOperation[] = [];
   const checks: DraftChecks = {
@@ -206,6 +199,7 @@ async function planBlueprintDraft(
 
   // Check for name collision
   if (db && blueprint.name) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const existingBlueprint = await (db as any).blueprint.findFirst({
       where: { name: blueprint.name },
     });
@@ -275,6 +269,7 @@ async function planWorkOrdersDraft(
   if (draft.projectId) {
     checks.councilRequired = true;
     if (db) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const councilDecision = await (db as any).councilDecision.findFirst({
         where: { projectId: draft.projectId },
       });
@@ -307,6 +302,7 @@ async function planWorkOrdersDraft(
   let estimatedWorkOrders = 6; // Default estimate
   if (db && source?.blueprintId) {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const blueprintVersion = await (db as any).blueprintVersion.findFirst({
         where: { blueprintId: source.blueprintId },
         orderBy: { createdAt: 'desc' },
@@ -350,7 +346,7 @@ export async function executeDraftPlan(
     kind: DraftKind;
     payloadJson: string;
     projectId: string | null;
-    sourcesJson?: any;
+    sourcesJson?: unknown;
   }
 ): Promise<{ success: boolean; resultRef?: string; error?: string }> {
   const db = getPrisma();
@@ -367,11 +363,12 @@ export async function executeDraftPlan(
         if (!council) {
           return { success: false, error: 'Council payload missing' };
         }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const decision = await (db as any).councilDecision.create({
           data: {
             projectId: council.projectId,
-            decision: council.type as any,
-            maintenanceRisk: council.risk as any,
+            decision: council.type as string,
+            maintenanceRisk: council.risk as string,
             reasoning: council.rationale,
             sources: draft.sourcesJson || [],
             confidence: 0.9,
@@ -385,6 +382,7 @@ export async function executeDraftPlan(
         if (!blueprint) {
           return { success: false, error: 'Blueprint payload missing' };
         }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const newBlueprint = await (db as any).blueprint.create({
           data: {
             name: blueprint.name,
@@ -392,6 +390,7 @@ export async function executeDraftPlan(
             projectId: draft.projectId,
           },
         });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const version = await (db as any).blueprintVersion.create({
           data: {
             blueprintId: newBlueprint.id,

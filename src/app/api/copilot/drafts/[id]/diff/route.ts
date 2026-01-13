@@ -41,15 +41,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     // Generate the plan (dry run - no mutations)
-    const plan = await planDraftActions(
-      {
-        id: draft.id,
-        kind: draft.kind as DraftKind,
-        payloadJson: draft.payloadJson as string,
-        projectId: draft.projectId,
-      },
-      { dryRun: true }
-    );
+    const plan = await planDraftActions({
+      id: draft.id,
+      kind: draft.kind as DraftKind,
+      payloadJson: draft.payloadJson as string,
+      projectId: draft.projectId,
+    });
 
     return NextResponse.json(plan);
   } catch (error) {

@@ -5,13 +5,6 @@
  * UX-GATE-COPILOT-1.1: Refactored to use planDraftActions
  *
  * SAFETY: This is the ONLY route that performs real actions.
- * It must:
- * - Confirm status == DRAFT
- * - Require authenticated user (unless NEXT_PUBLIC_DEV_AUTH_BYPASS=true)
- * - Generate plan using planDraftActions (same as diff endpoint)
- * - Execute the plan using executeDraftPlan
- * - Set draft status to APPROVED
- * - Write CopilotDraftEvent APPROVED
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -30,7 +23,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     // Get user session
     const session = await getServerSession(authOptions);
-    const userId = session?.user?.id;
+    const userId = session?.user
+      ? (session.user as { id?: string }).id || session.user.email
+      : null;
 
     // Require authentication unless dev bypass
     if (!userId && !devAuthBypass) {
@@ -75,16 +70,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     // Generate the plan using the same function as diff endpoint
-    // This ensures no divergence between "what UI shows" and "what approve does"
-    const plan = await planDraftActions(
-      {
-        id: draft.id,
-        kind: draft.kind as DraftKind,
-        payloadJson: draft.payloadJson as string,
-        projectId: draft.projectId,
-      },
-      { dryRun: false }
-    );
+    const plan = await planDraftActions({
+      id: draft.id,
+      kind: draft.kind as DraftKind,
+      payloadJson: draft.payloadJson as string,
+      projectId: draft.projectId,
+      sourcesJson: draft.sourcesJson,
+    });
 
     // Check for Council Gate if required
     if (plan.checks.councilRequired && !plan.checks.councilSatisfied) {
@@ -104,6 +96,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       kind: draft.kind as DraftKind,
       payloadJson: draft.payloadJson as string,
       projectId: draft.projectId,
+      sourcesJson: draft.sourcesJson,
     });
 
     if (!result.success) {
@@ -118,8 +111,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       where: { id },
       data: {
         status: 'APPROVED',
-        approvedAt: new Date(),
-        approvedBy: userId || 'dev-bypass',
         resultRef: result.resultRef,
       },
     });
@@ -128,8 +119,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     await prisma.copilotDraftEvent.create({
       data: {
         draftId: id,
-        actorUserId: userId,
         eventType: 'APPROVED',
+        actorUserId: userId || 'dev-bypass',
         detailsJson: {
           resultRef: result.resultRef,
           plan: {
