@@ -1,0 +1,10 @@
+{
+  "status": "UNKNOWN",
+  "message": "No smoke tests have been run yet. Run E2E tests to populate this file.",
+  "updatedAt": null,
+  "tests": {
+    "nav-smoke": { "status": "UNKNOWN", "passedCount": 0, "totalCount": 0 },
+    "auth-cta": { "status": "UNKNOWN", "passedCount": 0, "totalCount": 0 },
+    "happy-path": { "status": "UNKNOWN", "passedCount": 0, "totalCount": 0 }
+  }
+}
