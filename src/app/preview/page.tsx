@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { Suspense, useState, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { RouteHealthGrid, SmokeStatusCard } from '@/components/preview';
 import { usePreviewPresets } from '@/components/preview/usePreviewPresets';
 import { PresetEditorModal } from '@/components/preview/PresetEditorModal';
 
-export default function PreviewPage() {
+function PreviewContent() {
   const searchParams = useSearchParams();
   const [iframeKey, setIframeKey] = useState(0);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -146,7 +146,7 @@ export default function PreviewPage() {
       <div className="flex items-center gap-2 border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-800">
         <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Current:</span>
         <span
-          className="text-sm font-mono text-gray-700 dark:text-gray-300"
+          className="font-mono text-sm text-gray-700 dark:text-gray-300"
           data-testid="preview-current-path"
         >
           {currentPath}
@@ -231,5 +231,23 @@ export default function PreviewPage() {
         onSave={savePresets}
       />
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="flex h-full items-center justify-center" data-testid="page-root">
+      <div className="text-gray-500" data-testid="page-title">
+        Loading Preview...
+      </div>
+    </div>
+  );
+}
+
+export default function PreviewPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <PreviewContent />
+    </Suspense>
   );
 }
