@@ -3,7 +3,7 @@
  * Used by Sidebar, Dashboard quick links, and E2E tests
  */
 
-import { ComponentType } from "react";
+import { ComponentType } from 'react';
 
 export interface NavItem {
   key: string;
@@ -202,84 +202,84 @@ function BellIcon({ className }: { className?: string }) {
  */
 export const NAV_ITEMS: NavItem[] = [
   {
-    key: "dashboard",
-    label: "Dashboard",
-    href: "/",
+    key: 'dashboard',
+    label: 'Dashboard',
+    href: '/',
     icon: HomeIcon,
     requiresAuth: false,
-    description: "Overview and factory status",
+    description: 'Overview and factory status',
   },
   {
-    key: "projects",
-    label: "Projects",
-    href: "/projects",
+    key: 'projects',
+    label: 'Projects',
+    href: '/projects',
     icon: FolderIcon,
     requiresAuth: true,
-    description: "GitHub repositories",
+    description: 'GitHub repositories',
   },
   {
-    key: "runs",
-    label: "Runs",
-    href: "/runs",
+    key: 'runs',
+    label: 'Runs',
+    href: '/runs',
     icon: PlayIcon,
     requiresAuth: true,
-    description: "Agent execution runs",
+    description: 'Agent execution runs',
   },
   {
-    key: "blueprints",
-    label: "Blueprints",
-    href: "/blueprints",
+    key: 'blueprints',
+    label: 'Blueprints',
+    href: '/blueprints',
     icon: BlueprintIcon,
     requiresAuth: false,
-    description: "Structured specs",
+    description: 'Structured specs',
   },
   {
-    key: "workorders",
-    label: "WorkOrders",
-    href: "/workorders",
+    key: 'workorders',
+    label: 'WorkOrders',
+    href: '/workorders',
     icon: WorkOrderIcon,
     requiresAuth: false,
-    description: "Sliced work units",
+    description: 'Sliced work units',
   },
   {
-    key: "assets",
-    label: "Assets",
-    href: "/assets",
+    key: 'assets',
+    label: 'Assets',
+    href: '/assets',
     icon: AssetsIcon,
     requiresAuth: true,
-    description: "Registered resources",
+    description: 'Registered resources',
   },
   {
-    key: "council",
-    label: "Council",
-    href: "/council",
+    key: 'council',
+    label: 'Council',
+    href: '/council',
     icon: CouncilIcon,
     requiresAuth: false,
-    description: "Adoptability decisions",
+    description: 'Adoptability decisions',
   },
   {
-    key: "memory",
-    label: "Memory",
-    href: "/memory",
+    key: 'memory',
+    label: 'Memory',
+    href: '/memory',
     icon: MemoryIcon,
     requiresAuth: true,
-    description: "Agent memory layer",
+    description: 'Agent memory layer',
   },
   {
-    key: "audit",
-    label: "Audit Trail",
-    href: "/audit",
+    key: 'audit',
+    label: 'Audit Trail',
+    href: '/audit',
     icon: AuditIcon,
     requiresAuth: true,
-    description: "Activity log",
+    description: 'Activity log',
   },
   {
-    key: "notifications",
-    label: "Notifications",
-    href: "/notifications",
+    key: 'notifications',
+    label: 'Notifications',
+    href: '/notifications',
     icon: BellIcon,
     requiresAuth: true,
-    description: "GitHub events",
+    description: 'GitHub events',
   },
 ];
 
@@ -287,19 +287,19 @@ export const NAV_ITEMS: NavItem[] = [
  * Get a nav item by key
  */
 export function getNavItem(key: string): NavItem | undefined {
-  return NAV_ITEMS.find((item) => item.key === key);
+  return NAV_ITEMS.find(item => item.key === key);
 }
 
 /**
  * Get nav items that require authentication
  */
 export function getAuthRequiredItems(): NavItem[] {
-  return NAV_ITEMS.filter((item) => item.requiresAuth);
+  return NAV_ITEMS.filter(item => item.requiresAuth);
 }
 
 /**
  * Get nav items that don't require authentication
  */
 export function getPublicItems(): NavItem[] {
-  return NAV_ITEMS.filter((item) => !item.requiresAuth);
+  return NAV_ITEMS.filter(item => !item.requiresAuth);
 }

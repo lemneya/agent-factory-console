@@ -23,9 +23,7 @@ export default function AuditPage() {
             <Icon className="h-8 w-8" />
           </div>
         )}
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          No audit events yet
-        </h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">No audit events yet</h2>
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
           Audit events are recorded as agents perform actions and make decisions.
         </p>

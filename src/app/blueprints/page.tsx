@@ -23,9 +23,7 @@ export default function BlueprintsPage() {
             <Icon className="h-8 w-8" />
           </div>
         )}
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          No blueprints yet
-        </h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">No blueprints yet</h2>
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
           Create your first blueprint to define structured work specifications for agents.
         </p>

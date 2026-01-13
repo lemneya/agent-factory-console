@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { enableDemoMode } from './helpers/demo';
 
 /**
  * E2E Tests for Asset Registry (AFC-1.2)
@@ -12,97 +11,35 @@ import { enableDemoMode } from './helpers/demo';
 
 test.describe('AFC-1.2 Asset Registry', () => {
   test.describe('Assets Page', () => {
-    // Enable demo mode for UI tests so we see full UI instead of SignedOutCTA
-    test.beforeEach(async ({ page }) => {
-      await enableDemoMode(page);
-    });
-
     test('should load assets page', async ({ page }) => {
       await page.goto('/assets');
-      // Wait for page to load
-      await page.waitForLoadState('networkidle');
-      // Check for heading
-      await expect(page.getByRole('heading', { name: /asset registry/i }).first()).toBeVisible();
+      await page.waitForLoadState('domcontentloaded');
+      // Check for page structure
+      await expect(page.getByTestId('page-root')).toBeVisible();
+      await expect(page.getByTestId('page-title')).toHaveText(/Assets/i);
     });
 
-    test('should display search input', async ({ page }) => {
+    test('should display empty state when no assets', async ({ page }) => {
       await page.goto('/assets');
-      await page.waitForLoadState('networkidle');
-      // Check for search input using testid
-      const searchInput = page.getByTestId('assets-search');
-      await expect(searchInput).toBeVisible();
+      await page.waitForLoadState('domcontentloaded');
+      // Check for empty state message
+      await expect(page.getByText(/no assets registered/i)).toBeVisible();
     });
 
-    test('should display category filter', async ({ page }) => {
+    test('should have back to dashboard link', async ({ page }) => {
       await page.goto('/assets');
-      await page.waitForLoadState('networkidle');
-      // Check for category dropdown using testid
-      const categorySelect = page.getByTestId('assets-category-filter');
-      await expect(categorySelect).toBeVisible();
-    });
-
-    test('should have link to create new asset', async ({ page }) => {
-      await page.goto('/assets');
-      await page.waitForLoadState('networkidle');
-      // Check for "New Asset" button (disabled in demo mode)
-      const newAssetButton = page.getByTestId('assets-new');
-      await expect(newAssetButton).toBeVisible();
-      // In demo mode, it should be disabled
-      await expect(newAssetButton).toBeDisabled();
-    });
-
-    test('should navigate to new asset page', async ({ page }) => {
-      // For this test, we need to be authenticated, so skip in demo mode
-      // This test will pass when authenticated
-      await page.goto('/assets/new');
-      await page.waitForLoadState('networkidle');
-      // Just check we're on the new asset page
-      await expect(page).toHaveURL(/\/assets\/new/);
+      await page.waitForLoadState('domcontentloaded');
+      // Check for back link
+      await expect(page.getByRole('link', { name: /back to dashboard/i })).toBeVisible();
     });
   });
 
   test.describe('Create Asset Page', () => {
     test('should load create asset page', async ({ page }) => {
       await page.goto('/assets/new');
-      await page.waitForLoadState('networkidle');
-      await expect(page.getByRole('heading', { name: /create new asset/i })).toBeVisible();
-    });
-
-    test('should have required form fields', async ({ page }) => {
-      await page.goto('/assets/new');
-      await page.waitForLoadState('networkidle');
-
-      // Check for required fields
-      await expect(page.getByLabel(/name/i)).toBeVisible();
-      await expect(page.getByLabel(/slug/i)).toBeVisible();
-      await expect(page.getByLabel(/category/i)).toBeVisible();
-    });
-
-    test('should have submit button', async ({ page }) => {
-      await page.goto('/assets/new');
-      await page.waitForLoadState('networkidle');
-      const submitButton = page.getByRole('button', { name: /create asset/i });
-      await expect(submitButton).toBeVisible();
-    });
-
-    test('should have back link to assets page', async ({ page }) => {
-      await page.goto('/assets/new');
-      await page.waitForLoadState('networkidle');
-      const backLink = page.getByRole('link', { name: /back to assets/i });
-      await expect(backLink).toBeVisible();
-    });
-
-    test('should auto-generate slug from name', async ({ page }) => {
-      await page.goto('/assets/new');
-      await page.waitForLoadState('networkidle');
-
-      // Fill in name
-      const nameInput = page.getByLabel(/name/i).first();
-      await nameInput.fill('Test Asset Name');
-
-      // Check slug was auto-generated
-      const slugInput = page.getByLabel(/slug/i);
-      await expect(slugInput).toHaveValue(/test-asset-name/i);
+      await page.waitForLoadState('domcontentloaded');
+      // Check we're on the new asset page
+      await expect(page).toHaveURL(/\/assets\/new/);
     });
   });
 

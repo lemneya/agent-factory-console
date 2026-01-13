@@ -12,9 +12,7 @@ export default function WorkOrdersPage() {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white" data-testid="page-title">
           WorkOrders
         </h1>
-        <p className="mt-1 text-gray-600 dark:text-gray-400">
-          Sliced work units from blueprints
-        </p>
+        <p className="mt-1 text-gray-600 dark:text-gray-400">Sliced work units from blueprints</p>
       </div>
 
       <div className="rounded-xl border border-gray-200 bg-white p-8 text-center dark:border-gray-700 dark:bg-gray-800">
@@ -23,9 +21,7 @@ export default function WorkOrdersPage() {
             <Icon className="h-8 w-8" />
           </div>
         )}
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          No work orders yet
-        </h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">No work orders yet</h2>
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
           Work orders are created when blueprints are sliced. Create a blueprint first.
         </p>
