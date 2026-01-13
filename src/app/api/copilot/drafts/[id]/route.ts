@@ -5,13 +5,10 @@
  * UX-GATE-COPILOT-1: Draft Mode API
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
 
@@ -19,22 +16,19 @@ export async function GET(
       where: { id },
       include: {
         events: {
-          orderBy: { createdAt: "desc" },
+          orderBy: { createdAt: 'desc' },
           take: 20,
         },
       },
     });
 
     if (!draft) {
-      return NextResponse.json({ error: "Draft not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Draft not found' }, { status: 404 });
     }
 
     return NextResponse.json({ draft });
   } catch (error) {
-    console.error("Error fetching draft:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch draft" },
-      { status: 500 }
-    );
+    console.error('Error fetching draft:', error);
+    return NextResponse.json({ error: 'Failed to fetch draft' }, { status: 500 });
   }
 }

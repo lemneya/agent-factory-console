@@ -195,7 +195,9 @@ function generateDocsOnlyResponse(
     mode === 'DRAFT'
       ? `Draft mode requires LLM to be configured. Please set OPENAI_API_KEY.\n\nBased on the documentation, here's what I found:\n\n${relevantInfo}`
       : `Based on the documentation, here's what I found:\n\n${relevantInfo}\n\n${
-          dbSources.length > 0 ? 'I also found relevant database context about your project/run.' : ''
+          dbSources.length > 0
+            ? 'I also found relevant database context about your project/run.'
+            : ''
         }\n\nNote: LLM is not configured, so this is a docs-only response. For more intelligent answers, configure OPENAI_API_KEY.`;
 
   return {
@@ -354,7 +356,8 @@ Generate a ${draftKind} draft based on the user's request.`;
 
     try {
       // Extract JSON from response (handle markdown code blocks)
-      const jsonMatch = rawContent.match(/```json\n?([\s\S]*?)\n?```/) || rawContent.match(/({[\s\S]*})/);
+      const jsonMatch =
+        rawContent.match(/```json\n?([\s\S]*?)\n?```/) || rawContent.match(/({[\s\S]*})/);
       const jsonStr = jsonMatch ? jsonMatch[1] : rawContent;
       draftPayload = JSON.parse(jsonStr.trim());
       answer = `I've generated a ${draftKind} draft based on your request. Review the payload below and approve when ready.`;

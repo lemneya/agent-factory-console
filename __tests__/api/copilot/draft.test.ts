@@ -181,11 +181,12 @@ describe('Draft Schema Validation', () => {
         },
       };
 
-      const isValid =
+      const isValid = Boolean(
         validPayload.decision?.projectId &&
         validPayload.decision?.type &&
         validPayload.decision?.risk &&
-        validPayload.decision?.rationale;
+        validPayload.decision?.rationale
+      );
 
       expect(isValid).toBe(true);
     });

@@ -5,11 +5,11 @@
  * UX-GATE-COPILOT-1: Draft Mode API
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { CopilotDraftKind } from "@prisma/client";
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { CopilotDraftKind } from '@prisma/client';
 
 // Draft payload schemas for validation
 interface BlueprintDraftPayload {
@@ -19,7 +19,7 @@ interface BlueprintDraftPayload {
     modules: Array<{
       key: string;
       title: string;
-      domain: "frontend" | "backend" | "infra" | "qa";
+      domain: 'frontend' | 'backend' | 'infra' | 'qa';
       spec: string;
     }>;
   };
@@ -51,8 +51,8 @@ interface WorkOrdersDraftPayload {
 interface CouncilDraftPayload {
   decision: {
     projectId: string;
-    type: "ADOPT" | "ADAPT" | "BUILD";
-    risk: "LOW" | "MEDIUM" | "HIGH";
+    type: 'ADOPT' | 'ADAPT' | 'BUILD';
+    risk: 'LOW' | 'MEDIUM' | 'HIGH';
     rationale: string;
     topRisks: string[];
     mitigations: string[];
@@ -60,13 +60,10 @@ interface CouncilDraftPayload {
   };
 }
 
-type DraftPayload =
-  | BlueprintDraftPayload
-  | WorkOrdersDraftPayload
-  | CouncilDraftPayload;
+type DraftPayload = BlueprintDraftPayload | WorkOrdersDraftPayload | CouncilDraftPayload;
 
 interface CreateDraftRequest {
-  kind: "BLUEPRINT" | "WORKORDERS" | "COUNCIL";
+  kind: 'BLUEPRINT' | 'WORKORDERS' | 'COUNCIL';
   title: string;
   payload: DraftPayload;
   sources?: Array<{ title: string; url: string; snippet?: string }>;
@@ -76,18 +73,14 @@ interface CreateDraftRequest {
 }
 
 function validatePayload(kind: string, payload: unknown): boolean {
-  if (!payload || typeof payload !== "object") return false;
+  if (!payload || typeof payload !== 'object') return false;
 
   switch (kind) {
-    case "BLUEPRINT": {
+    case 'BLUEPRINT': {
       const bp = payload as BlueprintDraftPayload;
-      return !!(
-        bp.blueprint?.name &&
-        bp.blueprint?.modules &&
-        Array.isArray(bp.blueprint.modules)
-      );
+      return !!(bp.blueprint?.name && bp.blueprint?.modules && Array.isArray(bp.blueprint.modules));
     }
-    case "WORKORDERS": {
+    case 'WORKORDERS': {
       const wo = payload as WorkOrdersDraftPayload;
       return !!(
         wo.source?.blueprintId &&
@@ -95,7 +88,7 @@ function validatePayload(kind: string, payload: unknown): boolean {
         Array.isArray(wo.slice.workorders)
       );
     }
-    case "COUNCIL": {
+    case 'COUNCIL': {
       const cd = payload as CouncilDraftPayload;
       return !!(
         cd.decision?.projectId &&
@@ -117,15 +110,15 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     if (!kind || !title || !payload) {
       return NextResponse.json(
-        { error: "Missing required fields: kind, title, payload" },
+        { error: 'Missing required fields: kind, title, payload' },
         { status: 400 }
       );
     }
 
     // Validate kind enum
-    if (!["BLUEPRINT", "WORKORDERS", "COUNCIL"].includes(kind)) {
+    if (!['BLUEPRINT', 'WORKORDERS', 'COUNCIL'].includes(kind)) {
       return NextResponse.json(
-        { error: "Invalid kind. Must be BLUEPRINT, WORKORDERS, or COUNCIL" },
+        { error: 'Invalid kind. Must be BLUEPRINT, WORKORDERS, or COUNCIL' },
         { status: 400 }
       );
     }
@@ -163,17 +156,14 @@ export async function POST(request: NextRequest) {
       data: {
         draftId: draft.id,
         actorUserId: userId,
-        eventType: "CREATED",
+        eventType: 'CREATED',
         detailsJson: { demoMode: !!demoMode },
       },
     });
 
     return NextResponse.json({ draftId: draft.id }, { status: 201 });
   } catch (error) {
-    console.error("Error creating draft:", error);
-    return NextResponse.json(
-      { error: "Failed to create draft" },
-      { status: 500 }
-    );
+    console.error('Error creating draft:', error);
+    return NextResponse.json({ error: 'Failed to create draft' }, { status: 500 });
   }
 }

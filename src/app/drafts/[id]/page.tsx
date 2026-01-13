@@ -44,11 +44,7 @@ const EVENT_ICONS = {
   EXPIRED: '⏰',
 };
 
-export default function DraftDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function DraftDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -162,10 +158,7 @@ export default function DraftDetailPage({
               ← Drafts
             </Link>
           </div>
-          <h1
-            className="text-2xl font-bold text-gray-900 dark:text-white"
-            data-testid="page-title"
-          >
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white" data-testid="page-title">
             {draft.title}
           </h1>
           <div className="flex items-center gap-3 mt-2">
@@ -233,10 +226,7 @@ export default function DraftDetailPage({
               </h3>
               <div className="space-y-3">
                 {draft.sourcesJson.map((source, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800"
-                  >
+                  <div key={idx} className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-xs font-medium">
                         {source.type === 'DOC' ? '📖' : '🗄️'}

@@ -499,9 +499,7 @@ function CopilotContent() {
               <div className="flex gap-2">
                 <button
                   onClick={handleSaveDraft}
-                  disabled={
-                    currentDraft.status !== 'unsaved' || isSavingDraft
-                  }
+                  disabled={currentDraft.status !== 'unsaved' || isSavingDraft}
                   className="px-4 py-2 text-sm font-medium rounded-lg bg-gray-600 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   data-testid="copilot-save-draft"
                 >

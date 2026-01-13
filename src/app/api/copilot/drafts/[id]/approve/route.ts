@@ -13,11 +13,11 @@
  * - Write CopilotDraftEvent APPROVED
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { DecisionType, RiskLevel } from "@prisma/client";
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { DecisionType, RiskLevel } from '@prisma/client';
 
 // Type definitions for draft payloads
 interface BlueprintDraftPayload {
@@ -40,8 +40,8 @@ interface BlueprintDraftPayload {
 interface CouncilDraftPayload {
   decision: {
     projectId: string;
-    type: "ADOPT" | "ADAPT" | "BUILD";
-    risk: "LOW" | "MEDIUM" | "HIGH";
+    type: 'ADOPT' | 'ADAPT' | 'BUILD';
+    risk: 'LOW' | 'MEDIUM' | 'HIGH';
     rationale: string;
     topRisks: string[];
     mitigations: string[];
@@ -68,17 +68,13 @@ interface WorkOrdersDraftPayload {
   };
 }
 
-export async function POST(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
 
     // Check for dev auth bypass
     const devAuthBypass =
-      process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS === "true" ||
-      process.env.NODE_ENV === "test";
+      process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS === 'true' || process.env.NODE_ENV === 'test';
 
     // Get user session
     const session = await getServerSession(authOptions);
@@ -87,7 +83,7 @@ export async function POST(
     // Require authentication unless dev bypass
     if (!userId && !devAuthBypass) {
       return NextResponse.json(
-        { error: "Authentication required to approve drafts" },
+        { error: 'Authentication required to approve drafts' },
         { status: 401 }
       );
     }
@@ -98,11 +94,11 @@ export async function POST(
     });
 
     if (!draft) {
-      return NextResponse.json({ error: "Draft not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Draft not found' }, { status: 404 });
     }
 
     // Confirm status is DRAFT
-    if (draft.status !== "DRAFT") {
+    if (draft.status !== 'DRAFT') {
       return NextResponse.json(
         { error: `Cannot approve draft with status: ${draft.status}` },
         { status: 400 }
@@ -113,7 +109,7 @@ export async function POST(
 
     // Execute the appropriate action based on kind
     switch (draft.kind) {
-      case "BLUEPRINT": {
+      case 'BLUEPRINT': {
         // Create Blueprint record
         // Note: This is a simplified implementation
         // In production, this would call the actual blueprint creation API
@@ -122,7 +118,7 @@ export async function POST(
         break;
       }
 
-      case "WORKORDERS": {
+      case 'WORKORDERS': {
         // Create WorkOrders
         // Note: This would call the slicer endpoint or create WorkOrders directly
         // Safety: Must check for CouncilDecision if this implies BUILD run creation
@@ -133,16 +129,16 @@ export async function POST(
           const councilDecision = await prisma.councilDecision.findFirst({
             where: {
               projectId: draft.projectId,
-              decision: "BUILD",
+              decision: 'BUILD',
             },
-            orderBy: { createdAt: "desc" },
+            orderBy: { createdAt: 'desc' },
           });
 
           if (!councilDecision) {
             return NextResponse.json(
               {
                 error:
-                  "Council Gate: No BUILD decision found for this project. Create a Council decision first.",
+                  'Council Gate: No BUILD decision found for this project. Create a Council decision first.',
               },
               { status: 403 }
             );
@@ -153,7 +149,7 @@ export async function POST(
         break;
       }
 
-      case "COUNCIL": {
+      case 'COUNCIL': {
         // Create CouncilDecision record
         const payload = draft.payloadJson as unknown as CouncilDraftPayload;
 
@@ -169,7 +165,7 @@ export async function POST(
               mitigations: payload.decision.mitigations,
               recommendedNextGate: payload.decision.recommendedNextGate,
             },
-            createdBy: userId || "system",
+            createdBy: userId || 'system',
           },
         });
 
@@ -178,19 +174,16 @@ export async function POST(
       }
 
       default:
-        return NextResponse.json(
-          { error: `Unknown draft kind: ${draft.kind}` },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: `Unknown draft kind: ${draft.kind}` }, { status: 400 });
     }
 
     // Update draft status to APPROVED
     await prisma.copilotDraft.update({
       where: { id },
       data: {
-        status: "APPROVED",
+        status: 'APPROVED',
         approvedAt: new Date(),
-        approvedBy: userId || "dev-bypass",
+        approvedBy: userId || 'dev-bypass',
         resultRef,
       },
     });
@@ -200,17 +193,14 @@ export async function POST(
       data: {
         draftId: id,
         actorUserId: userId,
-        eventType: "APPROVED",
+        eventType: 'APPROVED',
         detailsJson: { resultRef },
       },
     });
 
-    return NextResponse.json({ resultRef, status: "APPROVED" });
+    return NextResponse.json({ resultRef, status: 'APPROVED' });
   } catch (error) {
-    console.error("Error approving draft:", error);
-    return NextResponse.json(
-      { error: "Failed to approve draft" },
-      { status: 500 }
-    );
+    console.error('Error approving draft:', error);
+    return NextResponse.json({ error: 'Failed to approve draft' }, { status: 500 });
   }
 }
