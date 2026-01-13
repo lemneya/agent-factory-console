@@ -49,6 +49,16 @@ const DEFAULT_POLICY: Omit<MemoryPolicyConfig, 'projectId'> = {
 
 export class PrismaMemoryProvider implements MemoryProvider {
   constructor(private prisma: PrismaClient) {}
+}
+
+let memoryProvider: MemoryProvider;
+
+export function getMemoryProvider(prisma: PrismaClient): MemoryProvider {
+  if (!memoryProvider) {
+    memoryProvider = new PrismaMemoryProvider(prisma);
+  }
+  return memoryProvider;
+}
 
   // -------------------------------------------------------------------------
   // Ingest & Storage
@@ -105,7 +115,7 @@ export class PrismaMemoryProvider implements MemoryProvider {
           ...(input.metadata || {}),
           contentHash,
           tokenCount: estimateTokenCount(input.content),
-        } as unknown as Record<string, unknown>,
+        },
         expiresAt: input.expiresAt ?? undefined,
       },
     });
@@ -161,7 +171,7 @@ export class PrismaMemoryProvider implements MemoryProvider {
 
     const updated = await this.prisma.memoryItem.update({
       where: { id },
-      data: data as unknown as Record<string, unknown>,
+      data: data,
     });
 
     return this.toMemoryItem(updated);
@@ -179,7 +189,7 @@ export class PrismaMemoryProvider implements MemoryProvider {
         metadata: {
           ...metadata,
           archived: true,
-        } as unknown as Record<string, unknown>,
+        },
       },
     });
   }
@@ -226,7 +236,7 @@ export class PrismaMemoryProvider implements MemoryProvider {
     }
 
     const total = await this.prisma.memoryItem.count({
-      where: where as unknown as Record<string, unknown>,
+      where: where,
     });
 
     const orderBy: Record<string, unknown> = {};
@@ -241,8 +251,8 @@ export class PrismaMemoryProvider implements MemoryProvider {
     }
 
     const items = await this.prisma.memoryItem.findMany({
-      where: where as unknown as Record<string, unknown>,
-      orderBy: orderBy as unknown as Record<string, unknown>,
+      where: where,
+      orderBy: orderBy,
       skip: query.offset ?? 0,
       take: query.limit ?? 100,
     });

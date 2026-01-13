@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+
 import crypto from 'crypto';
 
 interface CommandResult {
@@ -23,6 +23,7 @@ interface VerifyResultPayload {
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    const { default: prisma } = await import('@/lib/prisma');
     const body: VerifyResultPayload = await request.json();
 
     const { iteration, commandResults, passed, errorFingerprint, completionTokenFound } = body;
@@ -96,7 +97,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       },
       data: {
         status: passed ? 'PASSED' : 'FAILED',
-        inputJson: verificationSummary as unknown as Record<string, unknown>,
+        inputJson: verificationSummary,
       },
     });
 

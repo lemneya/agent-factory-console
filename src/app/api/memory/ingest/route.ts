@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import type { MemoryItemInput } from '@/memory/provider';
+import type { MemoryItemInput, MemoryProvider } from '@/memory/provider';
 import type { MemoryScope, MemoryCategory } from '@prisma/client';
 
 interface IngestRequestBody {
@@ -50,7 +50,11 @@ export async function POST(request: NextRequest) {
     const { default: prisma } = await import('@/lib/prisma');
     const { getMemoryProvider } = await import('@/memory/prismaProvider');
 
-    const provider = getMemoryProvider(prisma);
+    // Fix for TS7006: Parameter 'r' implicitly has an 'any' type.
+    // This is a temporary fix, ideally the type should be inferred or explicitly defined.
+    type IngestResultWithItem = { item: { id: string; contentHash: string; tokenCount: number; }; created: boolean; deduplicatedWith?: string; };
+
+    const provider: MemoryProvider = getMemoryProvider(prisma);
 
     // Convert request items to MemoryItemInput
     const inputs: MemoryItemInput[] = body.items.map(item => ({
@@ -68,20 +72,20 @@ export async function POST(request: NextRequest) {
     }));
 
     // Ingest all items
-    const results = await provider.ingestBatch(inputs);
+    const results: IngestResultWithItem[] = await provider.ingestBatch(inputs);
 
     // Calculate statistics
     const stats = {
       total: results.length,
-      created: results.filter(r => r.created).length,
-      deduplicated: results.filter(r => !r.created).length,
+      created: results.filter((r: IngestResultWithItem) => r.created).length,
+      deduplicated: results.filter((r: IngestResultWithItem) => !r.created).length,
     };
 
     return NextResponse.json(
       {
         success: true,
         stats,
-        items: results.map(r => ({
+        items: results.map((r: IngestResultWithItem) => ({
           id: r.item.id,
           created: r.created,
           deduplicatedWith: r.deduplicatedWith,
