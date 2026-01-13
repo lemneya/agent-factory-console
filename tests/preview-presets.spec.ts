@@ -33,13 +33,12 @@ test.describe('AFC-UX-PREVIEW-1: Preview Presets + Persistence', () => {
     await expect(page.locator('[data-testid="preset-editor-modal"]')).toBeVisible();
   });
 
-  test('preset editor modal has add preset form', async ({ page }) => {
+  test('preset editor modal has add preset button', async ({ page }) => {
     await page.goto('/preview');
     await page.locator('[data-testid="preset-editor-open"]').click();
     const modal = page.locator('[data-testid="preset-editor-modal"]');
     await expect(modal).toBeVisible();
-    await expect(modal.locator('[data-testid="preset-name-input"]')).toBeVisible();
-    await expect(modal.locator('[data-testid="preset-url-input"]')).toBeVisible();
+    // The modal has preset rows with inputs and an add button
     await expect(modal.locator('[data-testid="add-preset-btn"]')).toBeVisible();
   });
 
@@ -47,13 +46,25 @@ test.describe('AFC-UX-PREVIEW-1: Preview Presets + Persistence', () => {
     await page.goto('/preview');
     await page.locator('[data-testid="preset-editor-open"]').click();
 
-    // Fill in the form
-    await page.locator('[data-testid="preset-name-input"]').fill('Test Preset');
-    await page.locator('[data-testid="preset-url-input"]').fill('https://test.example.com');
+    // Click add preset button to create a new row
     await page.locator('[data-testid="add-preset-btn"]').click();
 
-    // Close modal
-    await page.locator('[data-testid="close-modal-btn"]').click();
+    // Fill in the new preset row (last one)
+    const nameInputs = page.locator('[data-testid="preset-name-input"]');
+    const urlInputs = page.locator('[data-testid="preset-url-input"]');
+
+    // Get the last inputs (the newly added preset)
+    const lastNameInput = nameInputs.last();
+    const lastUrlInput = urlInputs.last();
+
+    await lastNameInput.fill('Test Preset');
+    await lastUrlInput.fill('https://test.example.com');
+
+    // Save changes
+    await page.locator('[data-testid="preset-save"]').click();
+
+    // Modal should close
+    await expect(page.locator('[data-testid="preset-editor-modal"]')).not.toBeVisible();
 
     // Check preset appears in dropdown
     const dropdown = page.locator('[data-testid="preview-preset-select"]');
@@ -92,10 +103,14 @@ test.describe('AFC-UX-PREVIEW-1: Preview Presets + Persistence', () => {
 
     // Open editor and add a preset
     await page.locator('[data-testid="preset-editor-open"]').click();
-    await page.locator('[data-testid="preset-name-input"]').fill('Persistent Preset');
-    await page.locator('[data-testid="preset-url-input"]').fill('https://persistent.example.com');
     await page.locator('[data-testid="add-preset-btn"]').click();
-    await page.locator('[data-testid="close-modal-btn"]').click();
+
+    // Fill in the new preset
+    const nameInputs = page.locator('[data-testid="preset-name-input"]');
+    const urlInputs = page.locator('[data-testid="preset-url-input"]');
+    await nameInputs.last().fill('Persistent Preset');
+    await urlInputs.last().fill('https://persistent.example.com');
+    await page.locator('[data-testid="preset-save"]').click();
 
     // Check localStorage
     const savedPresets = await page.evaluate(() => localStorage.getItem('afc_preview_presets'));
