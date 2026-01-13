@@ -14,10 +14,8 @@ import { planDraftActions, DraftKind } from '@/services/draft/planner';
 export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;
 
-  // Check for demo mode
-  const isDemo = request.nextUrl.searchParams.get('demo') === '1';
-
   // Auth check (unless demo mode)
+  const isDemo = request.nextUrl.searchParams.get('demo') === '1';
   if (!isDemo) {
     const session = await getServerSession(authOptions);
     if (!session) {
@@ -25,10 +23,14 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
     }
   }
 
-  const db = prisma;
-  if (!db) {
+  if (isDemo) {
     // Demo mode - return mock plan
     return NextResponse.json(getMockPlan(id));
+  }
+
+  const db = prisma;
+  if (!db) {
+    return NextResponse.json({ error: 'Database not available' }, { status: 500 });
   }
 
   try {
