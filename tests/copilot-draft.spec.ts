@@ -121,9 +121,9 @@ test.describe('Drafts List Page', () => {
     await page.goto('/drafts');
     await page.waitForSelector('[data-testid="page-root"]');
 
-    // Check for filter dropdowns
-    await expect(page.getByText('Kind')).toBeVisible();
-    await expect(page.getByText('Status')).toBeVisible();
+    // Check for filter dropdowns using data-testid
+    await expect(page.getByTestId('filter-kind-label')).toBeVisible();
+    await expect(page.getByTestId('filter-status-label')).toBeVisible();
   });
 
   test('should show empty state when no drafts', async ({ page }) => {

@@ -28,9 +28,10 @@ test.describe('Copilot Page', () => {
   test.describe('Demo Mode', () => {
     test('demo mode shows DEMO badge', async ({ page }) => {
       await page.goto('/copilot?demo=1');
+      await page.waitForSelector('[data-testid="page-root"]');
 
       // Verify demo badge is visible
-      await expect(page.getByText('DEMO (read-only)')).toBeVisible();
+      await expect(page.getByTestId('demo-badge')).toBeVisible();
     });
 
     test('can type question in demo mode', async ({ page }) => {

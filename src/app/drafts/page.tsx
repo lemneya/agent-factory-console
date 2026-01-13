@@ -74,7 +74,10 @@ export default function DraftsPage() {
       {/* Filters */}
       <div className="flex gap-4 mb-6">
         <div>
-          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+          <label
+            className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1"
+            data-testid="filter-kind-label"
+          >
             Kind
           </label>
           <select
@@ -89,7 +92,10 @@ export default function DraftsPage() {
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+          <label
+            className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1"
+            data-testid="filter-status-label"
+          >
             Status
           </label>
           <select

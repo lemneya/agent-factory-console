@@ -334,8 +334,11 @@ function CopilotContent() {
             </button>
           </div>
           {demoMode && (
-            <span className="rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
-              DEMO
+            <span
+              className="rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
+              data-testid="demo-badge"
+            >
+              DEMO (read-only)
             </span>
           )}
         </div>
