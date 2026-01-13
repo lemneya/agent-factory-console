@@ -2,13 +2,14 @@
  * POST /api/copilot/drafts/[id]/approve
  * Approve a CopilotDraft and execute the real action
  *
- * UX-GATE-COPILOT-1: Draft Mode API
+ * UX-GATE-COPILOT-1.1: Refactored to use planDraftActions
  *
  * SAFETY: This is the ONLY route that performs real actions.
  * It must:
  * - Confirm status == DRAFT
  * - Require authenticated user (unless NEXT_PUBLIC_DEV_AUTH_BYPASS=true)
- * - Execute the appropriate action based on kind
+ * - Generate plan using planDraftActions (same as diff endpoint)
+ * - Execute the plan using executeDraftPlan
  * - Set draft status to APPROVED
  * - Write CopilotDraftEvent APPROVED
  */
@@ -17,58 +18,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { DecisionType, RiskLevel } from '@prisma/client';
+import { planDraftActions, executeDraftPlan, DraftKind } from '@/services/draft/planner';
 
-// Type definitions for draft payloads
-interface BlueprintDraftPayload {
-  blueprint: {
-    name: string;
-    description: string;
-    modules: Array<{
-      key: string;
-      title: string;
-      domain: string;
-      spec: string;
-    }>;
-  };
-  determinism: {
-    specHash: string;
-    stableOrder: boolean;
-  };
-}
-
-interface CouncilDraftPayload {
-  decision: {
-    projectId: string;
-    type: 'ADOPT' | 'ADAPT' | 'BUILD';
-    risk: 'LOW' | 'MEDIUM' | 'HIGH';
-    rationale: string;
-    topRisks: string[];
-    mitigations: string[];
-    recommendedNextGate: string;
-  };
-}
-
-interface WorkOrdersDraftPayload {
-  source: {
-    blueprintId: string;
-    versionId: string | null;
-  };
-  slice: {
-    policy: {
-      domainOrder: string[];
-      maxItems: number;
-    };
-    workorders: Array<{
-      key: string;
-      domain: string;
-      title: string;
-      dependsOn: string[];
-    }>;
-  };
-}
-
-export async function POST(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
 
@@ -85,6 +37,23 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
       return NextResponse.json(
         { error: 'Authentication required to approve drafts' },
         { status: 401 }
+      );
+    }
+
+    // Check for diffReviewed flag in request body
+    let diffReviewed = false;
+    try {
+      const body = await request.json();
+      diffReviewed = body?.diffReviewed === true;
+    } catch {
+      // No body or invalid JSON - diffReviewed remains false
+    }
+
+    // Require diff review confirmation
+    if (!diffReviewed && !devAuthBypass) {
+      return NextResponse.json(
+        { error: 'Diff review confirmation required. Set diffReviewed: true in request body.' },
+        { status: 400 }
       );
     }
 
@@ -105,76 +74,43 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
       );
     }
 
-    let resultRef: string | null = null;
+    // Generate the plan using the same function as diff endpoint
+    // This ensures no divergence between "what UI shows" and "what approve does"
+    const plan = await planDraftActions(
+      {
+        id: draft.id,
+        kind: draft.kind as DraftKind,
+        payloadJson: draft.payloadJson as string,
+        projectId: draft.projectId,
+      },
+      { dryRun: false }
+    );
 
-    // Execute the appropriate action based on kind
-    switch (draft.kind) {
-      case 'BLUEPRINT': {
-        // Create Blueprint record
-        // Note: This is a simplified implementation
-        // In production, this would call the actual blueprint creation API
-        const payload = draft.payloadJson as unknown as BlueprintDraftPayload;
-        resultRef = `Blueprint:draft-${draft.id}-${payload.blueprint.name}`;
-        break;
-      }
+    // Check for Council Gate if required
+    if (plan.checks.councilRequired && !plan.checks.councilSatisfied) {
+      return NextResponse.json(
+        {
+          error:
+            'Council Gate: No Council decision found for this project. Create a Council decision first.',
+          plan,
+        },
+        { status: 403 }
+      );
+    }
 
-      case 'WORKORDERS': {
-        // Create WorkOrders
-        // Note: This would call the slicer endpoint or create WorkOrders directly
-        // Safety: Must check for CouncilDecision if this implies BUILD run creation
-        const payload = draft.payloadJson as unknown as WorkOrdersDraftPayload;
+    // Execute the plan
+    const result = await executeDraftPlan(plan, {
+      id: draft.id,
+      kind: draft.kind as DraftKind,
+      payloadJson: draft.payloadJson as string,
+      projectId: draft.projectId,
+    });
 
-        // Check for Council Gate if this is a BUILD operation
-        if (draft.projectId) {
-          const councilDecision = await prisma.councilDecision.findFirst({
-            where: {
-              projectId: draft.projectId,
-              decision: 'BUILD',
-            },
-            orderBy: { createdAt: 'desc' },
-          });
-
-          if (!councilDecision) {
-            return NextResponse.json(
-              {
-                error:
-                  'Council Gate: No BUILD decision found for this project. Create a Council decision first.',
-              },
-              { status: 403 }
-            );
-          }
-        }
-
-        resultRef = `WorkOrderBatch:draft-${draft.id}-${payload.source.blueprintId}`;
-        break;
-      }
-
-      case 'COUNCIL': {
-        // Create CouncilDecision record
-        const payload = draft.payloadJson as unknown as CouncilDraftPayload;
-
-        const councilDecision = await prisma.councilDecision.create({
-          data: {
-            projectId: payload.decision.projectId,
-            decision: payload.decision.type as DecisionType,
-            confidence: 0.9, // Default confidence
-            maintenanceRisk: payload.decision.risk as RiskLevel,
-            reasoning: payload.decision.rationale,
-            sources: {
-              topRisks: payload.decision.topRisks,
-              mitigations: payload.decision.mitigations,
-              recommendedNextGate: payload.decision.recommendedNextGate,
-            },
-            createdBy: userId || 'system',
-          },
-        });
-
-        resultRef = `CouncilDecision:${councilDecision.id}`;
-        break;
-      }
-
-      default:
-        return NextResponse.json({ error: `Unknown draft kind: ${draft.kind}` }, { status: 400 });
+    if (!result.success) {
+      return NextResponse.json(
+        { error: result.error || 'Failed to execute draft plan', plan },
+        { status: 500 }
+      );
     }
 
     // Update draft status to APPROVED
@@ -184,7 +120,7 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
         status: 'APPROVED',
         approvedAt: new Date(),
         approvedBy: userId || 'dev-bypass',
-        resultRef,
+        resultRef: result.resultRef,
       },
     });
 
@@ -194,11 +130,25 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
         draftId: id,
         actorUserId: userId,
         eventType: 'APPROVED',
-        detailsJson: { resultRef },
+        detailsJson: {
+          resultRef: result.resultRef,
+          plan: {
+            operations: plan.operations.map(op => ({
+              op: op.op,
+              model: op.model,
+              summary: op.summary,
+            })),
+            checks: plan.checks,
+          },
+        } as any,
       },
     });
 
-    return NextResponse.json({ resultRef, status: 'APPROVED' });
+    return NextResponse.json({
+      resultRef: result.resultRef,
+      status: 'APPROVED',
+      plan,
+    });
   } catch (error) {
     console.error('Error approving draft:', error);
     return NextResponse.json({ error: 'Failed to approve draft' }, { status: 500 });
