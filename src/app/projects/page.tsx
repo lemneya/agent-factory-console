@@ -205,15 +205,7 @@ function ProjectsContent() {
           <Link
             href="/projects/new"
             data-testid="projects-new"
-            className={`flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 ${
-              isInDemoMode && !isAuthenticated ? 'cursor-not-allowed opacity-50' : ''
-            }`}
-            onClick={e => {
-              if (isInDemoMode && !isAuthenticated) {
-                e.preventDefault();
-                setError('Sign in required to create projects');
-              }
-            }}
+            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
           >
             <svg
               className="h-4 w-4"

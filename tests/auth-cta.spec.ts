@@ -69,14 +69,15 @@ test.describe('UX-GATE-1: Auth CTA and Demo Mode', () => {
       await expect(page.getByTestId('page-title')).toContainText('Runs');
     });
 
-    test('demo mode disables mutation buttons', async ({ page }) => {
+    test('demo mode shows mutation buttons that navigate to form', async ({ page }) => {
       await page.goto('/runs?demo=1');
 
-      // New Run link should have disabled styling in demo mode
+      // New Run link should be visible in demo mode
       const newRunLink = page.getByTestId('runs-new');
       await expect(newRunLink).toBeVisible();
-      // Link has cursor-not-allowed and opacity-50 classes in demo mode
-      await expect(newRunLink).toHaveClass(/opacity-50/);
+      // Link should navigate to the form page (form will be disabled there)
+      await newRunLink.click();
+      await expect(page).toHaveURL(/\/runs\/new/);
     });
 
     test('exit demo mode button works', async ({ page }) => {
