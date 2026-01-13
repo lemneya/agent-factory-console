@@ -1,8 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useCallback } from 'react';
-import { useSession } from 'next-auth/react';
-import Link from 'next/link';
+import { useEffect, useState, useCallback } from "react";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
+import { SignInRequired, EmptyState } from "@/components/auth";
 
 interface Project {
   id: string;
@@ -28,20 +29,20 @@ export default function ProjectsPage() {
     try {
       setLoading(true);
       const res = await fetch(`/api/projects?userId=${session?.user?.id}`);
-      if (!res.ok) throw new Error('Failed to fetch projects');
+      if (!res.ok) throw new Error("Failed to fetch projects");
       const data = await res.json();
       setProjects(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setLoading(false);
     }
   }, [session?.user?.id]);
 
   useEffect(() => {
-    if (status === 'authenticated' && session?.user?.id) {
+    if (status === "authenticated" && session?.user?.id) {
       fetchProjects();
-    } else if (status === 'unauthenticated') {
+    } else if (status === "unauthenticated") {
       setLoading(false);
     }
   }, [status, session?.user?.id, fetchProjects]);
@@ -52,38 +53,41 @@ export default function ProjectsPage() {
     try {
       setSyncing(true);
       setError(null);
-      const res = await fetch('/api/projects/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/projects/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: session.user.id }),
       });
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || 'Failed to sync repositories');
+        throw new Error(data.error || "Failed to sync repositories");
       }
 
       await fetchProjects();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setSyncing(false);
     }
   }
 
   function formatDate(dateString: string) {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
   }
 
-  if (status === 'loading' || loading) {
+  if (status === "loading" || loading) {
     return (
       <main data-testid="page-root">
         <div className="mb-8">
-          <h1 data-testid="page-title" className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h1
+            data-testid="page-title"
+            className="text-2xl font-bold text-gray-900 dark:text-white"
+          >
             Projects
           </h1>
           <p className="mt-1 text-gray-600 dark:text-gray-400">
@@ -91,7 +95,7 @@ export default function ProjectsPage() {
           </p>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3].map(i => (
+          {[1, 2, 3].map((i) => (
             <div
               key={i}
               className="animate-pulse rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800"
@@ -106,38 +110,26 @@ export default function ProjectsPage() {
     );
   }
 
-  if (status === 'unauthenticated') {
+  if (status === "unauthenticated") {
     return (
       <main data-testid="page-root">
         <div className="mb-8">
-          <h1 data-testid="page-title" className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h1
+            data-testid="page-title"
+            className="text-2xl font-bold text-gray-900 dark:text-white"
+          >
             Projects
           </h1>
           <p className="mt-1 text-gray-600 dark:text-gray-400">
             Your GitHub repositories linked to Agent Factory
           </p>
         </div>
-        <div className="rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center dark:border-gray-600 dark:bg-gray-800">
-          <svg
-            className="mx-auto h-12 w-12 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
-            />
-          </svg>
-          <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
-            Sign in required
-          </h3>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Sign in with GitHub to view and sync your repositories.
-          </p>
-        </div>
+        <SignInRequired
+          title="Sign in to manage projects"
+          description="Connect your GitHub account to sync and manage your repositories with Agent Factory."
+          showDemoOption={true}
+          demoPath="/projects?demo=true"
+        />
       </main>
     );
   }
@@ -146,7 +138,10 @@ export default function ProjectsPage() {
     <main data-testid="page-root">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 data-testid="page-title" className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h1
+            data-testid="page-title"
+            className="text-2xl font-bold text-gray-900 dark:text-white"
+          >
             Projects
           </h1>
           <p className="mt-1 text-gray-600 dark:text-gray-400">
@@ -206,30 +201,18 @@ export default function ProjectsPage() {
       )}
 
       {projects.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center dark:border-gray-600 dark:bg-gray-800">
-          <svg
-            className="mx-auto h-12 w-12 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z"
-            />
-          </svg>
-          <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
-            No projects yet
-          </h3>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Click &quot;Sync Repositories&quot; to import your GitHub repositories.
-          </p>
-        </div>
+        <EmptyState
+          icon="folder"
+          title="No projects yet"
+          description="Sync your GitHub repositories to get started with Agent Factory."
+          ctaText="Sync Repositories"
+          ctaAction={handleSync}
+          secondaryText="Learn about projects"
+          secondaryHref="/docs/setup"
+        />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {projects.map(project => (
+          {projects.map((project) => (
             <Link
               key={project.id}
               href={`/projects/${project.id}`}
@@ -248,7 +231,7 @@ export default function ProjectsPage() {
                   href={project.htmlUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={e => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
                   className="ml-2 flex-shrink-0 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
                 >
                   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -294,7 +277,9 @@ export default function ProjectsPage() {
                   </svg>
                   {project._count.events} events
                 </span>
-                <span className="ml-auto">Updated {formatDate(project.lastUpdated)}</span>
+                <span className="ml-auto">
+                  Updated {formatDate(project.lastUpdated)}
+                </span>
               </div>
             </Link>
           ))}

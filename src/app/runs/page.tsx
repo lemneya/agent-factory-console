@@ -1,8 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useCallback } from 'react';
-import { useSession } from 'next-auth/react';
-import Link from 'next/link';
+import { useEffect, useState, useCallback } from "react";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
+import { SignInRequired, EmptyState } from "@/components/auth";
 
 interface Run {
   id: string;
@@ -142,7 +143,7 @@ export default function RunsPage() {
     );
   }
 
-  if (authStatus === 'unauthenticated') {
+  if (authStatus === "unauthenticated") {
     return (
       <main data-testid="page-root">
         <div className="mb-8">
@@ -153,27 +154,12 @@ export default function RunsPage() {
             Agent execution runs and task tracking
           </p>
         </div>
-        <div className="rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center dark:border-gray-600 dark:bg-gray-800">
-          <svg
-            className="mx-auto h-12 w-12 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
-            />
-          </svg>
-          <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
-            Sign in required
-          </h3>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Sign in with GitHub to view and manage your runs.
-          </p>
-        </div>
+        <SignInRequired
+          title="Sign in to view runs"
+          description="Track agent execution runs, monitor task progress, and view detailed logs."
+          showDemoOption={true}
+          demoPath="/runs?demo=true"
+        />
       </main>
     );
   }

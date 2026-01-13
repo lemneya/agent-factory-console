@@ -73,6 +73,9 @@ model Project {
   // AFC-1.6: Memory Layer relations
   memoryItems      MemoryItem[]
   memoryPolicy     MemoryPolicy?
+  // AFC-1.7: Blueprint + WorkOrder relations
+  blueprints       Blueprint[]
+  workOrders       WorkOrder[]
   createdAt        DateTime          @default(now())
 }
 
@@ -96,20 +99,20 @@ model Repository {
 }
 
 model PullRequest {
-  id              String    @id @default(cuid())
+  id              String     @id @default(cuid())
   repositoryId    String
   repository      Repository @relation(fields: [repositoryId], references: [id])
   number          Int
   githubId        Int
   title           String
-  body            String?   @db.Text
+  body            String?    @db.Text
   state           String
   htmlUrl         String
   authorUsername  String
   authorAvatarUrl String?
   headRef         String
   baseRef         String
-  merged          Boolean   @default(false)
+  merged          Boolean    @default(false)
   mergedAt        DateTime?
   createdAt       DateTime
   updatedAt       DateTime
@@ -119,13 +122,13 @@ model PullRequest {
 }
 
 model Issue {
-  id              String    @id @default(cuid())
+  id              String     @id @default(cuid())
   repositoryId    String
   repository      Repository @relation(fields: [repositoryId], references: [id])
   number          Int
   githubId        Int
   title           String
-  body            String?   @db.Text
+  body            String?    @db.Text
   state           String
   htmlUrl         String
   authorUsername  String
@@ -154,6 +157,8 @@ model Run {
   ralphMode       Boolean             @default(false)
   // AFC-1.6: Memory Layer relations
   memorySnapshots RunMemorySnapshot[]
+  // AFC-1.7: WorkOrder relations
+  workOrders      WorkOrder[]
   createdAt       DateTime            @default(now())
   completedAt     DateTime?
 
@@ -165,13 +170,13 @@ model RunCheckpoint {
   id           String         @id @default(cuid())
   runId        String
   run          Run            @relation(fields: [runId], references: [id], onDelete: Cascade)
-  threadId     String         // MUST equal runId for AFC-1.1
+  threadId     String // MUST equal runId for AFC-1.1
   graphVersion String
   graphHash    String?
   checkpointId String
   nextNode     String?
-  status       String         // RunStatus value
-  stateJson    Json           // entire RunState "values" payload
+  status       String // RunStatus value
+  stateJson    Json // entire RunState "values" payload
   iterations   RunIteration[] // AFC-1.4: Iterations that created this checkpoint
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
@@ -181,29 +186,31 @@ model RunCheckpoint {
 }
 
 model Task {
-  id               String            @id @default(cuid())
+  id               String              @id @default(cuid())
   runId            String
-  run              Run               @relation(fields: [runId], references: [id])
+  run              Run                 @relation(fields: [runId], references: [id])
   title            String
-  description      String?           @db.Text
-  status           String            @default("TODO")
-  priority         Int               @default(0)
+  description      String?             @db.Text
+  status           String              @default("TODO")
+  priority         Int                 @default(0)
   assignee         String?
   workerId         String?
-  worker           Worker?           @relation(fields: [workerId], references: [id])
+  worker           Worker?             @relation(fields: [workerId], references: [id])
   result           Json?
-  errorMsg         String?           @db.Text
+  errorMsg         String?             @db.Text
   startedAt        DateTime?
   completedAt      DateTime?
   // AFC-1.1: Queue lease self-healing fields
-  claimedBy        String?           // worker ID that claimed this task
-  claimedAt        DateTime?         // when the task was claimed
-  leaseExpiresAt   DateTime?         // when the lease expires (reclaimable after)
-  attempts         Int               @default(0) // number of claim attempts
+  claimedBy        String? // worker ID that claimed this task
+  claimedAt        DateTime? // when the task was claimed
+  leaseExpiresAt   DateTime? // when the lease expires (reclaimable after)
+  attempts         Int                 @default(0) // number of claim attempts
   // AFC-1.3: Council decision link
   councilDecisions CouncilDecision[]
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  // AFC-1.7: WorkOrder link
+  workOrderLinks   WorkOrderTaskLink[]
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
 
   @@index([status])
   @@index([leaseExpiresAt])
@@ -212,17 +219,17 @@ model Task {
 // Worker model for Agent B implementation
 // Workers are AI agents that can claim and execute tasks
 model Worker {
-  id           String    @id @default(cuid())
-  name         String
-  type         String    @default("AGENT")
-  status       String    @default("IDLE")
-  capabilities String[]
-  metadata     Json?
+  id            String   @id @default(cuid())
+  name          String
+  type          String   @default("AGENT")
+  status        String   @default("IDLE")
+  capabilities  String[]
+  metadata      Json?
   lastHeartbeat DateTime @default(now())
   currentTaskId String?  @unique
-  tasks        Task[]
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  tasks         Task[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 // WorkerLog tracks worker activity history
@@ -231,7 +238,7 @@ model WorkerLog {
   id        String      @id @default(cuid())
   workerId  String
   taskId    String?
-  parentId  String?     // AFC-1.1: parent log ID for nested structure
+  parentId  String? // AFC-1.1: parent log ID for nested structure
   parent    WorkerLog?  @relation("LogHierarchy", fields: [parentId], references: [id])
   children  WorkerLog[] @relation("LogHierarchy")
   action    String
@@ -264,35 +271,35 @@ model GitHubEvent {
 
 // CouncilDecision: Mandatory research gate decision before BUILD tasks
 model CouncilDecision {
-  id              String       @id @default(cuid())
-  projectId       String
-  project         Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  taskId          String?      // Optional link to specific task
-  task            Task?        @relation(fields: [taskId], references: [id])
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  taskId    String? // Optional link to specific task
+  task      Task?   @relation(fields: [taskId], references: [id])
 
-  decision        DecisionType // ADOPT | ADAPT | BUILD
-  confidence      Float        // 0-1 confidence score
+  decision   DecisionType // ADOPT | ADAPT | BUILD
+  confidence Float // 0-1 confidence score
 
   // Research findings
-  candidateName   String?      // Name of solution evaluated
-  candidateUrl    String?      // URL to solution
-  licenseType     String?      // MIT, Apache, GPL, etc.
-  maintenanceRisk RiskLevel    // LOW | MEDIUM | HIGH
-  integrationPlan String?      @db.Text // How to integrate
-  redTeamCritique String?      @db.Text // Potential issues/risks
+  candidateName   String? // Name of solution evaluated
+  candidateUrl    String? // URL to solution
+  licenseType     String? // MIT, Apache, GPL, etc.
+  maintenanceRisk RiskLevel // LOW | MEDIUM | HIGH
+  integrationPlan String?   @db.Text // How to integrate
+  redTeamCritique String?   @db.Text // Potential issues/risks
 
   // Evidence
-  sources         Json         // Array of source URLs/references
-  reasoning       String       @db.Text // Why this decision was made
+  sources   Json // Array of source URLs/references
+  reasoning String @db.Text // Why this decision was made
 
   // Override tracking
-  overrideOf      String?      // ID of decision being overridden
-  overrideReason  String?      @db.Text // Why override was needed
+  overrideOf     String? // ID of decision being overridden
+  overrideReason String? @db.Text // Why override was needed
 
   // Metadata
-  createdBy       String?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  createdBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([projectId])
   @@index([taskId])
@@ -324,7 +331,7 @@ model RunPolicy {
   maxFailures             Int      @default(10)
   maxRepeatedError        Int      @default(3)
   maxNoProgressIterations Int      @default(5)
-  requireHumanApprovalAt  Json?    // e.g. ["plan_review","pre_merge"]
+  requireHumanApprovalAt  Json? // e.g. ["plan_review","pre_merge"]
   verificationCommands    Json     @default("[\"npm run lint\",\"npm test\",\"npm run build\"]")
   completionPromise       String   @default("<AFC_DONE/>")
   createdAt               DateTime @default(now())
@@ -333,19 +340,19 @@ model RunPolicy {
 
 // RunIteration: Tracks each loop attempt
 model RunIteration {
-  id                  String           @id @default(cuid())
+  id                  String          @id @default(cuid())
   runId               String
-  run                 Run              @relation(fields: [runId], references: [id], onDelete: Cascade)
+  run                 Run             @relation(fields: [runId], references: [id], onDelete: Cascade)
   iteration           Int
-  status              IterationStatus  @default(RUNNING)
-  startedAt           DateTime         @default(now())
+  status              IterationStatus @default(RUNNING)
+  startedAt           DateTime        @default(now())
   endedAt             DateTime?
-  verificationSummary Json?            // { lint: pass/fail, test: pass/fail, build: pass/fail }
-  errorFingerprint    String?          // hash of top error for thrash detection
-  diffStats           Json?            // { files: n, insertions: n, deletions: n }
+  verificationSummary Json? // { lint: pass/fail, test: pass/fail, build: pass/fail }
+  errorFingerprint    String? // hash of top error for thrash detection
+  diffStats           Json? // { files: n, insertions: n, deletions: n }
   checkpointId        String?
-  checkpoint          RunCheckpoint?   @relation(fields: [checkpointId], references: [id])
-  createdAt           DateTime         @default(now())
+  checkpoint          RunCheckpoint?  @relation(fields: [checkpointId], references: [id])
+  createdAt           DateTime        @default(now())
 
   @@unique([runId, iteration])
   @@index([runId])
@@ -384,54 +391,54 @@ enum AbortReason {
 
 // MemoryScope: Defines the visibility scope of a memory item
 enum MemoryScope {
-  GLOBAL     // Available across all projects
-  PROJECT    // Available within a single project
-  RUN        // Available only within a single run
+  GLOBAL // Available across all projects
+  PROJECT // Available within a single project
+  RUN // Available only within a single run
 }
 
 // MemoryCategory: Categorizes the type of memory content
 enum MemoryCategory {
-  CODE           // Code snippets, implementations
-  DOCUMENTATION  // Docs, READMEs, comments
-  DECISION       // Architectural decisions, ADRs
-  ERROR          // Error patterns, solutions
-  CONTEXT        // General context, background info
-  CUSTOM         // User-defined category
+  CODE // Code snippets, implementations
+  DOCUMENTATION // Docs, READMEs, comments
+  DECISION // Architectural decisions, ADRs
+  ERROR // Error patterns, solutions
+  CONTEXT // General context, background info
+  CUSTOM // User-defined category
 }
 
 // MemoryItem: Core memory storage unit
 model MemoryItem {
-  id           String          @id @default(cuid())
-  projectId    String?
-  project      Project?        @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  runId        String?         // Optional: for RUN-scoped items
+  id        String   @id @default(cuid())
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  runId     String? // Optional: for RUN-scoped items
 
-  contentHash  String          // SHA-256 hash for deduplication
-  content      String          @db.Text // The actual memory content
-  summary      String?         // Optional short summary
+  contentHash String // SHA-256 hash for deduplication
+  content     String  @db.Text // The actual memory content
+  summary     String? // Optional short summary
 
-  scope        MemoryScope     @default(PROJECT)
-  category     MemoryCategory  @default(CONTEXT)
+  scope    MemoryScope    @default(PROJECT)
+  category MemoryCategory @default(CONTEXT)
 
-  source       String?         // Origin: file path, URL, manual, etc.
-  sourceType   String?         // file, url, manual, agent
+  source     String? // Origin: file path, URL, manual, etc.
+  sourceType String? // file, url, manual, agent
 
-  score        Float           @default(1.0) // Relevance/importance score (0-1)
-  accessCount  Int             @default(0)   // Number of times accessed
-  lastAccessed DateTime?       // Last time this item was used
+  score        Float     @default(1.0) // Relevance/importance score (0-1)
+  accessCount  Int       @default(0) // Number of times accessed
+  lastAccessed DateTime? // Last time this item was used
 
-  tokenCount   Int             @default(0)   // Estimated token count for budget
+  tokenCount Int @default(0) // Estimated token count for budget
 
-  metadata     Json?           // Additional metadata (tags, etc.)
+  metadata Json? // Additional metadata (tags, etc.)
 
-  expiresAt    DateTime?       // Optional TTL
-  archived     Boolean         @default(false)
+  expiresAt DateTime? // Optional TTL
+  archived  Boolean   @default(false)
 
-  uses         MemoryUse[]     // Tracking usage
-  snapshots    RunMemorySnapshotItem[]
+  uses      MemoryUse[] // Tracking usage
+  snapshots RunMemorySnapshotItem[]
 
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([projectId, contentHash]) // Dedupe within project
   @@index([projectId])
@@ -444,16 +451,16 @@ model MemoryItem {
 
 // MemoryUse: Tracks when and how memory items are used in runs
 model MemoryUse {
-  id           String      @id @default(cuid())
+  id           String     @id @default(cuid())
   memoryItemId String
-  memoryItem   MemoryItem  @relation(fields: [memoryItemId], references: [id], onDelete: Cascade)
+  memoryItem   MemoryItem @relation(fields: [memoryItemId], references: [id], onDelete: Cascade)
   runId        String
 
-  context      String?     @db.Text // Why/how it was used
-  queryText    String?     // The query that retrieved this item
-  relevance    Float?      // Relevance score for this use (0-1)
+  context   String? @db.Text // Why/how it was used
+  queryText String? // The query that retrieved this item
+  relevance Float? // Relevance score for this use (0-1)
 
-  usedAt       DateTime    @default(now())
+  usedAt DateTime @default(now())
 
   @@index([memoryItemId])
   @@index([runId])
@@ -462,57 +469,57 @@ model MemoryUse {
 
 // MemoryPolicy: Project-level memory configuration
 model MemoryPolicy {
-  id                String           @id @default(cuid())
-  projectId         String           @unique
-  project           Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  projectId String  @unique
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   // Budget enforcement
-  maxItems          Int              @default(1000)    // Max memory items per project
-  maxTokensPerQuery Int              @default(4000)    // Max tokens in query response
-  maxTokensTotal    Int              @default(100000)  // Max total tokens stored
+  maxItems          Int @default(1000) // Max memory items per project
+  maxTokensPerQuery Int @default(4000) // Max tokens in query response
+  maxTokensTotal    Int @default(100000) // Max total tokens stored
 
   // Scope filtering
-  enabledScopes     Json             @default("[\"PROJECT\", \"RUN\"]") // Enabled scopes
+  enabledScopes Json @default("[\"PROJECT\", \"RUN\"]") // Enabled scopes
 
   // Category filtering
-  enabledCategories Json             @default("[\"CODE\", \"DOCUMENTATION\", \"DECISION\", \"ERROR\", \"CONTEXT\", \"CUSTOM\"]")
+  enabledCategories Json @default("[\"CODE\", \"DOCUMENTATION\", \"DECISION\", \"ERROR\", \"CONTEXT\", \"CUSTOM\"]")
 
   // Retention settings
-  defaultTtlDays    Int?             // Default expiration in days
-  autoArchiveDays   Int?             // Auto-archive after N days of no access
+  defaultTtlDays  Int? // Default expiration in days
+  autoArchiveDays Int? // Auto-archive after N days of no access
 
   // Deduplication settings
-  dedupeEnabled     Boolean          @default(true)
-  similarityThreshold Float          @default(0.95) // For fuzzy dedupe (future)
+  dedupeEnabled       Boolean @default(true)
+  similarityThreshold Float   @default(0.95) // For fuzzy dedupe (future)
 
   // Scoring settings
-  decayFactor       Float            @default(0.99)  // Daily score decay
-  accessBoost       Float            @default(0.1)   // Score boost per access
+  decayFactor Float @default(0.99) // Daily score decay
+  accessBoost Float @default(0.1) // Score boost per access
 
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([projectId])
 }
 
 // RunMemorySnapshot: Point-in-time snapshot of memory state for a run
 model RunMemorySnapshot {
-  id           String                   @id @default(cuid())
-  runId        String
-  run          Run                      @relation(fields: [runId], references: [id], onDelete: Cascade)
+  id    String @id @default(cuid())
+  runId String
+  run   Run    @relation(fields: [runId], references: [id], onDelete: Cascade)
 
-  name         String?                  // Optional snapshot name
-  description  String?                  // Why snapshot was taken
+  name        String? // Optional snapshot name
+  description String? // Why snapshot was taken
 
-  totalItems   Int                      @default(0)
-  totalTokens  Int                      @default(0)
+  totalItems  Int @default(0)
+  totalTokens Int @default(0)
 
-  items        RunMemorySnapshotItem[]
+  items RunMemorySnapshotItem[]
 
-  metadata     Json?                    // Additional metadata
+  metadata Json? // Additional metadata
 
-  snapshotAt   DateTime                 @default(now())
-  createdAt    DateTime                 @default(now())
+  snapshotAt DateTime @default(now())
+  createdAt  DateTime @default(now())
 
   @@index([runId])
   @@index([snapshotAt])
@@ -520,15 +527,169 @@ model RunMemorySnapshot {
 
 // RunMemorySnapshotItem: Join table for snapshot items
 model RunMemorySnapshotItem {
-  id           String              @id @default(cuid())
+  id           String            @id @default(cuid())
   snapshotId   String
-  snapshot     RunMemorySnapshot   @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  snapshot     RunMemorySnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
   memoryItemId String
-  memoryItem   MemoryItem          @relation(fields: [memoryItemId], references: [id], onDelete: Cascade)
+  memoryItem   MemoryItem        @relation(fields: [memoryItemId], references: [id], onDelete: Cascade)
 
-  scoreAtSnapshot Float            // Score at time of snapshot
+  scoreAtSnapshot Float // Score at time of snapshot
 
   @@unique([snapshotId, memoryItemId])
   @@index([snapshotId])
   @@index([memoryItemId])
+}
+
+// ============================================================================
+// AFC-1.7: Blueprint + Slicer MVP (Deterministic WorkOrders)
+// ============================================================================
+
+// BlueprintStatus: Lifecycle status of a Blueprint
+enum BlueprintStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+// WorkOrderDomain: Domain classification for WorkOrders
+enum WorkOrderDomain {
+  FRONTEND
+  BACKEND
+  DEVOPS
+  QA
+  ALGO
+  INTEGRATION
+}
+
+// WorkOrderStatus: Status of a WorkOrder
+enum WorkOrderStatus {
+  PLANNED
+  READY
+  BLOCKED
+  IN_PROGRESS
+  WAITING_FOR_APPROVAL
+  DONE
+  ABORTED
+}
+
+// Blueprint: Project-level structured "Living Spec"
+model Blueprint {
+  id          String             @id @default(cuid())
+  projectId   String
+  project     Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name        String
+  description String?            @db.Text
+  status      BlueprintStatus    @default(DRAFT)
+  versions    BlueprintVersion[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@index([projectId])
+  @@index([status])
+}
+
+// BlueprintVersion: Immutable versioned snapshot of a Blueprint spec
+model BlueprintVersion {
+  id            String      @id @default(cuid())
+  blueprintId   String
+  blueprint     Blueprint   @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  version       Int // Monotonic per blueprint
+  schemaVersion String      @default("1.0")
+  specJson      Json // Validated Blueprint JSON
+  specHash      String // SHA-256 of canonical JSON (determinism anchor)
+  publishedAt   DateTime? // Null if draft, set when published
+  workOrders    WorkOrder[]
+  createdAt     DateTime    @default(now())
+
+  @@unique([blueprintId, version])
+  @@index([blueprintId])
+  @@index([specHash])
+}
+
+// WorkOrder: Small, bounded unit of work generated by Slicer
+model WorkOrder {
+  id                 String           @id @default(cuid())
+  projectId          String
+  project            Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  runId              String? // Optional: run-specific WorkOrders
+  run                Run?             @relation(fields: [runId], references: [id])
+  blueprintVersionId String
+  blueprintVersion   BlueprintVersion @relation(fields: [blueprintVersionId], references: [id], onDelete: Cascade)
+
+  key     String // Stable key (e.g., NEMT-UI-001)
+  title   String
+  summary String          @db.Text
+  domain  WorkOrderDomain
+  status  WorkOrderStatus @default(PLANNED)
+
+  specIds          Json // Array of spec_id strings
+  ownedPaths       Json // Array of path strings
+  interfaces       Json? // Array of interface definitions
+  acceptanceChecks Json // Array of acceptance check strings
+  assetsToUse      Json // Array of asset references
+  memoryHints      Json // Array of memory hints
+
+  // Self-referential dependencies via join table
+  dependsOn    WorkOrderDependency[] @relation("WorkOrderDependsOn")
+  dependedOnBy WorkOrderDependency[] @relation("WorkOrderDependedOnBy")
+
+  // Task link (optional)
+  tasks WorkOrderTaskLink[]
+
+  // Audit trail
+  auditEvents WorkOrderAuditEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([blueprintVersionId, key])
+  @@index([projectId])
+  @@index([runId])
+  @@index([blueprintVersionId])
+  @@index([status])
+  @@index([domain])
+}
+
+// WorkOrderDependency: Join table for WorkOrder dependencies
+model WorkOrderDependency {
+  id          String    @id @default(cuid())
+  workOrderId String
+  workOrder   WorkOrder @relation("WorkOrderDependsOn", fields: [workOrderId], references: [id], onDelete: Cascade)
+  dependsOnId String
+  dependsOn   WorkOrder @relation("WorkOrderDependedOnBy", fields: [dependsOnId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+
+  @@unique([workOrderId, dependsOnId])
+  @@index([workOrderId])
+  @@index([dependsOnId])
+}
+
+// WorkOrderTaskLink: Link WorkOrders to Tasks for traceability
+model WorkOrderTaskLink {
+  id          String    @id @default(cuid())
+  workOrderId String
+  workOrder   WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  taskId      String
+  task        Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+
+  @@unique([workOrderId, taskId])
+  @@index([workOrderId])
+  @@index([taskId])
+}
+
+// WorkOrderAuditEvent: Audit trail for WorkOrder status changes
+model WorkOrderAuditEvent {
+  id          String          @id @default(cuid())
+  workOrderId String
+  workOrder   WorkOrder       @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  actor       String? // User/agent that made the change
+  fromStatus  WorkOrderStatus
+  toStatus    WorkOrderStatus
+  reason      String?         @db.Text
+  metadata    Json?
+  createdAt   DateTime        @default(now())
+
+  @@index([workOrderId])
+  @@index([createdAt])
 }

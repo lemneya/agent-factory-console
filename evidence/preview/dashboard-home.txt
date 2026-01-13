@@ -1,0 +1,18 @@
+Dashboard Home Screenshot
+=========================
+Date: 2026-01-12
+URL: https://3000-iygd5814b5pfglyrr15pz-3f6d4664.us1.manus.computer/
+
+Status: LOADED SUCCESSFULLY
+
+Page Elements Visible:
+- Sidebar navigation: Dashboard, Projects, Runs, Notifications
+- Main content area with 5 feature cards:
+  1. Projects - View and manage your GitHub repositories linked to Agent Factory
+  2. Runs - Track agent execution runs and manage tasks in Kanban boards
+  3. Blueprints - Define structured specs for deterministic WorkOrder generation
+  4. WorkOrders - View and manage sliced work units with dependency tracking
+  5. Notifications - Real-time feed of GitHub events from your connected repositories
+
+No auth loops detected.
+No blank states detected.
