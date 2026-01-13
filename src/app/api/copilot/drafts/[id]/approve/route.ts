@@ -13,9 +13,9 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { planDraftActions, executeDraftPlan, DraftKind } from '@/services/draft/planner';
 
-export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await params;
+    const { id } = await context.params;
 
     // Check for dev auth bypass
     const devAuthBypass =
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       );
     }
 
-    // Check for diffReviewed flag in request body
+    // Check for diff Reviewed flag in request body
     let diffReviewed = false;
     try {
       const body = await request.json();
@@ -121,6 +121,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         draftId: id,
         eventType: 'APPROVED',
         actorUserId: userId || 'dev-bypass',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         detailsJson: {
           resultRef: result.resultRef,
           plan: {
@@ -131,7 +132,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             })),
             checks: plan.checks,
           },
-        } as any,
+        } as unknown as Record<string, unknown>,
       },
     });
 
