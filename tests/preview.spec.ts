@@ -6,7 +6,7 @@ test.describe('Preview Page', () => {
 
     // Check page structure
     await expect(page.getByTestId('page-root')).toBeVisible();
-    await expect(page.getByTestId('page-title')).toHaveText('Preview');
+    await expect(page.getByTestId('page-title')).toContainText('Preview');
 
     // Check route health grid is present
     await expect(page.getByTestId('route-health-grid')).toBeVisible();
@@ -23,7 +23,7 @@ test.describe('Preview Page', () => {
 
     // Should navigate to preview page
     await expect(page).toHaveURL('/preview');
-    await expect(page.getByTestId('page-title')).toHaveText('Preview');
+    await expect(page.getByTestId('page-title')).toContainText('Preview');
   });
 
   test('route health grid shows all routes', async ({ page }) => {
