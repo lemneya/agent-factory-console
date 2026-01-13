@@ -561,3 +561,76 @@ enum CopilotRole {
   USER
   ASSISTANT
 }
+
+
+// ============================================================================
+// UX-GATE-COPILOT-1: Copilot Draft Mode
+// ============================================================================
+
+// CopilotDraft: Stores draft records for Blueprint/WorkOrders/Council
+model CopilotDraft {
+  id          String            @id @default(cuid())
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  userId      String?           // nullable if demo mode
+  projectId   String?           // nullable - context
+  runId       String?           // nullable - context
+
+  kind        CopilotDraftKind  // BLUEPRINT | WORKORDERS | COUNCIL
+  status      CopilotDraftStatus @default(DRAFT)
+
+  title       String
+  payloadJson Json              // The structured draft payload
+  sourcesJson Json?             // Sources/citations (same schema as Copilot-0)
+
+  approvedAt  DateTime?
+  approvedBy  String?           // userId who approved
+  resultRef   String?           // e.g., "Blueprint:abc123" / "CouncilDecision:xyz789"
+
+  events      CopilotDraftEvent[]
+
+  @@index([projectId])
+  @@index([runId])
+  @@index([createdAt])
+  @@index([status])
+  @@index([kind])
+}
+
+// CopilotDraftEvent: Audit trail for draft lifecycle
+model CopilotDraftEvent {
+  id          String                  @id @default(cuid())
+  createdAt   DateTime                @default(now())
+
+  draftId     String
+  draft       CopilotDraft            @relation(fields: [draftId], references: [id], onDelete: Cascade)
+
+  actorUserId String?                 // nullable if system action
+  eventType   CopilotDraftEventType
+
+  detailsJson Json?                   // Additional event details
+
+  @@index([draftId])
+  @@index([createdAt])
+}
+
+enum CopilotDraftKind {
+  BLUEPRINT
+  WORKORDERS
+  COUNCIL
+}
+
+enum CopilotDraftStatus {
+  DRAFT
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+enum CopilotDraftEventType {
+  CREATED
+  UPDATED
+  APPROVED
+  REJECTED
+  EXPIRED
+}
