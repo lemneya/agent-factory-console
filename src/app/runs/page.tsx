@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { SignedOutCTA, DemoModeBadge, useDemoMode } from '@/components/auth';
 
 interface Run {
   id: string;
@@ -26,8 +28,10 @@ interface Project {
   repoFullName: string;
 }
 
-export default function RunsPage() {
+function RunsContent() {
   const { data: session, status: authStatus } = useSession();
+  const { isDemoMode } = useDemoMode();
+  const searchParams = useSearchParams();
   const [runs, setRuns] = useState<Run[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,6 +39,12 @@ export default function RunsPage() {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [newRun, setNewRun] = useState({ projectId: '', name: '' });
+
+  // Check if demo mode from URL or hook
+  const demoParam = searchParams.get('demo');
+  const isInDemoMode = isDemoMode || demoParam === '1';
+  const isAuthenticated = authStatus === 'authenticated';
+  const canViewData = isAuthenticated || isInDemoMode;
 
   const fetchRuns = useCallback(async () => {
     try {
@@ -62,17 +72,25 @@ export default function RunsPage() {
   }, [session?.user?.id]);
 
   useEffect(() => {
-    if (authStatus === 'authenticated') {
+    if (canViewData) {
       fetchRuns();
-      fetchProjects();
-    } else if (authStatus === 'unauthenticated') {
+      if (isAuthenticated) {
+        fetchProjects();
+      }
+    } else if (authStatus === 'unauthenticated' && !isInDemoMode) {
       setLoading(false);
     }
-  }, [authStatus, fetchRuns, fetchProjects]);
+  }, [authStatus, canViewData, isAuthenticated, isInDemoMode, fetchRuns, fetchProjects]);
 
   async function handleCreateRun(e: React.FormEvent) {
     e.preventDefault();
     if (!newRun.projectId || !newRun.name) return;
+
+    // Block mutations in demo mode
+    if (isInDemoMode && !isAuthenticated) {
+      setError('Sign in required to create runs');
+      return;
+    }
 
     try {
       setCreating(true);
@@ -142,7 +160,8 @@ export default function RunsPage() {
     );
   }
 
-  if (authStatus === 'unauthenticated') {
+  // Show SignedOutCTA if not authenticated and not in demo mode
+  if (authStatus === 'unauthenticated' && !isInDemoMode) {
     return (
       <main data-testid="page-root">
         <div className="mb-8">
@@ -153,33 +172,19 @@ export default function RunsPage() {
             Agent execution runs and task tracking
           </p>
         </div>
-        <div className="rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center dark:border-gray-600 dark:bg-gray-800">
-          <svg
-            className="mx-auto h-12 w-12 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
-            />
-          </svg>
-          <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
-            Sign in required
-          </h3>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Sign in with GitHub to view and manage your runs.
-          </p>
-        </div>
+        <SignedOutCTA
+          title="Sign in required"
+          reason="Sign in with GitHub to manage runs and track agent execution."
+        />
       </main>
     );
   }
 
   return (
     <main data-testid="page-root">
+      {/* Demo mode badge */}
+      {isInDemoMode && !isAuthenticated && <DemoModeBadge />}
+
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 data-testid="page-title" className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -190,9 +195,16 @@ export default function RunsPage() {
           </p>
         </div>
         <button
-          onClick={() => setShowModal(true)}
-          disabled={projects.length === 0}
+          onClick={() => {
+            if (isInDemoMode && !isAuthenticated) {
+              setError('Sign in required to create runs');
+              return;
+            }
+            setShowModal(true);
+          }}
+          disabled={projects.length === 0 || (isInDemoMode && !isAuthenticated)}
           className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+          data-testid="new-run-btn"
         >
           <svg
             className="h-4 w-4"
@@ -230,11 +242,13 @@ export default function RunsPage() {
           </svg>
           <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">No runs yet</h3>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            {projects.length === 0
-              ? 'First sync your repositories, then create a run to start tracking tasks.'
-              : 'Create a new run to start tracking agent tasks.'}
+            {isInDemoMode
+              ? 'No demo runs available. Sign in to create your own runs.'
+              : projects.length === 0
+                ? 'First sync your repositories, then create a run to start tracking tasks.'
+                : 'Create a new run to start tracking agent tasks.'}
           </p>
-          {projects.length === 0 && (
+          {!isInDemoMode && projects.length === 0 && (
             <Link
               href="/projects"
               className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
@@ -302,7 +316,7 @@ export default function RunsPage() {
                   <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                     {run._count.tasks}
                   </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                  <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                     {formatDate(run.createdAt)}
                   </td>
                 </tr>
@@ -315,7 +329,7 @@ export default function RunsPage() {
       {/* Create Run Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-gray-800">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 dark:bg-gray-800">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Create New Run</h2>
             <form onSubmit={handleCreateRun} className="mt-4 space-y-4">
               <div>
@@ -325,13 +339,13 @@ export default function RunsPage() {
                 <select
                   value={newRun.projectId}
                   onChange={e => setNewRun({ ...newRun, projectId: e.target.value })}
-                  className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                   required
                 >
                   <option value="">Select a project</option>
-                  {projects.map(project => (
-                    <option key={project.id} value={project.id}>
-                      {project.repoFullName}
+                  {projects.map(p => (
+                    <option key={p.id} value={p.id}>
+                      {p.repoFullName}
                     </option>
                   ))}
                 </select>
@@ -344,26 +358,23 @@ export default function RunsPage() {
                   type="text"
                   value={newRun.name}
                   onChange={e => setNewRun({ ...newRun, name: e.target.value })}
-                  placeholder="e.g., Sprint 1, Feature Implementation"
-                  className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500"
+                  className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
+                  placeholder="e.g., Feature Implementation"
                   required
                 />
               </div>
-              <div className="flex justify-end gap-3 pt-2">
+              <div className="flex justify-end gap-3">
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowModal(false);
-                    setNewRun({ projectId: '', name: '' });
-                  }}
-                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                  onClick={() => setShowModal(false)}
+                  className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={creating || !newRun.projectId || !newRun.name}
-                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={creating}
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
                 >
                   {creating ? 'Creating...' : 'Create Run'}
                 </button>
@@ -373,5 +384,29 @@ export default function RunsPage() {
         </div>
       )}
     </main>
+  );
+}
+
+export default function RunsPage() {
+  return (
+    <Suspense
+      fallback={
+        <main data-testid="page-root">
+          <div className="mb-8">
+            <h1
+              data-testid="page-title"
+              className="text-2xl font-bold text-gray-900 dark:text-white"
+            >
+              Runs
+            </h1>
+          </div>
+          <div className="animate-pulse">
+            <div className="h-32 rounded-xl bg-gray-200 dark:bg-gray-700" />
+          </div>
+        </main>
+      }
+    >
+      <RunsContent />
+    </Suspense>
   );
 }

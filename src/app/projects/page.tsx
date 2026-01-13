@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { SignedOutCTA, DemoModeBadge, useDemoMode } from '@/components/auth';
 
 interface Project {
   id: string;
@@ -17,17 +19,25 @@ interface Project {
   };
 }
 
-export default function ProjectsPage() {
+function ProjectsContent() {
   const { data: session, status } = useSession();
+  const { isDemoMode } = useDemoMode();
+  const searchParams = useSearchParams();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Check if demo mode from URL or hook
+  const demoParam = searchParams.get('demo');
+  const isInDemoMode = isDemoMode || demoParam === '1';
+  const isAuthenticated = status === 'authenticated';
+  const canViewData = isAuthenticated || isInDemoMode;
+
   const fetchProjects = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/projects?userId=${session?.user?.id}`);
+      const res = await fetch(`/api/projects?userId=${session?.user?.id || ''}`);
       if (!res.ok) throw new Error('Failed to fetch projects');
       const data = await res.json();
       setProjects(data);
@@ -39,14 +49,20 @@ export default function ProjectsPage() {
   }, [session?.user?.id]);
 
   useEffect(() => {
-    if (status === 'authenticated' && session?.user?.id) {
+    if (canViewData) {
       fetchProjects();
-    } else if (status === 'unauthenticated') {
+    } else if (status === 'unauthenticated' && !isInDemoMode) {
       setLoading(false);
     }
-  }, [status, session?.user?.id, fetchProjects]);
+  }, [status, canViewData, isInDemoMode, fetchProjects]);
 
   async function handleSync() {
+    // Block mutations in demo mode
+    if (isInDemoMode && !isAuthenticated) {
+      setError('Sign in required to sync repositories');
+      return;
+    }
+
     if (!session?.user?.id) return;
 
     try {
@@ -106,7 +122,8 @@ export default function ProjectsPage() {
     );
   }
 
-  if (status === 'unauthenticated') {
+  // Show SignedOutCTA if not authenticated and not in demo mode
+  if (status === 'unauthenticated' && !isInDemoMode) {
     return (
       <main data-testid="page-root">
         <div className="mb-8">
@@ -117,33 +134,19 @@ export default function ProjectsPage() {
             Your GitHub repositories linked to Agent Factory
           </p>
         </div>
-        <div className="rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center dark:border-gray-600 dark:bg-gray-800">
-          <svg
-            className="mx-auto h-12 w-12 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
-            />
-          </svg>
-          <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
-            Sign in required
-          </h3>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Sign in with GitHub to view and sync your repositories.
-          </p>
-        </div>
+        <SignedOutCTA
+          title="Sign in required"
+          reason="Sign in with GitHub to view and sync your repositories."
+        />
       </main>
     );
   }
 
   return (
     <main data-testid="page-root">
+      {/* Demo mode badge */}
+      {isInDemoMode && !isAuthenticated && <DemoModeBadge />}
+
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 data-testid="page-title" className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -155,8 +158,9 @@ export default function ProjectsPage() {
         </div>
         <button
           onClick={handleSync}
-          disabled={syncing}
+          disabled={syncing || (isInDemoMode && !isAuthenticated)}
           className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+          data-testid="sync-repos-btn"
         >
           {syncing ? (
             <>
@@ -224,7 +228,9 @@ export default function ProjectsPage() {
             No projects yet
           </h3>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Click &quot;Sync Repositories&quot; to import your GitHub repositories.
+            {isInDemoMode
+              ? 'No demo projects available. Sign in to sync your GitHub repositories.'
+              : 'Click "Sync Repositories" to import your GitHub repositories.'}
           </p>
         </div>
       ) : (
@@ -236,7 +242,7 @@ export default function ProjectsPage() {
               className="group rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:border-blue-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-600"
             >
               <div className="flex items-start justify-between">
-                <div className="flex-1 min-w-0">
+                <div className="min-w-0 flex-1">
                   <h3 className="truncate text-lg font-semibold text-gray-900 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">
                     {project.repoName}
                   </h3>
@@ -301,5 +307,29 @@ export default function ProjectsPage() {
         </div>
       )}
     </main>
+  );
+}
+
+export default function ProjectsPage() {
+  return (
+    <Suspense
+      fallback={
+        <main data-testid="page-root">
+          <div className="mb-8">
+            <h1
+              data-testid="page-title"
+              className="text-2xl font-bold text-gray-900 dark:text-white"
+            >
+              Projects
+            </h1>
+          </div>
+          <div className="animate-pulse">
+            <div className="h-32 rounded-xl bg-gray-200 dark:bg-gray-700" />
+          </div>
+        </main>
+      }
+    >
+      <ProjectsContent />
+    </Suspense>
   );
 }

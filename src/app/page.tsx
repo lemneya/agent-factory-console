@@ -2,9 +2,11 @@ import Link from 'next/link';
 
 export default function Home() {
   return (
-    <div>
+    <div data-testid="page-root">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+        <h1 data-testid="page-title" className="text-2xl font-bold text-gray-900 dark:text-white">
+          Dashboard
+        </h1>
         <p className="mt-1 text-gray-600 dark:text-gray-400">
           Single pane of glass for multi-agent AI development
         </p>
