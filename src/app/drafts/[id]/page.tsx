@@ -29,6 +29,26 @@ interface Draft {
   events: DraftEvent[];
 }
 
+interface DraftOperation {
+  op: 'CREATE' | 'UPDATE' | 'CALL_API';
+  model: string;
+  ref: string;
+  summary: string;
+  fieldsPreview: Record<string, unknown>;
+  warnings: string[];
+}
+
+interface DraftPlan {
+  draftId: string;
+  kind: string;
+  operations: DraftOperation[];
+  checks: {
+    councilRequired: boolean;
+    councilSatisfied: boolean;
+    willCreateCount: Record<string, number>;
+  };
+}
+
 const STATUS_COLORS = {
   DRAFT: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
   APPROVED: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
@@ -44,13 +64,22 @@ const EVENT_ICONS = {
   EXPIRED: '⏰',
 };
 
+const OP_COLORS = {
+  CREATE: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+  UPDATE: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+  CALL_API: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
+};
+
 export default function DraftDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [plan, setPlan] = useState<DraftPlan | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isPlanLoading, setIsPlanLoading] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [diffReviewed, setDiffReviewed] = useState(false);
 
   const fetchDraft = useCallback(async () => {
     setIsLoading(true);
@@ -70,12 +99,35 @@ export default function DraftDetailPage({ params }: { params: Promise<{ id: stri
     }
   }, [id]);
 
+  const fetchPlan = useCallback(async () => {
+    setIsPlanLoading(true);
+    try {
+      const response = await fetch(`/api/copilot/drafts/${id}/diff?demo=1`);
+      const data = await response.json();
+      if (data.operations) {
+        setPlan(data);
+      }
+    } catch (err) {
+      console.error('Error fetching plan:', err);
+    } finally {
+      setIsPlanLoading(false);
+    }
+  }, [id]);
+
   useEffect(() => {
     fetchDraft();
-  }, [fetchDraft]);
+    fetchPlan();
+  }, [fetchDraft, fetchPlan]);
 
   const handleApprove = async () => {
     if (!draft) return;
+
+    // Require diff review confirmation
+    if (!diffReviewed) {
+      setError('Please review the diff and check the confirmation box before approving.');
+      return;
+    }
+
     setIsApproving(true);
     setError(null);
 
@@ -83,6 +135,7 @@ export default function DraftDetailPage({ params }: { params: Promise<{ id: stri
       const response = await fetch(`/api/copilot/drafts/${id}/approve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ diffReviewed: true }),
       });
 
       const data = await response.json();
@@ -176,8 +229,8 @@ export default function DraftDetailPage({ params }: { params: Promise<{ id: stri
           <div className="flex gap-2">
             <button
               onClick={handleApprove}
-              disabled={isApproving}
-              className="px-4 py-2 text-sm font-medium rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+              disabled={isApproving || !diffReviewed}
+              className="px-4 py-2 text-sm font-medium rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
               data-testid="approve-draft-btn"
             >
               {isApproving ? 'Approving...' : 'Approve'}
@@ -205,6 +258,137 @@ export default function DraftDetailPage({ params }: { params: Promise<{ id: stri
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main content */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Diff Panel */}
+          <div
+            className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-6"
+            data-testid="diff-panel"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                Planned Operations (Diff)
+              </h3>
+              {isPlanLoading && (
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+              )}
+            </div>
+
+            {plan ? (
+              <div className="space-y-4">
+                {/* Operations */}
+                <div className="space-y-3">
+                  {plan.operations.map((op, idx) => (
+                    <div
+                      key={idx}
+                      className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
+                      data-testid={`diff-operation-${idx}`}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <span
+                          className={`inline-flex rounded px-2 py-0.5 text-xs font-medium ${OP_COLORS[op.op]}`}
+                        >
+                          {op.op}
+                        </span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">
+                          {op.model}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">{op.summary}</p>
+
+                      {/* Fields Preview */}
+                      <div className="text-xs font-mono bg-gray-900 text-green-400 p-2 rounded overflow-x-auto">
+                        {Object.entries(op.fieldsPreview).map(([key, value]) => (
+                          <div key={key}>
+                            <span className="text-gray-500">{key}:</span>{' '}
+                            <span>{String(value)}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Warnings */}
+                      {op.warnings.length > 0 && (
+                        <div className="mt-2 space-y-1">
+                          {op.warnings.map((warning, wIdx) => (
+                            <div
+                              key={wIdx}
+                              className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400"
+                            >
+                              <span>⚠️</span>
+                              <span>{warning}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Checks */}
+                <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                  <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Pre-flight Checks
+                  </h4>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span>
+                        {plan.checks.councilRequired
+                          ? plan.checks.councilSatisfied
+                            ? '✅'
+                            : '❌'
+                          : '➖'}
+                      </span>
+                      <span className="text-gray-600 dark:text-gray-300">
+                        Council Gate:{' '}
+                        {plan.checks.councilRequired
+                          ? plan.checks.councilSatisfied
+                            ? 'Satisfied'
+                            : 'Required but not satisfied'
+                          : 'Not required'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span>📊</span>
+                      <span className="text-gray-600 dark:text-gray-300">
+                        Will create:{' '}
+                        {Object.entries(plan.checks.willCreateCount)
+                          .map(([model, count]) => `${count} ${model}`)
+                          .join(', ') || 'Nothing'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Diff Review Checkbox */}
+                {draft.status === 'DRAFT' && (
+                  <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={diffReviewed}
+                        onChange={e => setDiffReviewed(e.target.checked)}
+                        className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        data-testid="diff-reviewed-checkbox"
+                      />
+                      <div>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">
+                          I have reviewed the diff above
+                        </span>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          By checking this box, you confirm that you have reviewed the planned
+                          operations and understand what will be created or modified when this draft
+                          is approved.
+                        </p>
+                      </div>
+                    </label>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                {isPlanLoading ? 'Loading plan...' : 'No plan available'}
+              </div>
+            )}
+          </div>
+
           {/* Payload */}
           <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">
