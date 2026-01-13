@@ -49,16 +49,6 @@ const DEFAULT_POLICY: Omit<MemoryPolicyConfig, 'projectId'> = {
 
 export class PrismaMemoryProvider implements MemoryProvider {
   constructor(private prisma: PrismaClient) {}
-}
-
-let memoryProvider: MemoryProvider;
-
-export function getMemoryProvider(prisma: PrismaClient): MemoryProvider {
-  if (!memoryProvider) {
-    memoryProvider = new PrismaMemoryProvider(prisma);
-  }
-  return memoryProvider;
-}
 
   // -------------------------------------------------------------------------
   // Ingest & Storage
@@ -115,7 +105,7 @@ export function getMemoryProvider(prisma: PrismaClient): MemoryProvider {
           ...(input.metadata || {}),
           contentHash,
           tokenCount: estimateTokenCount(input.content),
-        },
+        } as unknown as Record<string, unknown>,
         expiresAt: input.expiresAt ?? undefined,
       },
     });
@@ -171,7 +161,7 @@ export function getMemoryProvider(prisma: PrismaClient): MemoryProvider {
 
     const updated = await this.prisma.memoryItem.update({
       where: { id },
-      data: data,
+      data: data as unknown as Record<string, unknown>,
     });
 
     return this.toMemoryItem(updated);
@@ -189,7 +179,7 @@ export function getMemoryProvider(prisma: PrismaClient): MemoryProvider {
         metadata: {
           ...metadata,
           archived: true,
-        },
+        } as unknown as Record<string, unknown>,
       },
     });
   }
@@ -236,7 +226,7 @@ export function getMemoryProvider(prisma: PrismaClient): MemoryProvider {
     }
 
     const total = await this.prisma.memoryItem.count({
-      where: where,
+      where: where as unknown as Record<string, unknown>,
     });
 
     const orderBy: Record<string, unknown> = {};
@@ -251,8 +241,8 @@ export function getMemoryProvider(prisma: PrismaClient): MemoryProvider {
     }
 
     const items = await this.prisma.memoryItem.findMany({
-      where: where,
-      orderBy: orderBy,
+      where: where as unknown as Record<string, unknown>,
+      orderBy: orderBy as unknown as Record<string, unknown>,
       skip: query.offset ?? 0,
       take: query.limit ?? 100,
     });
