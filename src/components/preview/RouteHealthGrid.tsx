@@ -8,16 +8,28 @@ interface RouteHealth {
   status: number;
   ok: boolean;
   latencyMs: number;
+  redirected?: boolean;
+  redirectUrl?: string;
   error?: string;
 }
 
 interface RouteHealthGridProps {
   onRouteSelect: (path: string) => void;
+  baseUrl?: string; // Optional custom base URL for preset support
 }
 
 function getStatusIcon(health: RouteHealth | null): string {
   if (!health) return '⏳';
   if (health.status === 200) return '✅';
+  // Redirect to auth
+  if (health.redirected && health.redirectUrl) {
+    const url = health.redirectUrl.toLowerCase();
+    if (url.includes('/login') || url.includes('/signin') || url.includes('/auth')) {
+      return '🔒';
+    }
+  }
+  // Other redirects
+  if (health.redirected) return '↪️';
   if (health.status === 401 || health.status === 403) return '🔒';
   if (health.status === 404) return '⚠️';
   if (health.status >= 500) return '❌';
@@ -28,13 +40,37 @@ function getStatusIcon(health: RouteHealth | null): string {
 function getStatusColor(health: RouteHealth | null): string {
   if (!health) return 'text-gray-400';
   if (health.status === 200) return 'text-green-600';
+  // Redirect to auth
+  if (health.redirected && health.redirectUrl) {
+    const url = health.redirectUrl.toLowerCase();
+    if (url.includes('/login') || url.includes('/signin') || url.includes('/auth')) {
+      return 'text-yellow-600';
+    }
+  }
+  // Other redirects (considered ok)
+  if (health.redirected) return 'text-blue-600';
   if (health.status === 401 || health.status === 403) return 'text-yellow-600';
   if (health.status === 404) return 'text-orange-500';
   if (health.status >= 500 || health.status === 0 || health.error) return 'text-red-600';
   return 'text-yellow-600';
 }
 
-export function RouteHealthGrid({ onRouteSelect }: RouteHealthGridProps) {
+function getStatusLabel(health: RouteHealth | null): string {
+  if (!health) return '...';
+  if (health.error) return 'Error';
+  if (health.redirected) {
+    if (health.redirectUrl) {
+      const url = health.redirectUrl.toLowerCase();
+      if (url.includes('/login') || url.includes('/signin') || url.includes('/auth')) {
+        return `${health.status} → Auth`;
+      }
+    }
+    return `${health.status} →`;
+  }
+  return String(health.status);
+}
+
+export function RouteHealthGrid({ onRouteSelect, baseUrl }: RouteHealthGridProps) {
   const [healthMap, setHealthMap] = useState<Record<string, RouteHealth | null>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
@@ -42,24 +78,30 @@ export function RouteHealthGrid({ onRouteSelect }: RouteHealthGridProps) {
 
   const navItems = getRouteHealthItems();
 
-  const checkRouteHealth = useCallback(async (item: NavItem): Promise<RouteHealth | null> => {
-    try {
-      const response = await fetch('/api/preview/route-health', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path: item.href }),
-      });
-      return (await response.json()) as RouteHealth;
-    } catch {
-      return {
-        path: item.href,
-        status: 0,
-        ok: false,
-        latencyMs: 0,
-        error: 'Failed to check route',
-      };
-    }
-  }, []);
+  const checkRouteHealth = useCallback(
+    async (item: NavItem): Promise<RouteHealth | null> => {
+      try {
+        const response = await fetch('/api/preview/route-health', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            path: item.href,
+            baseUrl: baseUrl || undefined,
+          }),
+        });
+        return (await response.json()) as RouteHealth;
+      } catch {
+        return {
+          path: item.href,
+          status: 0,
+          ok: false,
+          latencyMs: 0,
+          error: 'Failed to check route',
+        };
+      }
+    },
+    [baseUrl]
+  );
 
   const refreshAll = useCallback(async () => {
     if (!isMounted.current) return;
@@ -115,6 +157,7 @@ export function RouteHealthGrid({ onRouteSelect }: RouteHealthGridProps) {
             onClick={refreshAll}
             disabled={isLoading}
             className="rounded px-2 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 disabled:opacity-50 dark:text-blue-400 dark:hover:bg-blue-900/20"
+            data-testid="route-health-refresh"
           >
             {isLoading ? 'Checking...' : 'Refresh'}
           </button>
@@ -141,7 +184,7 @@ export function RouteHealthGrid({ onRouteSelect }: RouteHealthGridProps) {
               <div className="flex items-center gap-3">
                 <div className="text-right">
                   <div className={`text-sm font-medium ${getStatusColor(health)}`}>
-                    {health ? (health.error ? 'Error' : health.status) : '...'}
+                    {getStatusLabel(health)}
                   </div>
                   <div className="text-xs text-gray-500">
                     {health ? `${health.latencyMs}ms` : '-'}
@@ -157,6 +200,16 @@ export function RouteHealthGrid({ onRouteSelect }: RouteHealthGridProps) {
             </div>
           );
         })}
+      </div>
+      {/* Legend */}
+      <div className="border-t border-gray-200 px-4 py-2 dark:border-gray-700">
+        <div className="flex flex-wrap gap-3 text-xs text-gray-500">
+          <span>✅ 200</span>
+          <span>🔒 Auth</span>
+          <span>↪️ Redirect</span>
+          <span>⚠️ 404</span>
+          <span>❌ Error</span>
+        </div>
       </div>
     </div>
   );
