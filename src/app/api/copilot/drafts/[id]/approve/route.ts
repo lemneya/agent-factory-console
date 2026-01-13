@@ -121,7 +121,6 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
         draftId: id,
         eventType: 'APPROVED',
         actorUserId: userId || 'dev-bypass',
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         detailsJson: {
           resultRef: result.resultRef,
           plan: {
@@ -132,7 +131,8 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
             })),
             checks: plan.checks,
           },
-        } as unknown as Record<string, unknown>,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any,
       },
     });
 
