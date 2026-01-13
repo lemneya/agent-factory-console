@@ -1,11 +1,13 @@
 /**
  * Copilot Chat API Route
  * UX-GATE-COPILOT-0: Read-only Copilot with cited answers
+ * UX-GATE-COPILOT-1: Draft mode support
  *
  * HARD CONSTRAINTS:
  * - MUST NOT write to any tables except Copilot audit log
  * - MUST NOT call: /api/runs POST, worker endpoints, terminal endpoints
  * - MUST NOT create/update/delete anything except audit logging
+ * - Draft mode generates structured payloads but does NOT execute them
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -13,7 +15,12 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { retrieveDocs, DocChunk } from '@/knowledge/docsLoader';
 import { getDBContext, isDBAvailable, DBSource } from '@/knowledge/dbContext';
-import { generateCopilotResponse, CopilotSource } from '@/services/llm/provider';
+import {
+  generateCopilotResponse,
+  CopilotSource,
+  CopilotMode,
+  DraftKind,
+} from '@/services/llm/provider';
 import { PrismaClient } from '@prisma/client';
 
 // Request body type
@@ -21,7 +28,8 @@ interface ChatRequest {
   message: string;
   projectId?: string | null;
   runId?: string | null;
-  mode?: 'ASK';
+  mode?: 'ASK' | 'DRAFT';
+  draftType?: 'BLUEPRINT' | 'WORKORDERS' | 'COUNCIL';
   demoMode?: boolean;
 }
 
@@ -31,6 +39,8 @@ interface ChatResponse {
   sources: CopilotSource[];
   dbAvailable?: boolean;
   llmUsed?: boolean;
+  draftPayload?: Record<string, unknown>;
+  draftTitle?: string;
 }
 
 // Singleton Prisma client for audit logging
@@ -82,11 +92,26 @@ export async function POST(request: NextRequest) {
   try {
     // Parse request body
     const body: ChatRequest = await request.json();
-    const { message, projectId, runId, demoMode = false } = body;
+    const { message, projectId, runId, mode = 'ASK', draftType, demoMode = false } = body;
 
     // Validate message
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
+    }
+
+    // Validate mode
+    const copilotMode: CopilotMode = mode === 'DRAFT' ? 'DRAFT' : 'ASK';
+
+    // Validate draftType if in draft mode
+    let draftKind: DraftKind | undefined;
+    if (copilotMode === 'DRAFT') {
+      if (!draftType || !['BLUEPRINT', 'WORKORDERS', 'COUNCIL'].includes(draftType)) {
+        return NextResponse.json(
+          { error: 'draftType is required for DRAFT mode (BLUEPRINT, WORKORDERS, or COUNCIL)' },
+          { status: 400 }
+        );
+      }
+      draftKind = draftType as DraftKind;
     }
 
     // Get session for user ID (optional)
@@ -122,7 +147,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate response
-    const response = await generateCopilotResponse(message.trim(), docChunks, dbContext, dbSources);
+    const response = await generateCopilotResponse(
+      message.trim(),
+      docChunks,
+      dbContext,
+      dbSources,
+      copilotMode,
+      draftKind
+    );
 
     // Log assistant response (audit)
     await logCopilotMessage(
@@ -140,6 +172,8 @@ export async function POST(request: NextRequest) {
       sources: response.sources,
       dbAvailable,
       llmUsed: response.llmUsed,
+      draftPayload: response.draftPayload,
+      draftTitle: response.draftTitle,
     };
 
     return NextResponse.json(chatResponse);
