@@ -1,29 +1,85 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { RouteHealthGrid, SmokeStatusCard } from '@/components/preview';
+import { usePreviewPresets } from '@/components/preview/usePreviewPresets';
+import { PresetEditorModal } from '@/components/preview/PresetEditorModal';
 
 export default function PreviewPage() {
-  const [currentPath, setCurrentPath] = useState('/');
+  const searchParams = useSearchParams();
   const [iframeKey, setIframeKey] = useState(0);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
 
-  // Get preview URL from environment at render time (not in effect)
-  const previewUrl = useMemo(() => {
-    return process.env.NEXT_PUBLIC_PREVIEW_URL || null;
-  }, []);
+  const {
+    presets,
+    activePreset,
+    activePresetId,
+    currentPath,
+    isInitialized,
+    getPreviewUrl,
+    selectPreset,
+    setPath,
+    savePresets,
+  } = usePreviewPresets();
 
-  const isConfigured = previewUrl !== null;
+  // Handle URL query params for deep linking
+  useEffect(() => {
+    if (!isInitialized) return;
 
-  const handleRouteSelect = useCallback((path: string) => {
-    setCurrentPath(path);
-    setIframeKey(prev => prev + 1); // Force iframe reload
-  }, []);
+    const pathParam = searchParams.get('path');
+    const presetParam = searchParams.get('preset');
+
+    if (presetParam) {
+      const preset = presets.find(p => p.id === presetParam);
+      if (preset) {
+        selectPreset(presetParam);
+      }
+    }
+
+    if (pathParam) {
+      setPath(pathParam);
+    }
+  }, [isInitialized, searchParams, presets, selectPreset, setPath]);
+
+  const handleRouteSelect = useCallback(
+    (path: string) => {
+      setPath(path);
+      setIframeKey(prev => prev + 1); // Force iframe reload
+    },
+    [setPath]
+  );
 
   const handleRefresh = useCallback(() => {
     setIframeKey(prev => prev + 1);
   }, []);
 
-  const fullUrl = previewUrl ? `${previewUrl.replace(/\/$/, '')}${currentPath}` : null;
+  const handlePresetChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      selectPreset(e.target.value);
+      setIframeKey(prev => prev + 1); // Force iframe reload on preset change
+    },
+    [selectPreset]
+  );
+
+  const handleOpenCurrent = useCallback(() => {
+    const url = getPreviewUrl();
+    if (url) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  }, [getPreviewUrl]);
+
+  const fullUrl = getPreviewUrl();
+  const isConfigured = activePreset && activePreset.url;
+
+  // Show loading state while initializing
+  if (!isInitialized) {
+    return (
+      <div className="flex h-full items-center justify-center" data-testid="page-root">
+        <div className="text-gray-500">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full flex-col" data-testid="page-root">
@@ -39,23 +95,62 @@ export default function PreviewPage() {
           <p className="mt-1 text-sm text-gray-500">Live app preview and route health monitoring</p>
         </div>
         <div className="flex items-center gap-3">
-          {fullUrl && (
-            <a
-              href={fullUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
-            >
-              Open in New Tab ↗
-            </a>
-          )}
+          {/* Preset Dropdown */}
+          <select
+            value={activePresetId}
+            onChange={handlePresetChange}
+            className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
+            data-testid="preview-preset-select"
+          >
+            {presets.map(preset => (
+              <option key={preset.id} value={preset.id}>
+                {preset.name}
+                {preset.url
+                  ? ` (${preset.url.slice(0, 30)}${preset.url.length > 30 ? '...' : ''})`
+                  : ' (not set)'}
+              </option>
+            ))}
+          </select>
+
+          {/* Edit Presets Button */}
+          <button
+            onClick={() => setIsEditorOpen(true)}
+            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+            data-testid="preset-editor-open"
+          >
+            Edit Presets
+          </button>
+
+          {/* Open Current Button */}
+          <button
+            onClick={handleOpenCurrent}
+            disabled={!fullUrl}
+            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+            data-testid="preview-open-current"
+          >
+            Open Current ↗
+          </button>
+
+          {/* Reload Button */}
           <button
             onClick={handleRefresh}
             className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+            data-testid="preview-reload"
           >
-            Refresh Preview
+            Reload
           </button>
         </div>
+      </div>
+
+      {/* Current Path Display */}
+      <div className="flex items-center gap-2 border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-800">
+        <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Current:</span>
+        <span
+          className="text-sm font-mono text-gray-700 dark:text-gray-300"
+          data-testid="preview-current-path"
+        >
+          {currentPath}
+        </span>
       </div>
 
       {/* Main Content */}
@@ -76,20 +171,17 @@ export default function PreviewPage() {
                   </svg>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Preview Not Configured
+                  No Preview URL Set
                 </h3>
                 <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                  Set{' '}
-                  <code className="rounded bg-gray-200 px-1 py-0.5 dark:bg-gray-700">
-                    NEXT_PUBLIC_PREVIEW_URL
-                  </code>{' '}
-                  in your environment to enable the preview panel.
+                  Select a preset with a URL or click &quot;Edit Presets&quot; to configure one.
                 </p>
-                <div className="mt-4 rounded-lg bg-gray-100 p-3 text-left dark:bg-gray-700">
-                  <code className="text-xs text-gray-700 dark:text-gray-300">
-                    NEXT_PUBLIC_PREVIEW_URL=http://localhost:3000
-                  </code>
-                </div>
+                <button
+                  onClick={() => setIsEditorOpen(true)}
+                  className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                >
+                  Edit Presets
+                </button>
               </div>
             </div>
           ) : (
@@ -130,6 +222,14 @@ export default function PreviewPage() {
           </div>
         </div>
       </div>
+
+      {/* Preset Editor Modal */}
+      <PresetEditorModal
+        isOpen={isEditorOpen}
+        onClose={() => setIsEditorOpen(false)}
+        presets={presets}
+        onSave={savePresets}
+      />
     </div>
   );
 }
