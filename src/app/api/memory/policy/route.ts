@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
       policy,
       budgetStatus,
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error getting memory policy:', error);
     return NextResponse.json({ error: 'Failed to get memory policy' }, { status: 500 });
   }
@@ -109,7 +109,7 @@ export async function PUT(request: NextRequest) {
       policy: updatedPolicy,
       budgetStatus,
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error updating memory policy:', error);
     return NextResponse.json({ error: 'Failed to update memory policy' }, { status: 500 });
   }
