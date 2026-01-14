@@ -141,7 +141,7 @@ test.describe('Copilot Navigation', () => {
     await page.waitForSelector('[data-testid="page-root"]');
 
     // Check for Copilot nav item
-    await expect(page.getByRole('link', { name: /Copilot/i })).toBeVisible();
+    await expect(page.getByTestId('nav-copilot')).toBeVisible();
   });
 
   test('should have Drafts in sidebar navigation', async ({ page }) => {
@@ -149,7 +149,7 @@ test.describe('Copilot Navigation', () => {
     await page.waitForSelector('[data-testid="page-root"]');
 
     // Check for Drafts nav item
-    await expect(page.getByRole('link', { name: /Drafts/i })).toBeVisible();
+    await expect(page.getByTestId('nav-drafts')).toBeVisible();
   });
 
   test('should navigate to Copilot from sidebar', async ({ page }) => {
@@ -157,7 +157,7 @@ test.describe('Copilot Navigation', () => {
     await page.waitForSelector('[data-testid="page-root"]');
 
     // Click Copilot link
-    await page.getByRole('link', { name: /Copilot/i }).click();
+    await page.getByTestId('nav-copilot').click();
 
     // Should be on Copilot page
     await expect(page).toHaveURL(/\/copilot/);
@@ -169,7 +169,7 @@ test.describe('Copilot Navigation', () => {
     await page.waitForSelector('[data-testid="page-root"]');
 
     // Click Drafts link
-    await page.getByRole('link', { name: /Drafts/i }).click();
+    await page.getByTestId('nav-drafts').click();
 
     // Should be on Drafts page
     await expect(page).toHaveURL(/\/drafts/);
