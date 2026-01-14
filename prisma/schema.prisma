@@ -278,7 +278,7 @@ model CouncilDecision {
   task            Task?        @relation(fields: [taskId], references: [id])
   
   decision        String       // APPROVED | REJECTED | NEEDS_REVISION
-  rationale       String       @db.Text
+  rationale       String?      @db.Text
   evidenceJson    Json?        // Links to research logs, benchmarks, etc.
   
   createdAt       DateTime     @default(now())
