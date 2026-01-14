@@ -9,8 +9,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
-import { getMemoryProvider } from '@/memory/prismaProvider';
+
+
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -30,6 +30,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Run not found' }, { status: 404 });
     }
 
+    const { getMemoryProvider } = await import("@/memory/prismaProvider");
+    const { default: prisma } = await import("@/lib/prisma");
     const provider = getMemoryProvider(prisma);
     const snapshots = await provider.getSnapshots(runId);
 
@@ -72,6 +74,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Run not found' }, { status: 404 });
     }
 
+    const { getMemoryProvider } = await import("@/memory/prismaProvider");
+    const { default: prisma } = await import("@/lib/prisma");
     const provider = getMemoryProvider(prisma);
     const snapshotId = await provider.createSnapshot({
       runId,
@@ -83,7 +87,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     // Get the created snapshot details
     const snapshots = await provider.getSnapshots(runId);
-    const snapshot = snapshots.find(s => s.id === snapshotId);
+    const snapshot = snapshots.find((s: { id: string; name: string | null; snapshotAt: Date; totalItems: number }) => s.id === snapshotId);
 
     return NextResponse.json(
       {

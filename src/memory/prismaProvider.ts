@@ -570,3 +570,13 @@ export class PrismaMemoryProvider implements MemoryProvider {
     };
   }
 }
+
+export function getMemoryProvider(prisma: PrismaClient) {
+  return new PrismaMemoryProvider(prisma);
+}
+
+import type { PrismaClient } from "@prisma/client";
+
+export function getMemoryProvider(prisma: PrismaClient) {
+  return new PrismaMemoryProvider(prisma);
+}

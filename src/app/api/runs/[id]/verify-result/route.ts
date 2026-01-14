@@ -96,7 +96,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       },
       data: {
         status: passed ? 'PASSED' : 'FAILED',
-        inputJson: verificationSummary as unknown as Record<string, unknown>,
+        inputJson: verificationSummary as any,
       },
     });
 

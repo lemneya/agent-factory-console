@@ -9,8 +9,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
-import { getMemoryProvider } from '@/memory/prismaProvider';
+
+
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -32,12 +32,14 @@ export async function GET(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Run not found' }, { status: 404 });
     }
 
+    const { getMemoryProvider } = await import("@/memory/prismaProvider");
+    const { default: prisma } = await import("@/lib/prisma");
     const provider = getMemoryProvider(prisma);
     const uses = await provider.getUsesForRun(runId, limit);
 
     return NextResponse.json({
       runId,
-      uses: uses.map(u => ({
+      uses: uses.map((u: { memoryItem: { id: string; content: string; summary: string; category: string; score: number; tokenCount: number; }; usedAt: Date; context: string | null; }) => ({
         memoryItem: {
           id: u.memoryItem.id,
           content: u.memoryItem.content,
@@ -83,6 +85,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Run not found' }, { status: 404 });
     }
 
+    const { getMemoryProvider } = await import("@/memory/prismaProvider");
+    const { default: prisma } = await import("@/lib/prisma");
     const provider = getMemoryProvider(prisma);
     await provider.recordUse({
       memoryItemId: body.memoryItemId,
