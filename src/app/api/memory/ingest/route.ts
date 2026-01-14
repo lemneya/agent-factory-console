@@ -73,15 +73,15 @@ export async function POST(request: NextRequest) {
     // Calculate statistics
     const stats = {
       total: results.length,
-      created: results.filter((r: { created: boolean; }) => r.created).length,
-      deduplicated: results.filter((r: { created: boolean; }) => !r.created).length,
+      created: results.filter((r: IngestResult) => r.created).length,
+      deduplicated: results.filter((r: IngestResult) => !r.created).length,
     };
 
     return NextResponse.json(
       {
         success: true,
         stats,
-        items: results.map((r: { item: { id: string; contentHash: string; tokenCount: number; }; created: boolean; deduplicatedWith: string | undefined; }) => ({
+        items: results.map((r: IngestResult) => ({
           id: r.item.id,
           created: r.created,
           deduplicatedWith: r.deduplicatedWith,

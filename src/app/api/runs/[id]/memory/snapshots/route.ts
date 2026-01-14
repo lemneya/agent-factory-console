@@ -13,12 +13,15 @@ import { NextRequest, NextResponse } from 'next/server';
 
 
 interface RouteContext {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }
 
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
-    const { id: runId } = await context.params;
+    const { id: runId } = context.params;
+
+    const { default: prisma } = await import("@/lib/prisma");
+    const { getMemoryProvider } = await import("@/memory/prismaProvider");
 
     // Verify run exists
     const run = await prisma.run.findUnique({
@@ -30,8 +33,6 @@ export async function GET(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Run not found' }, { status: 404 });
     }
 
-    const { getMemoryProvider } = await import("@/memory/prismaProvider");
-    const { default: prisma } = await import("@/lib/prisma");
     const provider = getMemoryProvider(prisma);
     const snapshots = await provider.getSnapshots(runId);
 
@@ -54,7 +55,7 @@ interface CreateSnapshotBody {
 
 export async function POST(request: NextRequest, context: RouteContext) {
   try {
-    const { id: runId } = await context.params;
+    const { id: runId } = context.params;
     const body: CreateSnapshotBody = await request.json();
 
     if (!body.itemIds || !Array.isArray(body.itemIds) || body.itemIds.length === 0) {
@@ -63,6 +64,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
         { status: 400 }
       );
     }
+
+    const { default: prisma } = await import("@/lib/prisma");
+    const { getMemoryProvider } = await import("@/memory/prismaProvider");
 
     // Verify run exists
     const run = await prisma.run.findUnique({
@@ -74,8 +78,6 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Run not found' }, { status: 404 });
     }
 
-    const { getMemoryProvider } = await import("@/memory/prismaProvider");
-    const { default: prisma } = await import("@/lib/prisma");
     const provider = getMemoryProvider(prisma);
     const snapshotId = await provider.createSnapshot({
       runId,

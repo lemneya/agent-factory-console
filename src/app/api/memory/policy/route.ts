@@ -26,8 +26,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { getMemoryProvider } = await import("@/memory/prismaProvider");
     const { default: prisma } = await import("@/lib/prisma");
+    const { getMemoryProvider } = await import("@/memory/prismaProvider");
     const provider = getMemoryProvider(prisma);
     const policy = await provider.getPolicy(projectId);
     const budgetStatus = await provider.getBudgetStatus(projectId);
@@ -82,8 +82,8 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'accessBoost must be between 0 and 1' }, { status: 400 });
     }
 
-    const { getMemoryProvider } = await import("@/memory/prismaProvider");
     const { default: prisma } = await import("@/lib/prisma");
+    const { getMemoryProvider } = await import("@/memory/prismaProvider");
     const provider = getMemoryProvider(prisma);
 
     const config: MemoryPolicyConfig = {

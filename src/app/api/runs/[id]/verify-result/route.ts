@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+
 import crypto from 'crypto';
 
 interface CommandResult {
@@ -20,9 +20,9 @@ interface VerifyResultPayload {
 }
 
 // POST /api/runs/[id]/verify-result - Record verification result for an iteration
-export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const { id } = await params;
+    const { id } = params;
     const body: VerifyResultPayload = await request.json();
 
     const { iteration, commandResults, passed, errorFingerprint, completionTokenFound } = body;
@@ -34,6 +34,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         { status: 400 }
       );
     }
+
+    const { default: prisma } = await import('@/lib/prisma');
 
     // Check run exists and is in Ralph mode
     const run = await prisma.run.findUnique({
