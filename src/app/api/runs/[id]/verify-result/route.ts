@@ -187,7 +187,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       runStatus:
         nextAction === 'complete' ? 'COMPLETED' : nextAction === 'abort' ? 'FAILED' : 'ACTIVE',
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error recording verify result:', error);
     return NextResponse.json({ error: 'Failed to record verify result' }, { status: 500 });
   }

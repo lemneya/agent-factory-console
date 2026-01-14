@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
         offset: query.offset,
       },
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error querying memory:', error);
 
     // Check for specific Prisma errors

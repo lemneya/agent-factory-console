@@ -10,6 +10,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
+import type { MemoryItem } from '@/memory/provider';
+
 
 
 interface RouteContext {
@@ -40,7 +42,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json({
       runId,
-      uses: uses.map((u: { memoryItem: { id: string; content: string; summary: string | null; category: string; score: number; tokenCount: number; }; usedAt: Date; context: string | null; }) => ({
+      uses: uses.map((u: { memoryItem: MemoryItem; usedAt: Date; context: string | null }) => ({
         memoryItem: {
           id: u.memoryItem.id,
           content: u.memoryItem.content,

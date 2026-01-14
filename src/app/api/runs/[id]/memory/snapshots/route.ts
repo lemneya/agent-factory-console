@@ -10,6 +10,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
+import type { MemorySnapshot } from '@/memory/provider';
+
 
 
 interface RouteContext {
@@ -89,7 +91,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     // Get the created snapshot details
     const snapshots = await provider.getSnapshots(runId);
-    const snapshot = snapshots.find((s: { id: string; name: string | null; snapshotAt: Date; totalItems: number }) => s.id === snapshotId);
+    const snapshot = snapshots.find((s: MemorySnapshot) => s.id === snapshotId);
 
     return NextResponse.json(
       {

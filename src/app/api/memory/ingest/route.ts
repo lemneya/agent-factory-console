@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error ingesting memory items:', error);
 
     // Check for specific Prisma errors

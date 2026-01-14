@@ -100,15 +100,9 @@ export default function CouncilPage() {
 
   if (loading) {
     return (
-      <div
-        data-testid="page-root"
-        className="min-h-screen bg-gray-50 p-8 flex items-center justify-center"
-      >
+      <div className="min-h-screen bg-gray-50 p-8 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <h1 data-testid="page-title" className="sr-only">
-            Adoptability Council
-          </h1>
           <p className="mt-2 text-gray-600">Loading Council decisions...</p>
         </div>
       </div>
@@ -117,11 +111,8 @@ export default function CouncilPage() {
 
   if (error) {
     return (
-      <div data-testid="page-root" className="min-h-screen bg-gray-50 p-8">
+      <div className="min-h-screen bg-gray-50 p-8">
         <div className="max-w-6xl mx-auto">
-          <h1 data-testid="page-title" className="sr-only">
-            Adoptability Council
-          </h1>
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
             {error}
           </div>
@@ -131,12 +122,12 @@ export default function CouncilPage() {
   }
 
   return (
-    <div data-testid="page-root" className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 p-8" data-testid="page-root">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex justify-between items-start mb-8">
           <div>
-            <h1 data-testid="page-title" className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-gray-900" data-testid="page-title">
               Adoptability Council
             </h1>
             <p className="text-gray-600 mt-1">
