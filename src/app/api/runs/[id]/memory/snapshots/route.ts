@@ -9,16 +9,19 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
-import { getMemoryProvider } from '@/memory/prismaProvider';
+
+
 
 interface RouteContext {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }
 
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
-    const { id: runId } = await context.params;
+    const { id: runId } = context.params;
+
+    const { default: prisma } = await import("@/lib/prisma");
+    const { getMemoryProvider } = await import("@/memory/prismaProvider");
 
     // Verify run exists
     const run = await prisma.run.findUnique({
@@ -52,7 +55,7 @@ interface CreateSnapshotBody {
 
 export async function POST(request: NextRequest, context: RouteContext) {
   try {
-    const { id: runId } = await context.params;
+    const { id: runId } = context.params;
     const body: CreateSnapshotBody = await request.json();
 
     if (!body.itemIds || !Array.isArray(body.itemIds) || body.itemIds.length === 0) {
@@ -61,6 +64,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
         { status: 400 }
       );
     }
+
+    const { default: prisma } = await import("@/lib/prisma");
+    const { getMemoryProvider } = await import("@/memory/prismaProvider");
 
     // Verify run exists
     const run = await prisma.run.findUnique({
@@ -83,7 +89,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     // Get the created snapshot details
     const snapshots = await provider.getSnapshots(runId);
-    const snapshot = snapshots.find(s => s.id === snapshotId);
+    const snapshot = snapshots.find((s: { id: string; name: string | null; snapshotAt: Date; totalItems: number }) => s.id === snapshotId);
 
     return NextResponse.json(
       {

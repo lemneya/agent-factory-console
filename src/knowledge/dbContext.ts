@@ -87,9 +87,7 @@ async function getProjectContext(projectId: string): Promise<{
       select: {
         id: true,
         decision: true,
-        confidence: true,
-        candidateName: true,
-        reasoning: true,
+        rationale: true,
         createdAt: true,
       },
     });
@@ -131,7 +129,7 @@ async function getProjectContext(projectId: string): Promise<{
         type: 'DB',
         ref: `CouncilDecision:${councilDecision.id}`,
         title: `Council Decision: ${councilDecision.decision}`,
-        snippet: councilDecision.reasoning?.slice(0, 100) || 'No reasoning',
+        snippet: councilDecision.rationale?.slice(0, 100) || 'No rationale',
       });
     }
 
@@ -150,8 +148,7 @@ async function getProjectContext(projectId: string): Promise<{
         latestCouncilDecision: councilDecision
           ? {
               decision: councilDecision.decision,
-              confidence: councilDecision.confidence,
-              candidate: councilDecision.candidateName,
+              rationale: councilDecision.rationale,
             }
           : null,
         recentWorkorders: workorders.map(w => ({
@@ -233,20 +230,19 @@ async function getRunContext(runId: string): Promise<{
       where: { runId },
       select: {
         maxIterations: true,
-        maxWallClockSeconds: true,
-        maxFailures: true,
+        autoAbortOnFailure: true,
+        requireHumanReview: true,
       },
     });
 
     // Get last iteration status
     const lastIteration = await db.runIteration.findFirst({
       where: { runId },
-      orderBy: { iteration: 'desc' },
+      orderBy: { iterationNumber: 'desc' },
       select: {
-        iteration: true,
+        iterationNumber: true,
         status: true,
-        startedAt: true,
-        endedAt: true,
+        createdAt: true,
       },
     });
 
@@ -285,7 +281,7 @@ async function getRunContext(runId: string): Promise<{
         ralphPolicy: policy,
         lastIteration: lastIteration
           ? {
-              iteration: lastIteration.iteration,
+              iteration: lastIteration.iterationNumber,
               status: lastIteration.status,
             }
           : null,

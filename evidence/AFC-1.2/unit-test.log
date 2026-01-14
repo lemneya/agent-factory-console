@@ -1,0 +1,51 @@
+
+> agent-factory-console@0.1.0 test
+> jest --testPathPattern=asset
+
+PASS __tests__/models/asset.test.ts
+  Asset Registry Models
+    Asset structure
+      ✓ should have all required fields (4 ms)
+      ✓ should allow null description (1 ms)
+      ✓ should have valid category values (1 ms)
+      ✓ should have valid license format
+      ✓ should have lowercase hyphenated slug
+    AssetVersion structure
+      ✓ should have all required fields (7 ms)
+      ✓ should have valid semver version (1 ms)
+      ✓ should have valid status values
+      ✓ should have valid stackCompat structure (1 ms)
+      ✓ should have valid installRecipe with steps (1 ms)
+      ✓ should allow nullable optional refs (1 ms)
+    ProjectAsset structure
+      ✓ should have all required fields (1 ms)
+      ✓ should default pinned to true
+      ✓ should allow unpinned attachments
+      ✓ should allow null config (1 ms)
+      ✓ should allow custom config object (1 ms)
+    Task with asset integration
+      ✓ should have valid kind values (1 ms)
+      ✓ should have assetVersionId for INTEGRATE_ASSET tasks (1 ms)
+      ✓ should allow null assetVersionId for non-asset tasks
+      ✓ should default kind to BUILD_CUSTOM
+    Search and filter logic
+      ✓ should search by name (1 ms)
+      ✓ should search by slug (1 ms)
+      ✓ should search by description (1 ms)
+      ✓ should be case insensitive
+      ✓ should filter by category (1 ms)
+      ✓ should filter by tag (1 ms)
+      ✓ should return empty array for no matches
+    Generate tasks from install recipe
+      ✓ should create one task per step (1 ms)
+      ✓ should set task title from step title
+      ✓ should set all tasks as INTEGRATE_ASSET kind (1 ms)
+      ✓ should link all tasks to asset version (1 ms)
+      ✓ should set priority based on step order (1 ms)
+      ✓ should include asset name in description (1 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       33 passed, 33 total
+Snapshots:   0 total
+Time:        4.389 s
+Ran all test suites matching /asset/i.

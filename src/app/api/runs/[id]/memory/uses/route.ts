@@ -9,18 +9,21 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
-import { getMemoryProvider } from '@/memory/prismaProvider';
+
+
 
 interface RouteContext {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }
 
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
-    const { id: runId } = await context.params;
+    const { id: runId } = context.params;
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') ?? '100', 10);
+
+    const { default: prisma } = await import("@/lib/prisma");
+    const { getMemoryProvider } = await import("@/memory/prismaProvider");
 
     // Verify run exists
     const run = await prisma.run.findUnique({
@@ -37,7 +40,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json({
       runId,
-      uses: uses.map(u => ({
+      uses: uses.map((u: { memoryItem: { id: string; content: string; summary: string | null; category: string; score: number; tokenCount: number; }; usedAt: Date; context: string | null; }) => ({
         memoryItem: {
           id: u.memoryItem.id,
           content: u.memoryItem.content,
@@ -66,12 +69,15 @@ interface RecordUseBody {
 
 export async function POST(request: NextRequest, context: RouteContext) {
   try {
-    const { id: runId } = await context.params;
+    const { id: runId } = context.params;
     const body: RecordUseBody = await request.json();
 
     if (!body.memoryItemId) {
       return NextResponse.json({ error: 'Missing required field: memoryItemId' }, { status: 400 });
     }
+
+    const { default: prisma } = await import("@/lib/prisma");
+    const { getMemoryProvider } = await import("@/memory/prismaProvider");
 
     // Verify run exists
     const run = await prisma.run.findUnique({

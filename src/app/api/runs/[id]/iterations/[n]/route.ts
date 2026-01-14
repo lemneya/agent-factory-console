@@ -19,9 +19,10 @@ export async function GET(
       return NextResponse.json({ error: 'Run not found' }, { status: 404 });
     }
 
-    const iteration = await prisma.runIteration.findUnique({
+    const iteration = await prisma.runIteration.findFirst({
       where: {
-        runId_iteration: { runId: id, iteration: iterationNum },
+        runId: id,
+        iterationNumber: iterationNum,
       },
       include: {
         checkpoint: true,

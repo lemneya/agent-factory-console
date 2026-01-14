@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     const provider = getMemoryProvider(prisma);
 
     // Convert request items to MemoryItemInput
-    const inputs: MemoryItemInput[] = body.items.map(item => ({
+    const inputs: MemoryItemInput[] = body.items.map((item: IngestRequestBody['items'][number]) => ({
       content: item.content,
       summary: item.summary,
       projectId: item.projectId,
@@ -73,15 +73,15 @@ export async function POST(request: NextRequest) {
     // Calculate statistics
     const stats = {
       total: results.length,
-      created: results.filter(r => r.created).length,
-      deduplicated: results.filter(r => !r.created).length,
+      created: results.filter((r: IngestResult) => r.created).length,
+      deduplicated: results.filter((r: IngestResult) => !r.created).length,
     };
 
     return NextResponse.json(
       {
         success: true,
         stats,
-        items: results.map(r => ({
+        items: results.map((r: IngestResult) => ({
           id: r.item.id,
           created: r.created,
           deduplicatedWith: r.deduplicatedWith,

@@ -5,21 +5,7 @@ import prisma from '@/lib/prisma';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const {
-      projectId,
-      taskId,
-      decision,
-      confidence,
-      candidateName,
-      candidateUrl,
-      licenseType,
-      maintenanceRisk,
-      integrationPlan,
-      redTeamCritique,
-      sources,
-      reasoning,
-      createdBy,
-    } = body;
+    const { projectId, taskId, decision, rationale } = body;
 
     // Validate required fields
     if (!projectId) {
@@ -31,23 +17,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    if (confidence === undefined || confidence < 0 || confidence > 1) {
-      return NextResponse.json(
-        { error: 'confidence must be a number between 0 and 1' },
-        { status: 400 }
-      );
-    }
-    if (!maintenanceRisk || !['LOW', 'MEDIUM', 'HIGH'].includes(maintenanceRisk)) {
-      return NextResponse.json(
-        { error: 'maintenanceRisk must be LOW, MEDIUM, or HIGH' },
-        { status: 400 }
-      );
-    }
-    if (!sources || !Array.isArray(sources)) {
-      return NextResponse.json({ error: 'sources must be an array' }, { status: 400 });
-    }
-    if (!reasoning) {
-      return NextResponse.json({ error: 'reasoning is required' }, { status: 400 });
+    if (!rationale) {
+      return NextResponse.json({ error: 'rationale is required' }, { status: 400 });
     }
 
     // Verify project exists
@@ -74,16 +45,7 @@ export async function POST(request: NextRequest) {
         projectId,
         taskId,
         decision,
-        confidence,
-        candidateName,
-        candidateUrl,
-        licenseType,
-        maintenanceRisk,
-        integrationPlan,
-        redTeamCritique,
-        sources,
-        reasoning,
-        createdBy,
+        rationale,
       },
       include: {
         project: {

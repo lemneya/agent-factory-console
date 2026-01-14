@@ -6,20 +6,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   try {
     const { id } = await params;
     const body = await request.json();
-    const {
-      decision,
-      confidence,
-      candidateName,
-      candidateUrl,
-      licenseType,
-      maintenanceRisk,
-      integrationPlan,
-      redTeamCritique,
-      sources,
-      reasoning,
-      overrideReason,
-      createdBy,
-    } = body;
+    const { decision, rationale, overrideReason } = body;
 
     // Get the original decision
     const originalDecision = await prisma.councilDecision.findUnique({
@@ -40,23 +27,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!overrideReason) {
       return NextResponse.json({ error: 'overrideReason is required' }, { status: 400 });
     }
-    if (confidence === undefined || confidence < 0 || confidence > 1) {
-      return NextResponse.json(
-        { error: 'confidence must be a number between 0 and 1' },
-        { status: 400 }
-      );
-    }
-    if (!maintenanceRisk || !['LOW', 'MEDIUM', 'HIGH'].includes(maintenanceRisk)) {
-      return NextResponse.json(
-        { error: 'maintenanceRisk must be LOW, MEDIUM, or HIGH' },
-        { status: 400 }
-      );
-    }
-    if (!sources || !Array.isArray(sources)) {
-      return NextResponse.json({ error: 'sources must be an array' }, { status: 400 });
-    }
-    if (!reasoning) {
-      return NextResponse.json({ error: 'reasoning is required' }, { status: 400 });
+    if (!rationale) {
+      return NextResponse.json({ error: 'rationale is required' }, { status: 400 });
     }
 
     // Create new decision that overrides the original
@@ -65,18 +37,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         projectId: originalDecision.projectId,
         taskId: originalDecision.taskId,
         decision,
-        confidence,
-        candidateName,
-        candidateUrl,
-        licenseType,
-        maintenanceRisk,
-        integrationPlan,
-        redTeamCritique,
-        sources,
-        reasoning,
-        overrideOf: id,
-        overrideReason,
-        createdBy,
+        rationale,
       },
       include: {
         project: {
