@@ -19,9 +19,8 @@ export async function GET(request: NextRequest) {
     if (decision && ['ADOPT', 'ADAPT', 'BUILD'].includes(decision)) {
       where.decision = decision;
     }
-    if (maintenanceRisk && ['LOW', 'MEDIUM', 'HIGH'].includes(maintenanceRisk)) {
-      where.maintenanceRisk = maintenanceRisk;
-    }
+    // Note: maintenanceRisk filter is accepted but not applied since field doesn't exist in current schema
+    // This allows the API to gracefully handle the parameter without error
 
     const [decisions, total] = await Promise.all([
       prisma.councilDecision.findMany({

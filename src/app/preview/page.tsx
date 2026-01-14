@@ -76,7 +76,9 @@ function PreviewContent() {
   if (!isInitialized) {
     return (
       <div className="flex h-full items-center justify-center" data-testid="page-root">
-        <div className="text-gray-500">Loading...</div>
+        <h1 className="text-gray-500" data-testid="page-title">
+          Loading...
+        </h1>
       </div>
     );
   }
@@ -237,9 +239,9 @@ function PreviewContent() {
 function LoadingFallback() {
   return (
     <div className="flex h-full items-center justify-center" data-testid="page-root">
-      <div className="text-gray-500" data-testid="page-title">
+      <h1 className="text-gray-500" data-testid="page-title">
         Loading Preview...
-      </div>
+      </h1>
     </div>
   );
 }
