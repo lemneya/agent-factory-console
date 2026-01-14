@@ -12,20 +12,14 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import type { MemoryItem } from '@/memory/provider';
 
-
-
-interface RouteContext {
-  params: { id: string };
-}
-
-export async function GET(request: NextRequest, context: RouteContext) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id: runId } = context.params;
+    const { id: runId } = await params;
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') ?? '100', 10);
 
-    const { default: prisma } = await import("@/lib/prisma");
-    const { getMemoryProvider } = await import("@/memory/prismaProvider");
+    const { default: prisma } = await import('@/lib/prisma');
+    const { getMemoryProvider } = await import('@/memory/prismaProvider');
 
     // Verify run exists
     const run = await prisma.run.findUnique({
@@ -69,17 +63,17 @@ interface RecordUseBody {
   relevance?: number;
 }
 
-export async function POST(request: NextRequest, context: RouteContext) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id: runId } = context.params;
+    const { id: runId } = await params;
     const body: RecordUseBody = await request.json();
 
     if (!body.memoryItemId) {
       return NextResponse.json({ error: 'Missing required field: memoryItemId' }, { status: 400 });
     }
 
-    const { default: prisma } = await import("@/lib/prisma");
-    const { getMemoryProvider } = await import("@/memory/prismaProvider");
+    const { default: prisma } = await import('@/lib/prisma');
+    const { getMemoryProvider } = await import('@/memory/prismaProvider');
 
     // Verify run exists
     const run = await prisma.run.findUnique({

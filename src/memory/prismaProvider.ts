@@ -5,7 +5,7 @@
  * Supports deduplication, scoring, scope filtering, and budget enforcement.
  */
 
-import { PrismaClient, MemoryScope, MemoryCategory } from '@prisma/client';
+import { PrismaClient, MemoryScope, MemoryCategory, Prisma } from '@prisma/client';
 import type {
   MemoryProvider,
   MemoryItemInput,
@@ -105,7 +105,7 @@ export class PrismaMemoryProvider implements MemoryProvider {
           ...(input.metadata || {}),
           contentHash,
           tokenCount: estimateTokenCount(input.content),
-        } as unknown as Record<string, unknown>,
+        } as Prisma.InputJsonValue,
         expiresAt: input.expiresAt ?? undefined,
       },
     });
@@ -179,7 +179,7 @@ export class PrismaMemoryProvider implements MemoryProvider {
         metadata: {
           ...metadata,
           archived: true,
-        } as unknown as Record<string, unknown>,
+        } as Prisma.InputJsonValue,
       },
     });
   }
@@ -285,7 +285,7 @@ export class PrismaMemoryProvider implements MemoryProvider {
         },
       },
     });
-    return items.map(item => this.toMemoryItem(item));
+    return items.map((item: unknown) => this.toMemoryItem(item));
   }
 
   // -------------------------------------------------------------------------
@@ -347,7 +347,7 @@ export class PrismaMemoryProvider implements MemoryProvider {
       data: {
         runId: input.runId,
         name: input.name ?? null,
-        metadata: (input.metadata || {}) as unknown as Record<string, unknown>,
+        metadata: (input.metadata || {}) as Prisma.InputJsonValue,
       },
     });
 
@@ -358,7 +358,7 @@ export class PrismaMemoryProvider implements MemoryProvider {
       });
 
       await this.prisma.runMemorySnapshotItem.createMany({
-        data: items.map(item => ({
+        data: items.map((item: { id: string; score: number }) => ({
           snapshotId: snapshot.id,
           memoryItemId: item.id,
           scoreAtSnapshot: item.score,
@@ -378,12 +378,14 @@ export class PrismaMemoryProvider implements MemoryProvider {
       orderBy: { createdAt: 'desc' },
     });
 
-    return snapshots.map(s => ({
-      id: s.id,
-      name: s.name,
-      snapshotAt: s.createdAt,
-      totalItems: s._count.items,
-    }));
+    return snapshots.map(
+      (s: { id: string; name: string | null; createdAt: Date; _count: { items: number } }) => ({
+        id: s.id,
+        name: s.name,
+        snapshotAt: s.createdAt,
+        totalItems: s._count.items,
+      })
+    );
   }
 
   async getSnapshotItems(snapshotId: string): Promise<MemoryItem[]> {
@@ -393,7 +395,9 @@ export class PrismaMemoryProvider implements MemoryProvider {
     });
 
     if (!snapshot) return [];
-    return snapshot.items.map(item => this.toMemoryItem(item.memoryItem));
+    return snapshot.items.map((item: { memoryItem: unknown }) =>
+      this.toMemoryItem(item.memoryItem)
+    );
   }
 
   // -------------------------------------------------------------------------
@@ -476,7 +480,7 @@ export class PrismaMemoryProvider implements MemoryProvider {
       const metadata = (item.metadata as Record<string, unknown>) || {};
       await this.prisma.memoryItem.update({
         where: { id: item.id },
-        data: { metadata: { ...metadata, archived: true } as unknown as Record<string, unknown> },
+        data: { metadata: { ...metadata, archived: true } as Prisma.InputJsonValue },
       });
     }
 
@@ -519,7 +523,7 @@ export class PrismaMemoryProvider implements MemoryProvider {
       data: {
         metadata: {
           archived: true,
-        } as unknown as Record<string, unknown>,
+        } as Prisma.InputJsonValue,
       },
     });
     return result.count;
@@ -571,36 +575,10 @@ export class PrismaMemoryProvider implements MemoryProvider {
   }
 }
 
-export function getMemoryProvider(prisma: PrismaClient) {
-  return new PrismaMemoryProvider(prisma);
-}
-
-import type { PrismaClient } from "@prisma/client";
-
-export function getMemoryProvider(prisma: PrismaClient) {
-  return new PrismaMemoryProvider(prisma);
-}
-
-import type { PrismaClient } from "@prisma/client";
-
-export function getMemoryProvider(prisma: PrismaClient) {
-  return new PrismaMemoryProvider(prisma);
-}
-
-import type { PrismaClient } from "@prisma/client";
-
-export function getMemoryProvider(prisma: PrismaClient) {
-  return new PrismaMemoryProvider(prisma);
-}
-
-import type { PrismaClient } from "@prisma/client";
-
-export function getMemoryProvider(prisma: PrismaClient) {
-  return new PrismaMemoryProvider(prisma);
-}
-
-import type { PrismaClient } from "@prisma/client";
-
-export function getMemoryProvider(prisma: PrismaClient) {
+/**
+ * Factory function to create a PrismaMemoryProvider instance.
+ * Use this for safe instantiation inside request handlers.
+ */
+export function getMemoryProvider(prisma: PrismaClient): PrismaMemoryProvider {
   return new PrismaMemoryProvider(prisma);
 }

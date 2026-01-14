@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import type { MemoryItemInput } from '@/memory/provider';
+import type { MemoryItemInput, IngestResult } from '@/memory/provider';
 import type { MemoryScope, MemoryCategory } from '@prisma/client';
 
 interface IngestRequestBody {
@@ -53,19 +53,21 @@ export async function POST(request: NextRequest) {
     const provider = getMemoryProvider(prisma);
 
     // Convert request items to MemoryItemInput
-    const inputs: MemoryItemInput[] = body.items.map((item: IngestRequestBody['items'][number]) => ({
-      content: item.content,
-      summary: item.summary,
-      projectId: item.projectId,
-      runId: item.runId,
-      scope: item.scope,
-      category: item.category,
-      source: item.source,
-      sourceType: item.sourceType,
-      score: item.score,
-      metadata: item.metadata,
-      expiresAt: item.expiresAt ? new Date(item.expiresAt) : undefined,
-    }));
+    const inputs: MemoryItemInput[] = body.items.map(
+      (item: IngestRequestBody['items'][number]) => ({
+        content: item.content,
+        summary: item.summary,
+        projectId: item.projectId,
+        runId: item.runId,
+        scope: item.scope,
+        category: item.category,
+        source: item.source,
+        sourceType: item.sourceType,
+        score: item.score,
+        metadata: item.metadata,
+        expiresAt: item.expiresAt ? new Date(item.expiresAt) : undefined,
+      })
+    );
 
     // Ingest all items
     const results = await provider.ingestBatch(inputs);

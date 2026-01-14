@@ -10,20 +10,12 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-import type { MemorySnapshot } from '@/memory/provider';
-
-
-
-interface RouteContext {
-  params: { id: string };
-}
-
-export async function GET(request: NextRequest, context: RouteContext) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id: runId } = context.params;
+    const { id: runId } = await params;
 
-    const { default: prisma } = await import("@/lib/prisma");
-    const { getMemoryProvider } = await import("@/memory/prismaProvider");
+    const { default: prisma } = await import('@/lib/prisma');
+    const { getMemoryProvider } = await import('@/memory/prismaProvider');
 
     // Verify run exists
     const run = await prisma.run.findUnique({
@@ -55,9 +47,9 @@ interface CreateSnapshotBody {
   metadata?: Record<string, unknown>;
 }
 
-export async function POST(request: NextRequest, context: RouteContext) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id: runId } = context.params;
+    const { id: runId } = await params;
     const body: CreateSnapshotBody = await request.json();
 
     if (!body.itemIds || !Array.isArray(body.itemIds) || body.itemIds.length === 0) {
@@ -67,8 +59,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
       );
     }
 
-    const { default: prisma } = await import("@/lib/prisma");
-    const { getMemoryProvider } = await import("@/memory/prismaProvider");
+    const { default: prisma } = await import('@/lib/prisma');
+    const { getMemoryProvider } = await import('@/memory/prismaProvider');
 
     // Verify run exists
     const run = await prisma.run.findUnique({
@@ -91,7 +83,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     // Get the created snapshot details
     const snapshots = await provider.getSnapshots(runId);
-    const snapshot = snapshots.find((s: MemorySnapshot) => s.id === snapshotId);
+    const snapshot = snapshots.find(s => s.id === snapshotId);
 
     return NextResponse.json(
       {

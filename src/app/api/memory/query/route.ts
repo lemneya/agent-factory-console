@@ -29,8 +29,8 @@ export async function POST(request: NextRequest) {
     const body: QueryRequestBody = await request.json();
 
     // Dynamic imports to avoid import-time Prisma initialization errors
-    const { default: prisma } = await import("@/lib/prisma");
-    const { getMemoryProvider } = await import("@/memory/prismaProvider");
+    const { default: prisma } = await import('@/lib/prisma');
+    const { getMemoryProvider } = await import('@/memory/prismaProvider');
     const provider = getMemoryProvider(prisma);
 
     // Build query from request body

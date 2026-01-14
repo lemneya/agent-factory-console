@@ -20,9 +20,9 @@ interface VerifyResultPayload {
 }
 
 // POST /api/runs/[id]/verify-result - Record verification result for an iteration
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body: VerifyResultPayload = await request.json();
 
     const { iteration, commandResults, passed, errorFingerprint, completionTokenFound } = body;
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     // Build verification summary
     const verificationSummary = {
-      commands: commandResults.map(r => ({
+      commands: commandResults.map((r: CommandResult) => ({
         cmd: r.cmd,
         passed: r.exitCode === 0,
         exitCode: r.exitCode,
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     // Calculate error fingerprint if not provided and there was a failure
     let fingerprint = errorFingerprint;
     if (!passed && !fingerprint) {
-      const failedCmd = commandResults.find(r => r.exitCode !== 0);
+      const failedCmd = commandResults.find((r: CommandResult) => r.exitCode !== 0);
       if (failedCmd) {
         fingerprint = crypto
           .createHash('md5')
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       },
       data: {
         status: passed ? 'PASSED' : 'FAILED',
-        inputJson: verificationSummary as any,
+        inputJson: verificationSummary as object,
       },
     });
 
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       nextAction = 'complete';
     } else if (!passed && policy) {
       // Check circuit breakers
-      const failedIterations = iterations.filter(i => i.status === 'FAILED');
+      const failedIterations = iterations.filter((i: { status: string }) => i.status === 'FAILED');
       const totalFailures = failedIterations.length + 1; // +1 for current
 
       // Check repeated error (thrashing)
@@ -139,7 +139,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
       // Check no progress iterations
       const recentIterations = iterations.slice(0, maxNoProgressIterations);
-      const allFailed = recentIterations.every(i => i.status === 'FAILED');
+      const allFailed = recentIterations.every((i: { status: string }) => i.status === 'FAILED');
       if (allFailed && recentIterations.length >= maxNoProgressIterations) {
         nextAction = 'wait_approval';
         abortReason = `No progress in last ${maxNoProgressIterations} iterations`;
