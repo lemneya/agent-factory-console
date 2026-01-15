@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const projectId = searchParams.get('projectId');
     const decision = searchParams.get('decision');
-    const maintenanceRisk = searchParams.get('maintenanceRisk');
+    const _maintenanceRisk = searchParams.get('maintenanceRisk');
     const limit = parseInt(searchParams.get('limit') || '50', 10);
     const offset = parseInt(searchParams.get('offset') || '0', 10);
 
