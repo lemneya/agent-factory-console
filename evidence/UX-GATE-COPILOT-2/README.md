@@ -8,6 +8,7 @@ This gate implements the complete Factory Loop flow:
 ## Features Implemented
 
 ### 1. Factory Quickstart Panel
+
 - Added to Copilot page when in Blueprint draft mode
 - Pre-built templates for common project types:
   - SaaS MVP (auth, dashboard, billing)
@@ -16,6 +17,7 @@ This gate implements the complete Factory Loop flow:
   - Admin Panel (RBAC, data tables, audit logging)
 
 ### 2. Draft Options
+
 - **Create WorkOrders on approval** (checked by default)
   - Automatically generates WorkOrders from Blueprint modules
   - Uses deterministic domain ordering
@@ -23,6 +25,7 @@ This gate implements the complete Factory Loop flow:
   - Optionally triggers a new Run immediately after approval
 
 ### 3. Deterministic Planner
+
 - Enhanced `src/services/draft/planner.ts` with:
   - Spec hash generation for reproducibility
   - Stable domain ordering for WorkOrder creation
@@ -30,6 +33,7 @@ This gate implements the complete Factory Loop flow:
   - Blueprint → BlueprintVersion → WorkOrders pipeline
 
 ### 4. Database Schema
+
 - Added `Blueprint` model with:
   - `name`, `description`, `status`
   - Relation to `BlueprintVersion` for immutable snapshots
@@ -44,10 +48,12 @@ This gate implements the complete Factory Loop flow:
 ## Files Changed
 
 ### New Files
+
 - `tests/ux-gate-copilot-2-happy-path.spec.ts` - E2E test suite
 - `prisma/migrations/20260115000000_add_blueprint_workorder/migration.sql` - Schema migration
 
 ### Modified Files
+
 - `prisma/schema.prisma` - Added Blueprint, BlueprintVersion, WorkOrder models
 - `src/app/copilot/page.tsx` - Added Factory Quickstart panel and draft options
 - `src/services/draft/planner.ts` - Enhanced with deterministic Blueprint pipeline
@@ -55,6 +61,7 @@ This gate implements the complete Factory Loop flow:
 ## Test Coverage
 
 The E2E test suite (`ux-gate-copilot-2-happy-path.spec.ts`) covers:
+
 - Copilot page loads with correct elements
 - Draft mode shows Blueprint options and Factory Quickstart
 - Factory Quickstart panel hidden when not in Blueprint mode
@@ -68,12 +75,14 @@ The E2E test suite (`ux-gate-copilot-2-happy-path.spec.ts`) covers:
 ## Verification
 
 ### Typecheck
+
 ```
 npm run typecheck
 # ✅ No errors
 ```
 
 ### Build
+
 ```
 npm run build
 # ✅ Build successful

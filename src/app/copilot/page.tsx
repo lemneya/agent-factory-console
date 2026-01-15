@@ -218,7 +218,8 @@ function CopilotContent() {
         const payloadWithOptions = {
           ...data.draftPayload,
           options: {
-            createWorkOrdersAfterApproval: draftType === 'BLUEPRINT' && createWorkOrdersAfterApproval,
+            createWorkOrdersAfterApproval:
+              draftType === 'BLUEPRINT' && createWorkOrdersAfterApproval,
             startRunAfterApproval,
           },
         };
