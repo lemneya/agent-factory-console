@@ -214,7 +214,9 @@ export function RouteHealthGrid({ onRouteSelect, baseUrl }: RouteHealthGridProps
                       />
                     </svg>
                   </button>
-                  <span className={`text-lg ${getStatusColor(health)}`}>{getStatusIcon(health)}</span>
+                  <span className={`text-lg ${getStatusColor(health)}`}>
+                    {getStatusIcon(health)}
+                  </span>
                   <div>
                     <div className="text-sm font-medium text-gray-900 dark:text-white">
                       {item.label}
