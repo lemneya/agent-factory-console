@@ -68,12 +68,23 @@ function AssetsContent() {
         </div>
         <div className="flex items-center gap-4">
           {isInDemoMode && <DemoModeBadge />}
-          <Link
-            href="/assets/new"
-            className="inline-flex items-center rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700"
-          >
-            New Asset
-          </Link>
+          {isInDemoMode ? (
+            <button
+              data-testid="assets-new"
+              disabled
+              className="inline-flex items-center rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white opacity-50 cursor-not-allowed"
+            >
+              New Asset
+            </button>
+          ) : (
+            <Link
+              href="/assets/new"
+              data-testid="assets-new"
+              className="inline-flex items-center rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700"
+            >
+              New Asset
+            </Link>
+          )}
         </div>
       </div>
 
@@ -89,6 +100,7 @@ function AssetsContent() {
           />
         </div>
         <select
+          data-testid="assets-category-filter"
           className="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
           disabled={isInDemoMode}
         >
