@@ -69,8 +69,8 @@ test.describe('UX-GATE-0: Navigation Smoke Test', () => {
         // Navigate to the route
         await page.goto(route.href);
 
-        // Wait for page to load
-        await page.waitForLoadState('networkidle');
+        // Wait for DOM to be ready (not networkidle which can hang on iframes/long-polling)
+        await page.waitForLoadState('domcontentloaded');
 
         // Check page root exists
         const pageRoot = page.locator('[data-testid="page-root"]');
@@ -96,8 +96,8 @@ test.describe('UX-GATE-0: Navigation Smoke Test', () => {
       // Click the nav link
       await page.getByTestId(`nav-${route.key}`).click();
 
-      // Wait for navigation
-      await page.waitForLoadState('networkidle');
+      // Wait for DOM to be ready (not networkidle which can hang on iframes/long-polling)
+      await page.waitForLoadState('domcontentloaded');
 
       // Verify we're on the correct page
       if (route.href === '/') {

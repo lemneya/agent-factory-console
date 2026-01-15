@@ -2,8 +2,11 @@ import { test, expect } from '@playwright/test';
 
 test.describe('AFC-UX-PREVIEW-1: Preview Presets + Persistence', () => {
   test.beforeEach(async ({ page }) => {
-    // Clear localStorage before each test
+    // Navigate to preview and wait for page shell to render
     await page.goto('/preview');
+    await page.waitForLoadState('domcontentloaded');
+    // Wait for page-title to be visible before clearing localStorage
+    await expect(page.locator('[data-testid="page-title"]')).toBeVisible();
     await page.evaluate(() => {
       localStorage.removeItem('afc_preview_presets');
       localStorage.removeItem('afc_preview_current');
@@ -12,6 +15,7 @@ test.describe('AFC-UX-PREVIEW-1: Preview Presets + Persistence', () => {
 
   test('/preview page renders with preset dropdown', async ({ page }) => {
     await page.goto('/preview');
+    await page.waitForLoadState('domcontentloaded');
     await expect(page.locator('[data-testid="page-root"]')).toBeVisible();
     await expect(page.locator('[data-testid="page-title"]')).toContainText('Preview');
     await expect(page.locator('[data-testid="preview-preset-select"]')).toBeVisible();
@@ -19,6 +23,7 @@ test.describe('AFC-UX-PREVIEW-1: Preview Presets + Persistence', () => {
 
   test('preset dropdown shows default presets', async ({ page }) => {
     await page.goto('/preview');
+    await page.waitForLoadState('domcontentloaded');
     const dropdown = page.locator('[data-testid="preview-preset-select"]');
     await expect(dropdown).toBeVisible();
     // Should have at least the default "Local" preset
@@ -27,6 +32,7 @@ test.describe('AFC-UX-PREVIEW-1: Preview Presets + Persistence', () => {
 
   test('edit presets button opens modal', async ({ page }) => {
     await page.goto('/preview');
+    await page.waitForLoadState('domcontentloaded');
     const editBtn = page.locator('[data-testid="preset-editor-open"]');
     await expect(editBtn).toBeVisible();
     await editBtn.click();
@@ -35,6 +41,7 @@ test.describe('AFC-UX-PREVIEW-1: Preview Presets + Persistence', () => {
 
   test('preset editor modal has add preset button', async ({ page }) => {
     await page.goto('/preview');
+    await page.waitForLoadState('domcontentloaded');
     await page.locator('[data-testid="preset-editor-open"]').click();
     const modal = page.locator('[data-testid="preset-editor-modal"]');
     await expect(modal).toBeVisible();
@@ -44,6 +51,7 @@ test.describe('AFC-UX-PREVIEW-1: Preview Presets + Persistence', () => {
 
   test('can add a new preset', async ({ page }) => {
     await page.goto('/preview');
+    await page.waitForLoadState('domcontentloaded');
     await page.locator('[data-testid="preset-editor-open"]').click();
 
     // Click add preset button to create a new row
@@ -73,33 +81,39 @@ test.describe('AFC-UX-PREVIEW-1: Preview Presets + Persistence', () => {
 
   test('route health grid is visible', async ({ page }) => {
     await page.goto('/preview');
+    await page.waitForLoadState('domcontentloaded');
     await expect(page.locator('[data-testid="route-health-grid"]')).toBeVisible();
   });
 
   test('route health grid has refresh button', async ({ page }) => {
     await page.goto('/preview');
+    await page.waitForLoadState('domcontentloaded');
     await expect(page.locator('[data-testid="route-health-refresh"]')).toBeVisible();
   });
 
   test('open current route button is visible', async ({ page }) => {
     await page.goto('/preview');
+    await page.waitForLoadState('domcontentloaded');
     await expect(page.locator('[data-testid="preview-open-current"]')).toBeVisible();
   });
 
   test('deep link with path param loads that route', async ({ page }) => {
     await page.goto('/preview?path=/runs');
+    await page.waitForLoadState('domcontentloaded');
     // Check that the route is reflected in the current path display
     await expect(page.locator('[data-testid="preview-current-path"]')).toContainText('/runs');
   });
 
   test('deep link with preset param selects that preset', async ({ page }) => {
     await page.goto('/preview?preset=local');
+    await page.waitForLoadState('domcontentloaded');
     const dropdown = page.locator('[data-testid="preview-preset-select"]');
     await expect(dropdown).toContainText('Local');
   });
 
   test('preset persistence saves to localStorage', async ({ page }) => {
     await page.goto('/preview');
+    await page.waitForLoadState('domcontentloaded');
 
     // Open editor and add a preset
     await page.locator('[data-testid="preset-editor-open"]').click();
@@ -119,6 +133,7 @@ test.describe('AFC-UX-PREVIEW-1: Preview Presets + Persistence', () => {
 
   test('route health grid shows status legend', async ({ page }) => {
     await page.goto('/preview');
+    await page.waitForLoadState('domcontentloaded');
     const grid = page.locator('[data-testid="route-health-grid"]');
     await expect(grid).toContainText('200');
     await expect(grid).toContainText('Auth');
