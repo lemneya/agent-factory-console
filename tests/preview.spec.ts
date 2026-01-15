@@ -2,8 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Preview Page', () => {
   test('renders preview page with all components', async ({ page }) => {
-    await page.goto('/preview');
-    await page.waitForLoadState('domcontentloaded');
+    await page.goto('/preview', { waitUntil: 'domcontentloaded' });
 
     // Check page structure
     await expect(page.getByTestId('page-root')).toBeVisible();
@@ -17,14 +16,13 @@ test.describe('Preview Page', () => {
   });
 
   test('preview page is accessible from sidebar', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('domcontentloaded');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
 
     // Click on Preview in sidebar
     await page.getByTestId('nav-preview').click();
 
-    // Wait for navigation
-    await page.waitForLoadState('domcontentloaded');
+    // Wait for page to render
+    await expect(page.getByTestId('page-root')).toBeVisible();
 
     // Should navigate to preview page
     await expect(page).toHaveURL('/preview');
@@ -32,8 +30,7 @@ test.describe('Preview Page', () => {
   });
 
   test('route health grid shows all routes', async ({ page }) => {
-    await page.goto('/preview');
-    await page.waitForLoadState('domcontentloaded');
+    await page.goto('/preview', { waitUntil: 'domcontentloaded' });
 
     // Check that route health grid has rows for key routes
     await expect(page.getByTestId('route-row-projects')).toBeVisible();
@@ -43,8 +40,7 @@ test.describe('Preview Page', () => {
   });
 
   test('smoke status card shows test status', async ({ page }) => {
-    await page.goto('/preview');
-    await page.waitForLoadState('domcontentloaded');
+    await page.goto('/preview', { waitUntil: 'domcontentloaded' });
 
     // Smoke status card should be visible
     const smokeCard = page.getByTestId('smoke-status-card');

@@ -33,7 +33,7 @@ const NAV_ROUTES = [
 
 test.describe('UX-GATE-0: Navigation Smoke Test', () => {
   test('sidebar contains all expected navigation items', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
 
     // Check sidebar exists
     const sidebar = page.locator('[data-testid="sidebar-nav"]');
@@ -48,7 +48,7 @@ test.describe('UX-GATE-0: Navigation Smoke Test', () => {
   });
 
   test('dashboard quick links route correctly (no 404)', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
 
     // Quick links exclude dashboard (we're already on it)
     const quickLinkRoutes = NAV_ROUTES.filter(r => r.key !== 'dashboard');
@@ -66,11 +66,8 @@ test.describe('UX-GATE-0: Navigation Smoke Test', () => {
   test.describe('each route renders with page shell', () => {
     for (const route of NAV_ROUTES) {
       test(`${route.label} (${route.href}) renders with title`, async ({ page }) => {
-        // Navigate to the route
-        await page.goto(route.href);
-
-        // Wait for DOM to be ready (not networkidle which can hang on iframes/long-polling)
-        await page.waitForLoadState('domcontentloaded');
+        // Navigate to the route - use domcontentloaded to not wait for iframes
+        await page.goto(route.href, { waitUntil: 'domcontentloaded' });
 
         // Check page root exists
         const pageRoot = page.locator('[data-testid="page-root"]');
@@ -88,7 +85,7 @@ test.describe('UX-GATE-0: Navigation Smoke Test', () => {
 
   test('clicking each sidebar link navigates correctly', async ({ page }) => {
     // Start at dashboard
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('[data-testid="page-root"]')).toBeVisible();
 
     // Click each sidebar link in order

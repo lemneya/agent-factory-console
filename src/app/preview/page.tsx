@@ -196,6 +196,7 @@ function PreviewContent() {
                     title="Preview"
                     data-testid="preview-iframe"
                     sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+                    loading="lazy"
                   />
                 )}
               </div>
