@@ -226,16 +226,11 @@ function PreviewContent() {
 
 function LoadingFallback() {
   return (
-    <div className="flex h-full flex-col" data-testid="page-root">
+    <div className="flex h-full flex-col" data-testid="page-loading">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-900">
         <div>
-          <h1
-            className="text-xl font-semibold text-gray-900 dark:text-white"
-            data-testid="page-title"
-          >
-            Preview
-          </h1>
+          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Preview</h1>
           <p className="mt-1 text-sm text-gray-500">Live app preview and route health monitoring</p>
         </div>
       </div>
