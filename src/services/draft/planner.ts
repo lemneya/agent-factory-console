@@ -12,7 +12,6 @@
  */
 
 import { prisma } from '@/lib/prisma';
-import { Prisma } from '@prisma/client';
 import crypto from 'crypto';
 
 // Helper to get prisma client (returns null if not available)
@@ -476,15 +475,15 @@ export async function executeDraftPlan(
             return a.key.localeCompare(b.key);
           });
 
-          for (const module of sortedModules) {
+          for (const blueprintModule of sortedModules) {
             const workOrder = await db.workOrder.create({
               data: {
                 blueprintId: newBlueprint.id,
                 blueprintVersionId: version.id,
-                key: module.key,
-                domain: module.domain,
-                title: module.title,
-                spec: module.spec,
+                key: blueprintModule.key,
+                domain: blueprintModule.domain,
+                title: blueprintModule.title,
+                spec: blueprintModule.spec,
                 dependsOn: [], // Could be enhanced to parse dependencies from spec
                 status: 'PENDING',
               },
@@ -530,15 +529,15 @@ export async function executeDraftPlan(
           return a.key.localeCompare(b.key);
         });
 
-        for (const module of sortedModules) {
+        for (const blueprintModule of sortedModules) {
           const workOrder = await db.workOrder.create({
             data: {
               blueprintId: source.blueprintId,
               blueprintVersionId: blueprintVersion.id,
-              key: module.key,
-              domain: module.domain,
-              title: module.title,
-              spec: module.spec,
+              key: blueprintModule.key,
+              domain: blueprintModule.domain,
+              title: blueprintModule.title,
+              spec: blueprintModule.spec,
               dependsOn: [],
               status: 'PENDING',
             },
