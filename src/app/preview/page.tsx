@@ -1,48 +1,155 @@
 'use client';
 
-import { Suspense, useState, useCallback, useEffect } from 'react';
+import { Suspense, useState, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { RouteHealthGrid, SmokeStatusCard } from '@/components/preview';
-import { usePreviewPresets } from '@/components/preview/usePreviewPresets';
 import { PresetEditorModal } from '@/components/preview/PresetEditorModal';
+
+// Types
+interface PreviewPreset {
+  id: string;
+  name: string;
+  url: string;
+  isEnv?: boolean;
+}
+
+// Constants
+const STORAGE_KEYS = {
+  PRESETS: 'afc_preview_presets',
+  ACTIVE_PRESET_ID: 'afc_preview_active_preset_id',
+  PATH: 'afc_preview_path',
+};
+
+const DEFAULT_PRESETS: PreviewPreset[] = [
+  { id: 'local', name: 'Local', url: 'http://localhost:3000' },
+  { id: 'manus', name: 'Manus', url: '' },
+  { id: 'staging', name: 'Staging', url: '' },
+];
+
+// Helper functions for localStorage
+function readJson<T>(key: string, fallback: T): T {
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const raw = window.localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function writeJson(key: string, value: unknown): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // Ignore write errors
+  }
+}
+
+function getEnvPreset(): PreviewPreset | null {
+  if (typeof window === 'undefined') return null;
+  const envUrl = process.env.NEXT_PUBLIC_PREVIEW_URL;
+  if (envUrl) {
+    return { id: 'env', name: 'ENV', url: envUrl, isEnv: true };
+  }
+  return null;
+}
+
+function initializePresets(): PreviewPreset[] {
+  const envPreset = getEnvPreset();
+  const storedPresets = readJson<PreviewPreset[]>(STORAGE_KEYS.PRESETS, []);
+
+  if (storedPresets.length > 0) {
+    if (envPreset && !storedPresets.some(p => p.id === 'env')) {
+      return [envPreset, ...storedPresets];
+    }
+    return storedPresets;
+  }
+
+  const presets = envPreset ? [envPreset, ...DEFAULT_PRESETS] : [...DEFAULT_PRESETS];
+  writeJson(
+    STORAGE_KEYS.PRESETS,
+    presets.filter(p => !p.isEnv)
+  );
+  return presets;
+}
 
 function PreviewContent() {
   const searchParams = useSearchParams();
+
+  // Read query params synchronously - these override localStorage
+  const pathParam = searchParams.get('path');
+  const presetParam = searchParams.get('preset');
+
   const [iframeKey, setIframeKey] = useState(0);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
 
-  const {
-    presets,
-    activePreset,
-    activePresetId,
-    currentPath,
-    getPreviewUrl,
-    selectPreset,
-    setPath,
-    savePresets,
-  } = usePreviewPresets();
+  // Initialize presets from localStorage
+  const [presets, setPresets] = useState<PreviewPreset[]>(() => initializePresets());
 
-  // Handle URL query params for deep linking (runs after initial render)
-  useEffect(() => {
-    const pathParam = searchParams.get('path');
-    const presetParam = searchParams.get('preset');
-
+  // Initialize active preset - query param takes precedence over localStorage
+  const [activePresetId, setActivePresetId] = useState<string>(() => {
     if (presetParam) {
-      const preset = presets.find(p => p.id === presetParam);
-      if (preset) {
-        selectPreset(presetParam);
-      }
+      const preset = initializePresets().find(p => p.id === presetParam);
+      if (preset) return presetParam;
     }
+    const storedId = readJson<string>(STORAGE_KEYS.ACTIVE_PRESET_ID, '');
+    const allPresets = initializePresets();
+    const validPreset = allPresets.find(p => p.id === storedId);
+    if (validPreset) return validPreset.id;
+    const firstWithUrl = allPresets.find(p => p.url) || allPresets[0];
+    return firstWithUrl?.id || '';
+  });
 
-    if (pathParam) {
-      setPath(pathParam);
-    }
-  }, [searchParams, presets, selectPreset, setPath]);
+  // Initialize path - query param takes precedence over localStorage
+  const [currentPath, setCurrentPathState] = useState<string>(() => {
+    if (pathParam) return pathParam;
+    return readJson<string>(STORAGE_KEYS.PATH, '/') || '/';
+  });
+
+  // Get active preset object
+  const activePreset = useMemo(
+    () => presets.find(p => p.id === activePresetId) || null,
+    [presets, activePresetId]
+  );
+
+  // Get full preview URL
+  const getPreviewUrl = useCallback(
+    (path?: string) => {
+      if (!activePreset || !activePreset.url) return '';
+      const targetPath = path ?? currentPath;
+      return `${activePreset.url}${targetPath}`;
+    },
+    [activePreset, currentPath]
+  );
+
+  // Select a preset
+  const selectPreset = useCallback((presetId: string) => {
+    setActivePresetId(presetId);
+    writeJson(STORAGE_KEYS.ACTIVE_PRESET_ID, presetId);
+  }, []);
+
+  // Set current path
+  const setPath = useCallback((path: string) => {
+    setCurrentPathState(path);
+    writeJson(STORAGE_KEYS.PATH, path);
+  }, []);
+
+  // Save presets to localStorage
+  const savePresets = useCallback((newPresets: PreviewPreset[]) => {
+    const presetsToSave = newPresets.filter(p => !p.isEnv);
+    writeJson(STORAGE_KEYS.PRESETS, presetsToSave);
+    const envPreset = getEnvPreset();
+    const finalPresets = envPreset
+      ? [envPreset, ...presetsToSave.filter(p => p.id !== 'env')]
+      : presetsToSave;
+    setPresets(finalPresets);
+  }, []);
 
   const handleRouteSelect = useCallback(
     (path: string) => {
       setPath(path);
-      setIframeKey(prev => prev + 1); // Force iframe reload
+      setIframeKey(prev => prev + 1);
     },
     [setPath]
   );
@@ -54,7 +161,7 @@ function PreviewContent() {
   const handlePresetChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       selectPreset(e.target.value);
-      setIframeKey(prev => prev + 1); // Force iframe reload on preset change
+      setIframeKey(prev => prev + 1);
     },
     [selectPreset]
   );
@@ -69,7 +176,6 @@ function PreviewContent() {
   const fullUrl = getPreviewUrl();
   const isConfigured = activePreset && activePreset.url;
 
-  // Always render the full page shell immediately - no initialization gate
   return (
     <div className="flex h-full flex-col" data-testid="page-root">
       {/* Header */}
