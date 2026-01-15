@@ -16,17 +16,14 @@ function PreviewContent() {
     activePreset,
     activePresetId,
     currentPath,
-    isInitialized,
     getPreviewUrl,
     selectPreset,
     setPath,
     savePresets,
   } = usePreviewPresets();
 
-  // Handle URL query params for deep linking
+  // Handle URL query params for deep linking (runs after initial render)
   useEffect(() => {
-    if (!isInitialized) return;
-
     const pathParam = searchParams.get('path');
     const presetParam = searchParams.get('preset');
 
@@ -40,7 +37,7 @@ function PreviewContent() {
     if (pathParam) {
       setPath(pathParam);
     }
-  }, [isInitialized, searchParams, presets, selectPreset, setPath]);
+  }, [searchParams, presets, selectPreset, setPath]);
 
   const handleRouteSelect = useCallback(
     (path: string) => {
@@ -72,17 +69,7 @@ function PreviewContent() {
   const fullUrl = getPreviewUrl();
   const isConfigured = activePreset && activePreset.url;
 
-  // Show loading state while initializing
-  if (!isInitialized) {
-    return (
-      <div className="flex h-full items-center justify-center" data-testid="page-root">
-        <h1 className="text-gray-500" data-testid="page-title">
-          Loading...
-        </h1>
-      </div>
-    );
-  }
-
+  // Always render the full page shell immediately - no initialization gate
   return (
     <div className="flex h-full flex-col" data-testid="page-root">
       {/* Header */}
@@ -238,10 +225,23 @@ function PreviewContent() {
 
 function LoadingFallback() {
   return (
-    <div className="flex h-full items-center justify-center" data-testid="page-root">
-      <h1 className="text-gray-500" data-testid="page-title">
-        Loading Preview...
-      </h1>
+    <div className="flex h-full flex-col" data-testid="page-root">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-900">
+        <div>
+          <h1
+            className="text-xl font-semibold text-gray-900 dark:text-white"
+            data-testid="page-title"
+          >
+            Preview
+          </h1>
+          <p className="mt-1 text-sm text-gray-500">Live app preview and route health monitoring</p>
+        </div>
+      </div>
+      {/* Loading content */}
+      <div className="flex flex-1 items-center justify-center">
+        <div className="text-gray-500">Loading...</div>
+      </div>
     </div>
   );
 }
