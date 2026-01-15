@@ -93,19 +93,23 @@ test.describe('UX-GATE-0: Navigation Smoke Test', () => {
 
     // Click each sidebar link in order
     for (const route of NAV_ROUTES) {
-      // Click the nav link and wait for navigation
-      await Promise.all([
-        page.waitForURL(route.href === '/' ? /\/$/ : new RegExp(`${route.href}$`)),
-        page.getByTestId(`nav-${route.key}`).click(),
-      ]);
+      // Click the nav link
+      await page.getByTestId(`nav-${route.key}`).click();
 
-      // Verify page renders
+      // Wait for page-root to be visible (indicates page rendered)
       const pageRoot = page.locator('[data-testid="page-root"]');
       await expect(pageRoot).toBeVisible({ timeout: 10000 });
 
       // Verify title exists
       const pageTitle = page.locator('[data-testid="page-title"]');
       await expect(pageTitle).toBeVisible();
+
+      // Verify URL matches (with short timeout since we already waited for content)
+      if (route.href === '/') {
+        await expect(page).toHaveURL(/\/$/, { timeout: 5000 });
+      } else {
+        await expect(page).toHaveURL(new RegExp(`${route.href}$`), { timeout: 5000 });
+      }
     }
   });
 });
