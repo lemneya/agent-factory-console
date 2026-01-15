@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { SignedOutCTA, DemoModeBadge, useDemoMode } from '@/components/auth';
+import { OpenInPreview } from '@/components/preview';
 
 interface Project {
   id: string;
@@ -368,6 +369,9 @@ function ProjectsContent() {
                   {project._count.events} events
                 </span>
                 <span className="ml-auto">Updated {formatDate(project.lastUpdated)}</span>
+              </div>
+              <div className="mt-3 flex justify-end" onClick={e => e.stopPropagation()}>
+                <OpenInPreview entity="project" id={project.id} path={`/projects/${project.id}`} />
               </div>
             </Link>
           ))}
