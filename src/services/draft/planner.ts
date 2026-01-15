@@ -7,9 +7,13 @@
  * 2. Approve action - executes the plan
  *
  * This ensures no divergence between "what UI shows" and "what approve does."
+ *
+ * UX-GATE-COPILOT-2: Enhanced with deterministic Blueprint → WorkOrder pipeline
  */
 
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
+import crypto from 'crypto';
 
 // Helper to get prisma client (returns null if not available)
 const getPrisma = () => prisma;
@@ -40,16 +44,18 @@ export interface DraftPlan {
   checks: DraftChecks;
 }
 
+export interface BlueprintModule {
+  key: string;
+  title: string;
+  domain: string;
+  spec: string;
+}
+
 export interface DraftPayload {
   blueprint?: {
     name: string;
     description: string;
-    modules: Array<{
-      key: string;
-      title: string;
-      domain: string;
-      spec: string;
-    }>;
+    modules: BlueprintModule[];
   };
   determinism?: {
     specHash: string;
@@ -73,6 +79,22 @@ export interface DraftPayload {
     risks: string[];
     mitigations: string[];
   };
+  // UX-GATE-COPILOT-2: Options for post-approval actions
+  options?: {
+    startRunAfterApproval?: boolean;
+    createWorkOrdersAfterApproval?: boolean;
+  };
+}
+
+/**
+ * Generate a deterministic hash for a blueprint specification
+ * This ensures the same spec always produces the same hash
+ */
+export function generateSpecHash(modules: BlueprintModule[]): string {
+  // Sort modules by key for determinism
+  const sortedModules = [...modules].sort((a, b) => a.key.localeCompare(b.key));
+  const canonical = JSON.stringify(sortedModules);
+  return crypto.createHash('sha256').update(canonical).digest('hex').substring(0, 16);
 }
 
 /**
@@ -174,6 +196,7 @@ async function planCouncilDraft(
 
 /**
  * Plan BLUEPRINT draft operations
+ * UX-GATE-COPILOT-2: Enhanced with deterministic spec hash and optional WorkOrder creation
  */
 async function planBlueprintDraft(
   draft: { id: string; projectId: string | null },
@@ -199,8 +222,7 @@ async function planBlueprintDraft(
 
   // Check for name collision
   if (db && blueprint.name) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const existingBlueprint = await (db as any).blueprint.findFirst({
+    const existingBlueprint = await db.blueprint.findFirst({
       where: { name: blueprint.name },
     });
     if (existingBlueprint) {
@@ -210,6 +232,9 @@ async function planBlueprintDraft(
 
   // Get domains from modules
   const domains = [...new Set(blueprint.modules?.map(m => m.domain) || [])];
+
+  // Generate deterministic spec hash
+  const specHash = payload.determinism?.specHash || generateSpecHash(blueprint.modules || []);
 
   operations.push({
     op: 'CREATE',
@@ -226,7 +251,6 @@ async function planBlueprintDraft(
   });
 
   // Blueprint version
-  const specHash = payload.determinism?.specHash || 'auto-generated';
   operations.push({
     op: 'CREATE',
     model: 'BlueprintVersion',
@@ -242,6 +266,25 @@ async function planBlueprintDraft(
 
   checks.willCreateCount['Blueprint'] = 1;
   checks.willCreateCount['BlueprintVersion'] = 1;
+
+  // UX-GATE-COPILOT-2: If createWorkOrdersAfterApproval is set, plan WorkOrder creation
+  if (payload.options?.createWorkOrdersAfterApproval && blueprint.modules) {
+    const moduleCount = blueprint.modules.length;
+    operations.push({
+      op: 'CREATE',
+      model: 'WorkOrder',
+      ref: `draft-${draft.id}-workorders`,
+      summary: `Create ${moduleCount} WorkOrders from Blueprint modules`,
+      fieldsPreview: {
+        count: moduleCount,
+        domains: domains.join(', '),
+        stableKeys: true,
+      },
+      warnings: [],
+    });
+    checks.willCreateCount['WorkOrder'] = moduleCount;
+  }
+
   checks.councilRequired = false;
 }
 
@@ -269,8 +312,7 @@ async function planWorkOrdersDraft(
   if (draft.projectId) {
     checks.councilRequired = true;
     if (db) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const councilDecision = await (db as any).councilDecision.findFirst({
+      const councilDecision = await db.councilDecision.findFirst({
         where: { projectId: draft.projectId },
       });
       checks.councilSatisfied = !!councilDecision;
@@ -302,8 +344,7 @@ async function planWorkOrdersDraft(
   let estimatedWorkOrders = 6; // Default estimate
   if (db && source?.blueprintId) {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const blueprintVersion = await (db as any).blueprintVersion.findFirst({
+      const blueprintVersion = await db.blueprintVersion.findFirst({
         where: { blueprintId: source.blueprintId },
         orderBy: { createdAt: 'desc' },
       });
@@ -338,6 +379,8 @@ async function planWorkOrdersDraft(
 /**
  * Execute a draft plan (perform the actual mutations)
  * This is called by the approve route after planDraftActions
+ *
+ * UX-GATE-COPILOT-2: Enhanced with deterministic WorkOrder creation
  */
 export async function executeDraftPlan(
   plan: DraftPlan,
@@ -348,7 +391,14 @@ export async function executeDraftPlan(
     projectId: string | null;
     sourcesJson?: unknown;
   }
-): Promise<{ success: boolean; resultRef?: string; error?: string }> {
+): Promise<{
+  success: boolean;
+  resultRef?: string;
+  error?: string;
+  blueprintId?: string;
+  versionId?: string;
+  workOrderIds?: string[];
+}> {
   const db = getPrisma();
   if (!db) {
     return { success: false, error: 'Database not available' };
@@ -363,15 +413,12 @@ export async function executeDraftPlan(
         if (!council) {
           return { success: false, error: 'Council payload missing' };
         }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const decision = await (db as any).councilDecision.create({
+        const decision = await db.councilDecision.create({
           data: {
             projectId: council.projectId,
             decision: council.type as string,
-            maintenanceRisk: council.risk as string,
-            reasoning: council.rationale,
-            sources: draft.sourcesJson || [],
-            confidence: 0.9,
+            rationale: council.rationale,
+            evidenceJson: draft.sourcesJson || [],
           },
         });
         return { success: true, resultRef: decision.id };
@@ -382,29 +429,128 @@ export async function executeDraftPlan(
         if (!blueprint) {
           return { success: false, error: 'Blueprint payload missing' };
         }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const newBlueprint = await (db as any).blueprint.create({
+
+        // Generate deterministic spec hash
+        const specHash = payload.determinism?.specHash || generateSpecHash(blueprint.modules || []);
+
+        // Create Blueprint
+        const newBlueprint = await db.blueprint.create({
           data: {
             name: blueprint.name,
             description: blueprint.description,
             projectId: draft.projectId,
           },
         });
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const version = await (db as any).blueprintVersion.create({
+
+        // Create BlueprintVersion with immutable payload
+        const version = await db.blueprintVersion.create({
           data: {
             blueprintId: newBlueprint.id,
-            payloadJson: { modules: blueprint.modules },
-            specHash: payload.determinism?.specHash || `hash-${Date.now()}`,
+            payloadJson: JSON.parse(JSON.stringify({ modules: blueprint.modules })),
+            specHash,
           },
         });
-        return { success: true, resultRef: `${newBlueprint.id}:${version.id}` };
+
+        const result: {
+          success: boolean;
+          resultRef: string;
+          blueprintId: string;
+          versionId: string;
+          workOrderIds?: string[];
+        } = {
+          success: true,
+          resultRef: `Blueprint:${newBlueprint.id}:${version.id}`,
+          blueprintId: newBlueprint.id,
+          versionId: version.id,
+        };
+
+        // UX-GATE-COPILOT-2: Create WorkOrders if option is set
+        if (payload.options?.createWorkOrdersAfterApproval && blueprint.modules) {
+          const workOrderIds: string[] = [];
+
+          // Sort modules by domain for deterministic order
+          const sortedModules = [...blueprint.modules].sort((a, b) => {
+            // First by domain, then by key
+            const domainCompare = a.domain.localeCompare(b.domain);
+            if (domainCompare !== 0) return domainCompare;
+            return a.key.localeCompare(b.key);
+          });
+
+          for (const module of sortedModules) {
+            const workOrder = await db.workOrder.create({
+              data: {
+                blueprintId: newBlueprint.id,
+                blueprintVersionId: version.id,
+                key: module.key,
+                domain: module.domain,
+                title: module.title,
+                spec: module.spec,
+                dependsOn: [], // Could be enhanced to parse dependencies from spec
+                status: 'PENDING',
+              },
+            });
+            workOrderIds.push(workOrder.id);
+          }
+
+          result.workOrderIds = workOrderIds;
+          result.resultRef = `Blueprint:${newBlueprint.id}:${version.id}:WorkOrders:${workOrderIds.length}`;
+        }
+
+        return result;
       }
 
       case 'WORKORDERS': {
-        // For now, just mark as executed - actual work order creation
-        // would involve more complex logic with the slicer
-        return { success: true, resultRef: `workorders-${draft.id}` };
+        const source = payload.source;
+        if (!source?.blueprintId) {
+          return { success: false, error: 'Blueprint reference missing' };
+        }
+
+        // Get the latest blueprint version
+        const blueprintVersion = await db.blueprintVersion.findFirst({
+          where: {
+            blueprintId: source.blueprintId,
+            ...(source.versionId ? { id: source.versionId } : {}),
+          },
+          orderBy: { createdAt: 'desc' },
+        });
+
+        if (!blueprintVersion) {
+          return { success: false, error: 'Blueprint version not found' };
+        }
+
+        const versionPayload = blueprintVersion.payloadJson as { modules?: BlueprintModule[] };
+        const modules = versionPayload?.modules || [];
+
+        const workOrderIds: string[] = [];
+
+        // Sort modules for deterministic order
+        const sortedModules = [...modules].sort((a, b) => {
+          const domainCompare = a.domain.localeCompare(b.domain);
+          if (domainCompare !== 0) return domainCompare;
+          return a.key.localeCompare(b.key);
+        });
+
+        for (const module of sortedModules) {
+          const workOrder = await db.workOrder.create({
+            data: {
+              blueprintId: source.blueprintId,
+              blueprintVersionId: blueprintVersion.id,
+              key: module.key,
+              domain: module.domain,
+              title: module.title,
+              spec: module.spec,
+              dependsOn: [],
+              status: 'PENDING',
+            },
+          });
+          workOrderIds.push(workOrder.id);
+        }
+
+        return {
+          success: true,
+          resultRef: `WorkOrders:${workOrderIds.length}`,
+          workOrderIds,
+        };
       }
 
       default:

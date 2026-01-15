@@ -583,6 +583,78 @@ enum CopilotDraftEventType {
 }
 
 // ============================================================================
+// UX-GATE-COPILOT-2: Blueprint & WorkOrder Models
+// ============================================================================
+
+// Blueprint: Defines a reusable project specification
+model Blueprint {
+  id          String             @id @default(cuid())
+  name        String
+  description String?            @db.Text
+  projectId   String?
+  
+  versions    BlueprintVersion[]
+  workOrders  WorkOrder[]
+  
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@index([projectId])
+  @@index([name])
+}
+
+// BlueprintVersion: Immutable snapshot of a Blueprint specification
+model BlueprintVersion {
+  id          String     @id @default(cuid())
+  blueprintId String
+  blueprint   Blueprint  @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  
+  payloadJson Json       // { modules: [{ key, title, domain, spec }] }
+  specHash    String     // SHA-256 hash for determinism verification
+  
+  workOrders  WorkOrder[]
+  
+  createdAt   DateTime   @default(now())
+
+  @@index([blueprintId])
+  @@index([specHash])
+}
+
+// WorkOrder: Individual unit of work derived from a Blueprint
+model WorkOrder {
+  id                String            @id @default(cuid())
+  blueprintId       String?
+  blueprint         Blueprint?        @relation(fields: [blueprintId], references: [id])
+  blueprintVersionId String?
+  blueprintVersion  BlueprintVersion? @relation(fields: [blueprintVersionId], references: [id])
+  
+  key               String            // Stable key for determinism (e.g., "auth-module")
+  domain            String            // Domain category (e.g., "auth", "crud", "ui")
+  title             String
+  spec              String?           @db.Text
+  dependsOn         String[]          // Keys of dependent work orders
+  
+  status            WorkOrderStatus   @default(PENDING)
+  runId             String?           // Associated run when executed
+  
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([blueprintId])
+  @@index([blueprintVersionId])
+  @@index([status])
+  @@index([runId])
+}
+
+enum WorkOrderStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  SKIPPED
+}
+
+// ============================================================================
 // AFC-1.2: Asset Registry Models
 // ============================================================================
 

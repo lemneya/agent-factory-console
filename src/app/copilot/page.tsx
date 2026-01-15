@@ -64,6 +64,11 @@ interface DraftPayload {
     mitigations: string[];
     recommendedNextGate: string;
   };
+  // UX-GATE-COPILOT-2: Options for post-approval actions
+  options?: {
+    startRunAfterApproval?: boolean;
+    createWorkOrdersAfterApproval?: boolean;
+  };
 }
 
 interface Draft {
@@ -93,6 +98,38 @@ const DRAFT_TYPES: { value: DraftKind; label: string }[] = [
   { value: 'COUNCIL', label: 'Council Draft' },
 ];
 
+// UX-GATE-COPILOT-2: Factory Quickstart templates
+const FACTORY_QUICKSTART_TEMPLATES = [
+  {
+    id: 'saas-mvp',
+    label: 'SaaS MVP',
+    description: 'User auth, dashboard, billing integration',
+    prompt:
+      'Generate a Blueprint for a SaaS MVP with user authentication (NextAuth), a dashboard with analytics, and Stripe billing integration. Include modules for: auth, dashboard, billing, and API routes.',
+  },
+  {
+    id: 'crud-api',
+    label: 'CRUD API',
+    description: 'RESTful API with Prisma and validation',
+    prompt:
+      'Generate a Blueprint for a RESTful CRUD API with Prisma ORM, input validation using Zod, and proper error handling. Include modules for: database schema, API routes, validation, and error handling.',
+  },
+  {
+    id: 'landing-page',
+    label: 'Landing Page',
+    description: 'Marketing site with CMS integration',
+    prompt:
+      'Generate a Blueprint for a marketing landing page with hero section, features grid, testimonials, pricing table, and CMS integration for content management. Include modules for: layout, hero, features, testimonials, pricing, and CMS.',
+  },
+  {
+    id: 'admin-panel',
+    label: 'Admin Panel',
+    description: 'RBAC, data tables, audit logging',
+    prompt:
+      'Generate a Blueprint for an admin panel with role-based access control (RBAC), data tables with sorting/filtering, user management, and audit logging. Include modules for: auth, rbac, tables, users, and audit.',
+  },
+];
+
 function CopilotContent() {
   const { status } = useSession();
   const searchParams = useSearchParams();
@@ -114,6 +151,10 @@ function CopilotContent() {
   const [showDraftJson, setShowDraftJson] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isApprovingDraft, setIsApprovingDraft] = useState(false);
+
+  // UX-GATE-COPILOT-2: Draft options state
+  const [createWorkOrdersAfterApproval, setCreateWorkOrdersAfterApproval] = useState(true);
+  const [startRunAfterApproval, setStartRunAfterApproval] = useState(false);
 
   // Check if user is signed out and not in demo mode
   const isSignedOut = status === 'unauthenticated' && !demoMode;
@@ -173,10 +214,18 @@ function CopilotContent() {
 
       // If in draft mode and we got a draft payload, set it
       if (mode === 'draft' && data.draftPayload) {
+        // UX-GATE-COPILOT-2: Include options in draft payload
+        const payloadWithOptions = {
+          ...data.draftPayload,
+          options: {
+            createWorkOrdersAfterApproval: draftType === 'BLUEPRINT' && createWorkOrdersAfterApproval,
+            startRunAfterApproval,
+          },
+        };
         setCurrentDraft({
           kind: draftType,
           title: data.draftTitle || `${draftType} Draft`,
-          payload: data.draftPayload,
+          payload: payloadWithOptions,
           sources: data.sources || [],
           status: 'unsaved',
         });
@@ -280,6 +329,13 @@ function CopilotContent() {
     }
   };
 
+  // UX-GATE-COPILOT-2: Handle Factory Quickstart template selection
+  const handleQuickstartTemplate = (template: (typeof FACTORY_QUICKSTART_TEMPLATES)[0]) => {
+    setMode('draft');
+    setDraftType('BLUEPRINT');
+    sendMessage(template.prompt);
+  };
+
   // Show SignedOutCTA if not authenticated and not in demo mode
   if (isSignedOut) {
     return (
@@ -346,22 +402,50 @@ function CopilotContent() {
 
       {/* Draft type selector (only in draft mode) */}
       {mode === 'draft' && (
-        <div className="mb-4">
-          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
-            Draft Type
-          </label>
-          <select
-            value={draftType}
-            onChange={e => setDraftType(e.target.value as DraftKind)}
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-            data-testid="copilot-draft-type"
-          >
-            {DRAFT_TYPES.map(dt => (
-              <option key={dt.value} value={dt.value}>
-                {dt.label}
-              </option>
-            ))}
-          </select>
+        <div className="mb-4 flex items-center gap-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
+              Draft Type
+            </label>
+            <select
+              value={draftType}
+              onChange={e => setDraftType(e.target.value as DraftKind)}
+              className="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              data-testid="copilot-draft-type"
+            >
+              {DRAFT_TYPES.map(dt => (
+                <option key={dt.value} value={dt.value}>
+                  {dt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* UX-GATE-COPILOT-2: Draft options for BLUEPRINT type */}
+          {draftType === 'BLUEPRINT' && (
+            <div className="flex items-center gap-4 ml-4">
+              <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                <input
+                  type="checkbox"
+                  checked={createWorkOrdersAfterApproval}
+                  onChange={e => setCreateWorkOrdersAfterApproval(e.target.checked)}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  data-testid="copilot-create-workorders-checkbox"
+                />
+                Create WorkOrders on approval
+              </label>
+              <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                <input
+                  type="checkbox"
+                  checked={startRunAfterApproval}
+                  onChange={e => setStartRunAfterApproval(e.target.checked)}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  data-testid="copilot-start-run-checkbox"
+                />
+                Start Run after approval
+              </label>
+            </div>
+          )}
         </div>
       )}
 
@@ -481,6 +565,9 @@ function CopilotContent() {
                   </h4>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     Type: {currentDraft.kind} | Status: {currentDraft.status}
+                    {currentDraft.payload.options?.createWorkOrdersAfterApproval &&
+                      ' | Will create WorkOrders'}
+                    {currentDraft.payload.options?.startRunAfterApproval && ' | Will start Run'}
                   </p>
                 </div>
                 <button
@@ -573,7 +660,7 @@ function CopilotContent() {
 
         {/* Right: Context panel */}
         <div
-          className="w-80 flex-shrink-0 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-4"
+          className="w-80 flex-shrink-0 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-4 overflow-y-auto"
           data-testid="copilot-context"
         >
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Context</h3>
@@ -613,6 +700,36 @@ function CopilotContent() {
               />
             )}
           </div>
+
+          {/* UX-GATE-COPILOT-2: Factory Quickstart Panel */}
+          {mode === 'draft' && draftType === 'BLUEPRINT' && (
+            <div className="mb-6" data-testid="factory-quickstart-panel">
+              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
+                Factory Quickstart
+              </label>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">
+                Start with a pre-built template
+              </p>
+              <div className="space-y-2">
+                {FACTORY_QUICKSTART_TEMPLATES.map(template => (
+                  <button
+                    key={template.id}
+                    onClick={() => handleQuickstartTemplate(template)}
+                    disabled={isLoading}
+                    className="w-full text-left rounded-lg border border-gray-200 px-3 py-2 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800 disabled:opacity-50"
+                    data-testid={`quickstart-${template.id}`}
+                  >
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {template.label}
+                    </span>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      {template.description}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Quick prompts (only in ask mode) */}
           {mode === 'ask' && (
