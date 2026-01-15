@@ -93,18 +93,11 @@ test.describe('UX-GATE-0: Navigation Smoke Test', () => {
 
     // Click each sidebar link in order
     for (const route of NAV_ROUTES) {
-      // Click the nav link
-      await page.getByTestId(`nav-${route.key}`).click();
-
-      // Wait for DOM to be ready (not networkidle which can hang on iframes/long-polling)
-      await page.waitForLoadState('domcontentloaded');
-
-      // Verify we're on the correct page
-      if (route.href === '/') {
-        await expect(page).toHaveURL(/\/$/);
-      } else {
-        await expect(page).toHaveURL(new RegExp(`${route.href}$`));
-      }
+      // Click the nav link and wait for navigation
+      await Promise.all([
+        page.waitForURL(route.href === '/' ? /\/$/ : new RegExp(`${route.href}$`)),
+        page.getByTestId(`nav-${route.key}`).click(),
+      ]);
 
       // Verify page renders
       const pageRoot = page.locator('[data-testid="page-root"]');

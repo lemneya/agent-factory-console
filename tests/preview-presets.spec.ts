@@ -2,15 +2,19 @@ import { test, expect } from '@playwright/test';
 
 test.describe('AFC-UX-PREVIEW-1: Preview Presets + Persistence', () => {
   test.beforeEach(async ({ page }) => {
-    // Navigate to preview and wait for page shell to render
+    // Clear localStorage before navigating
     await page.goto('/preview');
     await page.waitForLoadState('domcontentloaded');
-    // Wait for page-title to be visible before clearing localStorage
     await expect(page.locator('[data-testid="page-title"]')).toBeVisible();
     await page.evaluate(() => {
       localStorage.removeItem('afc_preview_presets');
       localStorage.removeItem('afc_preview_current');
+      localStorage.removeItem('afc_preview_active_preset_id');
+      localStorage.removeItem('afc_preview_path');
     });
+    // Reload to apply cleared localStorage
+    await page.reload();
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('/preview page renders with preset dropdown', async ({ page }) => {
