@@ -17,7 +17,7 @@ export function Sidebar() {
           <span className="text-lg font-semibold">Agent Factory</span>
         </Link>
       </div>
-      <nav data-testid="sidebar-nav" className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
+      <nav className="flex-1 space-y-1 px-3 py-4" data-testid="sidebar-nav">
         {NAV_ITEMS.map(item => {
           const isActive =
             pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { getRouteHealthItems, type NavItem } from '@/config/nav';
+import { NAV_ITEMS, type NavItem } from '@/config/nav';
 
 interface RouteHealth {
   path: string;
@@ -86,7 +86,7 @@ export function RouteHealthGrid({ onRouteSelect, baseUrl }: RouteHealthGridProps
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
   const isMounted = useRef(true);
 
-  const navItems = getRouteHealthItems();
+  const navItems = NAV_ITEMS;
 
   const toggleExpanded = (key: string) => {
     setExpandedRows(prev => {
@@ -131,7 +131,7 @@ export function RouteHealthGrid({ onRouteSelect, baseUrl }: RouteHealthGridProps
     const results: Record<string, RouteHealth | null> = {};
 
     // Check all routes in parallel
-    const promises = navItems.map(async item => {
+    const promises = navItems.map(async (item: NavItem) => {
       const health = await checkRouteHealth(item);
       results[item.key] = health;
     });
@@ -186,7 +186,7 @@ export function RouteHealthGrid({ onRouteSelect, baseUrl }: RouteHealthGridProps
         </div>
       </div>
       <div className="divide-y divide-gray-100 dark:divide-gray-700">
-        {navItems.map(item => {
+        {navItems.map((item: NavItem) => {
           const health = healthMap[item.key];
           const isExpanded = expandedRows.has(item.key);
           return (

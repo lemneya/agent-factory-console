@@ -13,11 +13,9 @@ import { test, expect } from '@playwright/test';
  * We're only verifying "route exists + renders."
  */
 
-// Navigation items in the exact order from NAV_ITEMS (src/config/nav.tsx)
-// This must match the SSOT in src/config/nav.tsx
+// Navigation items in the exact order from NAV_ITEMS
 const NAV_ROUTES = [
   { key: 'dashboard', href: '/', label: 'Dashboard' },
-  { key: 'preview', href: '/preview', label: 'Preview' },
   { key: 'projects', href: '/projects', label: 'Projects' },
   { key: 'runs', href: '/runs', label: 'Runs' },
   { key: 'blueprints', href: '/blueprints', label: 'Blueprints' },
@@ -25,49 +23,47 @@ const NAV_ROUTES = [
   { key: 'assets', href: '/assets', label: 'Assets' },
   { key: 'council', href: '/council', label: 'Council' },
   { key: 'memory', href: '/memory', label: 'Memory' },
-  { key: 'audit', href: '/audit', label: 'Audit' },
+  { key: 'audit', href: '/audit', label: 'Audit Trail' },
   { key: 'notifications', href: '/notifications', label: 'Notifications' },
-  { key: 'copilot', href: '/copilot', label: 'Copilot' },
-  { key: 'drafts', href: '/drafts', label: 'Drafts' },
 ];
 
 test.describe('UX-GATE-0: Navigation Smoke Test', () => {
-  test('sidebar contains all expected navigation items', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'domcontentloaded' });
+  test('sidebar contains all 10 navigation items', async ({ page }) => {
+    await page.goto('/');
 
     // Check sidebar exists
     const sidebar = page.locator('[data-testid="sidebar-nav"]');
     await expect(sidebar).toBeVisible();
 
-    // Check all nav items are present by data-testid (stable, not count-based)
+    // Check all nav items are present
     for (const route of NAV_ROUTES) {
-      const navLink = page.getByTestId(`nav-${route.key}`);
+      const navLink = page.locator(`[data-testid="nav-${route.key}"]`);
       await expect(navLink).toBeVisible();
       await expect(navLink).toHaveAttribute('href', route.href);
     }
   });
 
   test('dashboard quick links route correctly (no 404)', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    await page.goto('/');
 
     // Quick links exclude dashboard (we're already on it)
     const quickLinkRoutes = NAV_ROUTES.filter(r => r.key !== 'dashboard');
 
     for (const route of quickLinkRoutes) {
       const quickLink = page.locator(`[data-testid="quick-link-${route.key}"]`);
-      // Quick links may not exist for all routes - only check if visible
-      const isVisible = await quickLink.isVisible().catch(() => false);
-      if (isVisible) {
-        await expect(quickLink).toHaveAttribute('href', route.href);
-      }
+      await expect(quickLink).toBeVisible();
+      await expect(quickLink).toHaveAttribute('href', route.href);
     }
   });
 
   test.describe('each route renders with page shell', () => {
     for (const route of NAV_ROUTES) {
       test(`${route.label} (${route.href}) renders with title`, async ({ page }) => {
-        // Navigate to the route - use domcontentloaded to not wait for iframes
-        await page.goto(route.href, { waitUntil: 'domcontentloaded' });
+        // Navigate to the route
+        await page.goto(route.href);
+
+        // Wait for page to load
+        await page.waitForLoadState('networkidle');
 
         // Check page root exists
         const pageRoot = page.locator('[data-testid="page-root"]');
@@ -85,62 +81,31 @@ test.describe('UX-GATE-0: Navigation Smoke Test', () => {
 
   test('clicking each sidebar link navigates correctly', async ({ page }) => {
     // Start at dashboard
-    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    await page.goto('/');
     await expect(page.locator('[data-testid="page-root"]')).toBeVisible();
 
-    // Test navigation for each route
-    // Note: We navigate directly to each route instead of clicking through
-    // because the Preview page's iframe can interfere with subsequent navigation
+    // Click each sidebar link in order
     for (const route of NAV_ROUTES) {
-      // Navigate directly to the route
-      await page.goto(route.href, { waitUntil: 'domcontentloaded' });
+      // Click the nav link
+      await page.click(`[data-testid="nav-${route.key}"]`);
 
-      // Wait for page-root to be visible (indicates page rendered)
+      // Wait for navigation
+      await page.waitForLoadState('networkidle');
+
+      // Verify we're on the correct page
+      if (route.href === '/') {
+        await expect(page).toHaveURL(/\/$/);
+      } else {
+        await expect(page).toHaveURL(new RegExp(`${route.href}$`));
+      }
+
+      // Verify page renders
       const pageRoot = page.locator('[data-testid="page-root"]');
       await expect(pageRoot).toBeVisible({ timeout: 10000 });
 
       // Verify title exists
       const pageTitle = page.locator('[data-testid="page-title"]');
       await expect(pageTitle).toBeVisible();
-
-      // Verify URL matches
-      if (route.href === '/') {
-        await expect(page).toHaveURL(/\/$/, { timeout: 5000 });
-      } else {
-        await expect(page).toHaveURL(new RegExp(`${route.href}$`), { timeout: 5000 });
-      }
-
-      // Verify the sidebar link is present and has correct href
-      const navLink = page.getByTestId(`nav-${route.key}`);
-      await expect(navLink).toBeVisible();
-      await expect(navLink).toHaveAttribute('href', route.href);
-    }
-  });
-
-  test('sidebar navigation works from dashboard', async ({ page }) => {
-    // This test verifies clicking sidebar links from dashboard works
-    // We test a subset of routes that don't have iframe issues
-    const testRoutes = NAV_ROUTES.filter(r => r.key !== 'preview');
-
-    await page.goto('/', { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('[data-testid="page-root"]')).toBeVisible();
-
-    for (const route of testRoutes.slice(0, 5)) {
-      // Go back to dashboard first
-      await page.goto('/', { waitUntil: 'domcontentloaded' });
-
-      // Click the nav link
-      await page.getByTestId(`nav-${route.key}`).click();
-
-      // Wait for page-root to be visible
-      await expect(page.locator('[data-testid="page-root"]')).toBeVisible({ timeout: 10000 });
-
-      // Verify URL changed
-      if (route.href === '/') {
-        await expect(page).toHaveURL(/\/$/, { timeout: 5000 });
-      } else {
-        await expect(page).toHaveURL(new RegExp(`${route.href}$`), { timeout: 5000 });
-      }
     }
   });
 });
