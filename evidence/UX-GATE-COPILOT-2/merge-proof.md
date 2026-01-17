@@ -2,21 +2,21 @@
 
 ## Merge Details
 
-| Field | Value |
-|-------|-------|
-| **PR** | #29 |
-| **Merge Type** | Squash and merge |
-| **Merge Commit** | `0c76587` |
-| **Tag** | `v0.1.8-ux-copilot-2` |
-| **Merged At** | 2026-01-15 |
+| Field            | Value                 |
+| ---------------- | --------------------- |
+| **PR**           | #29                   |
+| **Merge Type**   | Squash and merge      |
+| **Merge Commit** | `0c76587`             |
+| **Tag**          | `v0.1.8-ux-copilot-2` |
+| **Merged At**    | 2026-01-15            |
 
 ## CI Status (main branch)
 
-| Workflow | Run ID | Status |
-|----------|--------|--------|
-| **CI** | 21037128829 | ✅ success |
+| Workflow         | Run ID      | Status     |
+| ---------------- | ----------- | ---------- |
+| **CI**           | 21037128829 | ✅ success |
 | **Docker Build** | 21037128831 | ✅ success |
-| **E2E Tests** | 21037128776 | ✅ success |
+| **E2E Tests**    | 21037128776 | ✅ success |
 
 ## CI Links
 
@@ -26,15 +26,15 @@
 
 ## Files Changed
 
-| File | Changes |
-|------|---------|
-| `prisma/schema.prisma` | Added Blueprint, BlueprintVersion, WorkOrder models |
-| `prisma/migrations/20260115000000_add_blueprint_workorder/migration.sql` | Schema migration |
-| `src/app/copilot/page.tsx` | Factory Quickstart panel, draft options, useDemoMode hook |
-| `src/services/draft/planner.ts` | Deterministic Blueprint pipeline |
-| `src/app/api/council/decisions/route.ts` | Minor fix (unused variable) |
-| `tests/ux-gate-copilot-2-happy-path.spec.ts` | E2E test suite (15 tests) |
-| `evidence/UX-GATE-COPILOT-2/README.md` | Documentation |
+| File                                                                     | Changes                                                   |
+| ------------------------------------------------------------------------ | --------------------------------------------------------- |
+| `prisma/schema.prisma`                                                   | Added Blueprint, BlueprintVersion, WorkOrder models       |
+| `prisma/migrations/20260115000000_add_blueprint_workorder/migration.sql` | Schema migration                                          |
+| `src/app/copilot/page.tsx`                                               | Factory Quickstart panel, draft options, useDemoMode hook |
+| `src/services/draft/planner.ts`                                          | Deterministic Blueprint pipeline                          |
+| `src/app/api/council/decisions/route.ts`                                 | Minor fix (unused variable)                               |
+| `tests/ux-gate-copilot-2-happy-path.spec.ts`                             | E2E test suite (15 tests)                                 |
+| `evidence/UX-GATE-COPILOT-2/README.md`                                   | Documentation                                             |
 
 ## Features Delivered
 

@@ -3,6 +3,7 @@
 import { ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { PreviewLauncher } from '@/components/preview/PreviewLauncher';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -20,6 +21,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </h1>
           </div>
           <div className="flex items-center gap-4">
+            <PreviewLauncher />
             <Header />
           </div>
         </header>

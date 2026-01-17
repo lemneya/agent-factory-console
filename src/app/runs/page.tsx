@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { SignedOutCTA, DemoModeBadge, useDemoMode } from '@/components/auth';
+import { OpenInPreview } from '@/components/preview';
 
 interface Run {
   id: string;
@@ -283,6 +284,9 @@ function RunsContent() {
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                   Created
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -311,6 +315,9 @@ function RunsContent() {
                   </td>
                   <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                     {formatDate(run.createdAt)}
+                  </td>
+                  <td className="whitespace-nowrap px-6 py-4">
+                    <OpenInPreview entity="run" id={run.id} path={`/runs/${run.id}`} />
                   </td>
                 </tr>
               ))}
