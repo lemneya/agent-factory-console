@@ -55,9 +55,10 @@ const WORK_DIR = '/tmp/afc-runner';
 const EVIDENCE_DIR = 'evidence/AFC-RUNNER-0/runs';
 
 // DRY RUN mode for CI determinism
-// When RUNNER_DRY_RUN=1 and NODE_ENV=test, skip actual execution and return mock results
+// When RUNNER_DRY_RUN=1, skip actual execution and return mock results
+// This is set via playwright.config.ts webServer.env when CI=true
 const isDryRunMode = () => {
-  return process.env.RUNNER_DRY_RUN === '1' && process.env.NODE_ENV === 'test';
+  return process.env.RUNNER_DRY_RUN === '1';
 };
 
 // Security: Pattern to detect and redact tokens in strings

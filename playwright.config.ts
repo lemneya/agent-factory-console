@@ -69,7 +69,6 @@ export default defineConfig({
     timeout: 120 * 1000,
     env: {
       ...process.env,
-      NODE_ENV: 'test',
       RUNNER_DRY_RUN: process.env.CI ? '1' : (process.env.RUNNER_DRY_RUN ?? ''),
     },
   },
