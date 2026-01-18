@@ -3,7 +3,41 @@
  *
  * This snippet demonstrates the key assertions from the multi-select E2E tests.
  * Full tests are in tests/runner-ux-multiselect.spec.ts
+ *
+ * NOTE: This is a documentation file showing test patterns, not executable code.
+ * The actual tests are in tests/runner-ux-multiselect.spec.ts
  */
+
+// Type declarations for documentation purposes
+declare const request: {
+  post: (
+    url: string,
+    options: { data: Record<string, unknown> }
+  ) => Promise<{ ok: () => boolean; json: () => Promise<Record<string, unknown>> }>;
+};
+declare const page: {
+  goto: (url: string) => Promise<void>;
+  getByTestId: (id: string) => {
+    click: () => Promise<void>;
+    fill: (value: string) => Promise<void>;
+    textContent: () => Promise<string | null>;
+  };
+  waitForURL: (pattern: RegExp, options?: { timeout?: number }) => Promise<void>;
+};
+declare const expect: <T>(actual: T) => {
+  toBeTruthy: () => void;
+  toContain: (expected: string) => void;
+  toContainText: (expected: string) => Promise<void>;
+  toBeVisible: () => Promise<void>;
+  toHaveClass: (className: RegExp) => Promise<void>;
+};
+declare const timestamp: number;
+declare const workOrder1Id: string;
+declare const workOrder2Id: string;
+
+export {}; // Make this a module
+
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 // === Multi-select Flow Test ===
 // Step 1: Create 2 PENDING work orders via API

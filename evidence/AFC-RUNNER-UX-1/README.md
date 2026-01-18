@@ -41,13 +41,13 @@ This gate implements multi-select WorkOrder execution from the UI, allowing user
 
 ## Required TestIDs
 
-| TestID | Location | Description |
-|--------|----------|-------------|
-| `workorders-select-{id}` | WorkOrders page | Checkbox for selecting PENDING work order |
-| `execute-selected` | WorkOrders page | Button to execute selected work orders |
-| `execution-workorders-list` | Execution detail | Container for work orders list |
-| `execution-workorder-link-{id}` | Execution detail | Link to work order with focus |
-| `execution-rerun` | Execution detail | Re-run button |
+| TestID                          | Location         | Description                               |
+| ------------------------------- | ---------------- | ----------------------------------------- |
+| `workorders-select-{id}`        | WorkOrders page  | Checkbox for selecting PENDING work order |
+| `execute-selected`              | WorkOrders page  | Button to execute selected work orders    |
+| `execution-workorders-list`     | Execution detail | Container for work orders list            |
+| `execution-workorder-link-{id}` | Execution detail | Link to work order with focus             |
+| `execution-rerun`               | Execution detail | Re-run button                             |
 
 ## E2E Tests
 
@@ -91,13 +91,13 @@ This gate implements multi-select WorkOrder execution from the UI, allowing user
 
 ## Files Changed
 
-| File | Change |
-|------|--------|
-| `src/app/workorders/page.tsx` | Added multi-select checkboxes, Execute Selected button, focus param support |
-| `src/app/executions/[id]/page.tsx` | Added WorkOrders executed list, Re-run button |
-| `src/services/runner/index.ts` | Updated getExecutionRun to include workOrder details |
-| `tests/runner-ux-multiselect.spec.ts` | New E2E tests for multi-select flow |
-| `evidence/AFC-RUNNER-UX-1/README.md` | This documentation |
+| File                                  | Change                                                                      |
+| ------------------------------------- | --------------------------------------------------------------------------- |
+| `src/app/workorders/page.tsx`         | Added multi-select checkboxes, Execute Selected button, focus param support |
+| `src/app/executions/[id]/page.tsx`    | Added WorkOrders executed list, Re-run button                               |
+| `src/services/runner/index.ts`        | Updated getExecutionRun to include workOrder details                        |
+| `tests/runner-ux-multiselect.spec.ts` | New E2E tests for multi-select flow                                         |
+| `evidence/AFC-RUNNER-UX-1/README.md`  | This documentation                                                          |
 
 ## Local Verification
 
