@@ -193,25 +193,49 @@ describe('Runner Service', () => {
   });
 
   describe('getExecutionRun', () => {
-    it('should return execution run with logs', async () => {
+    it('should return execution run with logs and workOrders', async () => {
       const { prisma } = await import('@/lib/prisma');
       const mockRun = {
         id: 'run-1',
         status: 'COMPLETED',
+        workOrderIds: ['wo-1'],
         logs: [{ id: 'log-1', phase: 'CLONE', message: 'Cloning...' }],
       };
+      const mockWorkOrders = [
+        {
+          id: 'wo-1',
+          key: 'test-wo',
+          title: 'Test WorkOrder',
+          domain: 'test',
+          status: 'PENDING',
+        },
+      ];
       (prisma.executionRun.findUnique as jest.Mock).mockResolvedValue(mockRun);
+      (prisma.workOrder.findMany as jest.Mock).mockResolvedValue(mockWorkOrders);
 
       const { getExecutionRun } = await import('@/services/runner');
       const result = await getExecutionRun('run-1');
 
-      expect(result).toEqual(mockRun);
+      expect(result).toEqual({
+        ...mockRun,
+        workOrders: mockWorkOrders,
+      });
       expect(prisma.executionRun.findUnique).toHaveBeenCalledWith({
         where: { id: 'run-1' },
         include: {
           logs: {
             orderBy: { createdAt: 'asc' },
           },
+        },
+      });
+      expect(prisma.workOrder.findMany).toHaveBeenCalledWith({
+        where: { id: { in: ['wo-1'] } },
+        select: {
+          id: true,
+          key: true,
+          title: true,
+          domain: true,
+          status: true,
         },
       });
     });
