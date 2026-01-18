@@ -323,8 +323,18 @@ test.describe('AFC-RUNNER-UX-1: Multi-select WorkOrders Execution', () => {
       await expect(rerunButton).toBeVisible();
       await rerunButton.click();
 
-      // Should navigate to a new execution
-      await page.waitForURL(/\/executions\/[a-zA-Z0-9]+/, { timeout: 15000 });
+      // Wait for navigation to complete - the URL should change to a different execution ID
+      // Use a function to wait for URL to change from the original
+      await page.waitForFunction(
+        originalId => {
+          const currentUrl = window.location.href;
+          const match = currentUrl.match(/\/executions\/([a-zA-Z0-9]+)/);
+          return match && match[1] !== originalId;
+        },
+        originalExecutionId,
+        { timeout: 15000 }
+      );
+
       const newUrl = page.url();
       const newExecutionId = newUrl.split('/executions/')[1]?.split('?')[0];
 

@@ -668,11 +668,9 @@ export async function executeWorkOrders(config: ExecutionConfig): Promise<Execut
     );
     await logExecution(executionRunId, 'COMPLETE', 'INFO', 'DRY RUN completed successfully');
 
-    // Update work orders to IN_PROGRESS
-    await prisma.workOrder.updateMany({
-      where: { id: { in: workOrderIds } },
-      data: { status: 'IN_PROGRESS' },
-    });
+    // NOTE: In DRY RUN mode, we do NOT update work order status
+    // This allows re-runs to work in CI testing
+    // In real execution, work orders are updated to IN_PROGRESS then COMPLETED
 
     // Mark execution as complete with dummy PR
     await updateStatus(executionRunId, 'COMPLETED', {
