@@ -172,6 +172,23 @@ This ensures E2E tests can verify the complete flow without requiring real GitHu
 7. Verify status shows COMPLETED (in DRY RUN mode)
 8. Verify PR link is present and clickable
 
+## CI Status
+
+| Check        | Status     |
+| ------------ | ---------- |
+| Lint         | ✅ SUCCESS |
+| Type Check   | ✅ SUCCESS |
+| Test         | ✅ SUCCESS |
+| Build        | ✅ SUCCESS |
+| Docker Build | ✅ SUCCESS |
+| E2E Tests    | ✅ SUCCESS |
+
+## PR
+
+- **Title:** AFC-RUNNER-UX-0: Execute from UI + Executions
+- **URL:** https://github.com/lemneya/agent-factory-console/pull/32
+- **Branch:** `feature/afc-runner-ux-0`
+
 ## CI Configuration
 
 **Note:** The E2E workflow (`.github/workflows/e2e.yml`) needs to be updated manually to add:
