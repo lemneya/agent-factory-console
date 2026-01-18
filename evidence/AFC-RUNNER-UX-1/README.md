@@ -117,11 +117,14 @@ RUNNER_DRY_RUN=1 npx playwright test tests/runner-ux-multiselect.spec.ts
 
 ## CI Status
 
-- Lint: ✅ Passing (2 warnings in unrelated files)
-- Type Check: ✅ Passing
-- Unit Tests: ✅ Passing
-- Build: ✅ Passing
-- E2E Tests: Pending CI run
+| Check | Status |
+|-------|--------|
+| Lint | ✅ SUCCESS |
+| Type Check | ✅ SUCCESS |
+| Test | ✅ SUCCESS |
+| Build | ✅ SUCCESS |
+| Build Docker Image | ✅ SUCCESS |
+| E2E Tests | ✅ SUCCESS |
 
 ## PR
 
