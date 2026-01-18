@@ -717,3 +717,87 @@ model ProjectAsset {
 
   @@unique([projectId, assetVersionId])
 }
+
+
+// ============================================================================
+// AFC-RUNNER-0: Build-to-PR Execution Engine
+// ============================================================================
+
+// ExecutionRun: Tracks a complete execution cycle from WorkOrders to PR
+model ExecutionRun {
+  id          String          @id @default(cuid())
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  completedAt DateTime?
+
+  // Target repository info
+  targetRepoOwner String
+  targetRepoName  String
+  targetBranch    String        @default("main")
+  sourceBranch    String        // Branch created for changes (e.g., "afc/wo-123-auth")
+
+  // Execution state
+  status          ExecutionStatus @default(PENDING)
+  errorMessage    String?       @db.Text
+
+  // WorkOrders being executed
+  workOrderIds    String[]
+
+  // PR result
+  prNumber        Int?
+  prUrl           String?
+  prTitle         String?
+  prBody          String?       @db.Text
+
+  // Evidence and logs
+  cloneLog        String?       @db.Text
+  buildLog        String?       @db.Text
+  testLog         String?       @db.Text
+  prCreationLog   String?       @db.Text
+  evidencePath    String?       // Path to evidence folder
+
+  // User/session context
+  userId          String?
+  projectId       String?
+
+  // Safety gate references
+  councilDecisionId    String?
+  requiresBreakGlass   Boolean   @default(false)
+  breakGlassApprovedAt DateTime?
+  breakGlassApprovedBy String?
+
+  // Execution logs relation
+  logs            ExecutionLog[]
+
+  @@index([status])
+  @@index([userId])
+  @@index([projectId])
+  @@index([createdAt])
+}
+
+// ExecutionLog: Detailed log entries for execution phases
+model ExecutionLog {
+  id              String       @id @default(cuid())
+  createdAt       DateTime     @default(now())
+  executionRunId  String
+  executionRun    ExecutionRun @relation(fields: [executionRunId], references: [id], onDelete: Cascade)
+  phase           String       // CLONE, APPLY, BUILD, TEST, PR_CREATE
+  level           String       @default("INFO") // INFO, WARN, ERROR, DEBUG
+  message         String       @db.Text
+  detailsJson     Json?
+
+  @@index([executionRunId])
+  @@index([phase])
+  @@index([createdAt])
+}
+
+enum ExecutionStatus {
+  PENDING
+  CLONING
+  APPLYING
+  BUILDING
+  TESTING
+  CREATING_PR
+  COMPLETED
+  FAILED
+}
