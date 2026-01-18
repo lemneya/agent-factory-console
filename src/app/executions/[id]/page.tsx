@@ -424,6 +424,93 @@ export default function ExecutionDetailPage() {
         </div>
       </div>
 
+      {/* Run Summary Card */}
+      <div
+        className="mb-6 rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800"
+        data-testid="run-summary-card"
+      >
+        <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Run Summary</h2>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-6">
+          {/* Total */}
+          <div className="rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
+            <p className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">Total</p>
+            <p
+              className="mt-1 text-2xl font-bold text-gray-900 dark:text-white"
+              data-testid="run-summary-total"
+            >
+              {execution.workOrderIds.length}
+            </p>
+          </div>
+          {/* Pending */}
+          <div className="rounded-lg bg-yellow-50 p-4 dark:bg-yellow-900/20">
+            <p className="text-xs font-medium uppercase text-yellow-600 dark:text-yellow-400">
+              Pending
+            </p>
+            <p className="mt-1 text-2xl font-bold text-yellow-700 dark:text-yellow-300">
+              {execution.workOrders?.filter(wo => wo.status === 'PENDING').length || 0}
+            </p>
+          </div>
+          {/* In Progress */}
+          <div className="rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
+            <p className="text-xs font-medium uppercase text-blue-600 dark:text-blue-400">
+              In Progress
+            </p>
+            <p className="mt-1 text-2xl font-bold text-blue-700 dark:text-blue-300">
+              {execution.workOrders?.filter(wo => wo.status === 'IN_PROGRESS').length || 0}
+            </p>
+          </div>
+          {/* Completed */}
+          <div className="rounded-lg bg-green-50 p-4 dark:bg-green-900/20">
+            <p className="text-xs font-medium uppercase text-green-600 dark:text-green-400">
+              Completed
+            </p>
+            <p
+              className="mt-1 text-2xl font-bold text-green-700 dark:text-green-300"
+              data-testid="run-summary-completed"
+            >
+              {execution.workOrders?.filter(wo => wo.status === 'COMPLETED').length || 0}
+            </p>
+          </div>
+          {/* Failed */}
+          <div className="rounded-lg bg-red-50 p-4 dark:bg-red-900/20">
+            <p className="text-xs font-medium uppercase text-red-600 dark:text-red-400">Failed</p>
+            <p
+              className="mt-1 text-2xl font-bold text-red-700 dark:text-red-300"
+              data-testid="run-summary-failed"
+            >
+              {execution.workOrders?.filter(wo => wo.status === 'FAILED').length || 0}
+            </p>
+          </div>
+          {/* Skipped */}
+          <div className="rounded-lg bg-gray-100 p-4 dark:bg-gray-600/30">
+            <p className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+              Skipped
+            </p>
+            <p className="mt-1 text-2xl font-bold text-gray-600 dark:text-gray-300">
+              {execution.workOrders?.filter(wo => wo.status === 'SKIPPED').length || 0}
+            </p>
+          </div>
+        </div>
+        {/* PR Link in Summary */}
+        {execution.prUrl && (
+          <div className="mt-4 flex items-center gap-3 border-t border-gray-200 pt-4 dark:border-gray-700">
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              Pull Request:
+            </span>
+            <a
+              href={execution.prUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm font-medium text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
+              data-testid="run-summary-pr-link"
+            >
+              <ExternalLink className="h-4 w-4" />
+              {execution.prUrl}
+            </a>
+          </div>
+        )}
+      </div>
+
       {/* WorkOrders Executed */}
       <div className="mb-6 rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
         <div className="flex items-center gap-2 border-b border-gray-200 px-6 py-4 dark:border-gray-700">
