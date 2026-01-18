@@ -117,14 +117,14 @@ RUNNER_DRY_RUN=1 npx playwright test tests/runner-ux-multiselect.spec.ts
 
 ## CI Status
 
-| Check              | Status     |
-| ------------------ | ---------- |
-| Lint               | ✅ SUCCESS |
-| Type Check         | ✅ SUCCESS |
-| Test               | ✅ SUCCESS |
-| Build              | ✅ SUCCESS |
+| Check | Status |
+|-------|--------|
+| Lint | ✅ SUCCESS |
+| Type Check | ✅ SUCCESS |
+| Test | ✅ SUCCESS |
+| Build | ✅ SUCCESS |
 | Build Docker Image | ✅ SUCCESS |
-| E2E Tests          | ✅ SUCCESS |
+| E2E Tests | ✅ SUCCESS |
 
 ## PR
 
