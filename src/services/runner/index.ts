@@ -835,7 +835,7 @@ export async function executeWorkOrders(config: ExecutionConfig): Promise<Execut
  * Get execution run details
  */
 export async function getExecutionRun(executionRunId: string) {
-  return prisma.executionRun.findUnique({
+  const run = await prisma.executionRun.findUnique({
     where: { id: executionRunId },
     include: {
       logs: {
@@ -843,6 +843,27 @@ export async function getExecutionRun(executionRunId: string) {
       },
     },
   });
+
+  if (!run) return null;
+
+  // Fetch work order details for the executed work orders
+  const workOrders = await prisma.workOrder.findMany({
+    where: {
+      id: { in: run.workOrderIds },
+    },
+    select: {
+      id: true,
+      key: true,
+      title: true,
+      domain: true,
+      status: true,
+    },
+  });
+
+  return {
+    ...run,
+    workOrders,
+  };
 }
 
 /**

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { SignedOutCTA, useDemoMode } from '@/components/auth';
 import {
@@ -15,6 +15,8 @@ import {
   ArrowLeft,
   GitBranch,
   FileText,
+  ListChecks,
+  RotateCcw,
 } from 'lucide-react';
 
 interface ExecutionLog {
@@ -26,6 +28,14 @@ interface ExecutionLog {
   detailsJson?: Record<string, unknown>;
 }
 
+interface WorkOrderSummary {
+  id: string;
+  key: string;
+  title: string;
+  domain: string;
+  status: string;
+}
+
 interface ExecutionRun {
   id: string;
   targetRepoOwner: string;
@@ -34,6 +44,7 @@ interface ExecutionRun {
   sourceBranch: string;
   status: string;
   workOrderIds: string[];
+  workOrders?: WorkOrderSummary[];
   prNumber: number | null;
   prUrl: string | null;
   prTitle: string | null;
@@ -52,6 +63,7 @@ interface ExecutionRun {
 
 export default function ExecutionDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id as string;
   const { status: authStatus } = useSession();
   const { isDemoMode } = useDemoMode();
@@ -60,6 +72,8 @@ export default function ExecutionDetailPage() {
   const [execution, setExecution] = useState<ExecutionRun | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isRerunning, setIsRerunning] = useState(false);
+  const [rerunError, setRerunError] = useState<string | null>(null);
 
   // Fetch execution details
   const fetchExecution = useCallback(async () => {
@@ -105,6 +119,41 @@ export default function ExecutionDetailPage() {
       return () => clearInterval(interval);
     }
   }, [execution, fetchExecution]);
+
+  // Handle re-run
+  const handleRerun = async () => {
+    if (!execution) return;
+    setIsRerunning(true);
+    setRerunError(null);
+
+    try {
+      const response = await fetch('/api/runner/execute', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          targetRepoOwner: execution.targetRepoOwner,
+          targetRepoName: execution.targetRepoName,
+          targetBranch: execution.targetBranch,
+          workOrderIds: execution.workOrderIds,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to re-run execution');
+      }
+
+      // Navigate to the new execution detail page
+      router.push(`/executions/${data.executionRunId}`);
+    } catch (err) {
+      setRerunError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setIsRerunning(false);
+    }
+  };
 
   // Status icon and colors
   const getStatusDisplay = (status: string) => {
@@ -269,17 +318,35 @@ export default function ExecutionDetailPage() {
               {execution.targetRepoOwner}/{execution.targetRepoName}
             </p>
           </div>
-          <button
-            onClick={fetchExecution}
-            className="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-            disabled={isLoading}
-            data-testid="execution-refresh"
-          >
-            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-            Refresh
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleRerun}
+              disabled={isRerunning}
+              className="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+              data-testid="execution-rerun"
+            >
+              <RotateCcw className={`h-4 w-4 ${isRerunning ? 'animate-spin' : ''}`} />
+              {isRerunning ? 'Re-running...' : 'Re-run'}
+            </button>
+            <button
+              onClick={fetchExecution}
+              className="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+              disabled={isLoading}
+              data-testid="execution-refresh"
+            >
+              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Re-run error */}
+      {rerunError && (
+        <div className="mb-6 rounded-lg bg-red-50 p-4 dark:bg-red-900/20">
+          <p className="text-sm text-red-600 dark:text-red-400">{rerunError}</p>
+        </div>
+      )}
 
       {/* Status Card */}
       <div className="mb-6 rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
@@ -352,6 +419,57 @@ export default function ExecutionDetailPage() {
                 PR Title
               </p>
               <p className="mt-1 text-sm text-gray-900 dark:text-white">{execution.prTitle}</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* WorkOrders Executed */}
+      <div className="mb-6 rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+        <div className="flex items-center gap-2 border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+          <ListChecks className="h-5 w-5 text-gray-500" />
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            WorkOrders Executed ({execution.workOrderIds.length})
+          </h2>
+        </div>
+        <div className="p-4" data-testid="execution-workorders-list">
+          {execution.workOrders && execution.workOrders.length > 0 ? (
+            <div className="space-y-2">
+              {execution.workOrders.map(wo => (
+                <Link
+                  key={wo.id}
+                  href={`/workorders?focus=${wo.id}`}
+                  className="flex items-center justify-between rounded-lg border border-gray-200 p-3 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700/50"
+                  data-testid={`execution-workorder-link-${wo.id}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono text-sm font-medium text-cyan-600 dark:text-cyan-400">
+                      {wo.key}
+                    </span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{wo.title}</span>
+                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-700 dark:text-gray-400">
+                      {wo.domain}
+                    </span>
+                  </div>
+                  <ExternalLink className="h-4 w-4 text-gray-400" />
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {execution.workOrderIds.map(woId => (
+                <Link
+                  key={woId}
+                  href={`/workorders?focus=${woId}`}
+                  className="flex items-center justify-between rounded-lg border border-gray-200 p-3 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700/50"
+                  data-testid={`execution-workorder-link-${woId}`}
+                >
+                  <span className="font-mono text-sm text-gray-600 dark:text-gray-400">
+                    {woId.slice(0, 8)}...
+                  </span>
+                  <ExternalLink className="h-4 w-4 text-gray-400" />
+                </Link>
+              ))}
             </div>
           )}
         </div>
