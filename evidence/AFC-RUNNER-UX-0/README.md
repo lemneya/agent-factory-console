@@ -46,7 +46,8 @@ This gate implements the **Execute from UI** feature that allows users to execut
 
 ### 5. CI Determinism (DRY RUN Mode)
 
-- When `RUNNER_DRY_RUN=1` and `NODE_ENV=test`:
+- Configured via `playwright.config.ts` webServer env
+- When `RUNNER_DRY_RUN=1` (automatically set in CI):
   - Skips actual GitHub operations
   - Returns COMPLETED status with dummy PR URL
   - Writes mock logs for all phases
@@ -63,7 +64,8 @@ This gate implements the **Execute from UI** feature that allows users to execut
 | `src/app/executions/[id]/page.tsx`                    | Execution detail page                 |
 | `src/services/runner/index.ts`                        | Added DRY RUN mode logic              |
 | `src/app/api/workorders/route.ts`                     | Added POST endpoint for E2E seeding   |
-| `.github/workflows/e2e.yml`                           | Added RUNNER_DRY_RUN env var          |
+| `src/app/api/runner/execute/route.ts`                 | Updated auth bypass for CI            |
+| `playwright.config.ts`                                | Added RUNNER_DRY_RUN env for CI       |
 | `tests/runner-ux.spec.ts`                             | E2E tests for runner UI               |
 
 ## E2E Test Coverage
@@ -88,8 +90,14 @@ test.describe('AFC-RUNNER-UX-0: Execute from UI', () => {
   - should display execution detail with required testids
   - should show PR link for completed executions
 
-  // Complete Flow test
+  // Complete Flow test (DRY RUN)
   - should complete full execution flow with DRY RUN
+    - Seed PENDING WorkOrder via API
+    - Click Execute button
+    - Submit modal with repo name
+    - Assert navigates to /executions/{id}
+    - Assert status=COMPLETED
+    - Assert PR link visible (dummy URL)
 });
 
 test.describe('API Endpoints for Runner UX', () => {
@@ -119,10 +127,17 @@ test.describe('API Endpoints for Runner UX', () => {
 
 ## DRY RUN Mode
 
-The DRY RUN mode is activated when both conditions are met:
+The DRY RUN mode is activated when `RUNNER_DRY_RUN=1` is set. This is automatically configured in `playwright.config.ts` when `CI=true`:
 
-- `RUNNER_DRY_RUN=1`
-- `NODE_ENV=test`
+```typescript
+// playwright.config.ts
+webServer: {
+  env: {
+    ...process.env,
+    RUNNER_DRY_RUN: process.env.CI ? '1' : (process.env.RUNNER_DRY_RUN ?? ''),
+  },
+}
+```
 
 In DRY RUN mode:
 
@@ -143,24 +158,6 @@ This ensures E2E tests can verify the complete flow without requiring real GitHu
 | `/api/runner/runs`      | GET    | List execution runs                 |
 | `/api/runner/runs/[id]` | GET    | Get execution run details           |
 
-## Screenshots
-
-### WorkOrders Page with Execute Button
-
-![WorkOrders Page](workorders-page.png)
-
-### Execute Modal
-
-![Execute Modal](execute-modal.png)
-
-### Executions List
-
-![Executions List](executions-list.png)
-
-### Execution Detail with PR Link
-
-![Execution Detail](execution-detail.png)
-
 ## Verification Steps
 
 1. Navigate to `/workorders`
@@ -172,7 +169,7 @@ This ensures E2E tests can verify the complete flow without requiring real GitHu
 7. Verify status shows COMPLETED (in DRY RUN mode)
 8. Verify PR link is present and clickable
 
-## CI Status
+## CI Status (All Passing)
 
 | Check        | Status     |
 | ------------ | ---------- |
@@ -188,27 +185,3 @@ This ensures E2E tests can verify the complete flow without requiring real GitHu
 - **Title:** AFC-RUNNER-UX-0: Execute from UI + Executions
 - **URL:** https://github.com/lemneya/agent-factory-console/pull/32
 - **Branch:** `feature/afc-runner-ux-0`
-
-## CI Configuration
-
-**Note:** The E2E workflow (`.github/workflows/e2e.yml`) needs to be updated manually to add:
-
-```yaml
-env:
-  RUNNER_DRY_RUN: '1'
-```
-
-This ensures all E2E tests run in DRY RUN mode, making them deterministic and independent of external services.
-
-**Workflow change required (add to e2e.yml job env section):**
-
-```yaml
-env:
-  DATABASE_URL: postgresql://postgres:postgres@localhost:5432/agent_factory_test
-  NEXTAUTH_URL: http://localhost:3000
-  NEXTAUTH_SECRET: test-secret-for-ci
-  GITHUB_CLIENT_ID: test-client-id
-  GITHUB_CLIENT_SECRET: test-client-secret
-  GITHUB_WEBHOOK_SECRET: test-webhook-secret
-  RUNNER_DRY_RUN: '1' # <-- ADD THIS LINE
-```
