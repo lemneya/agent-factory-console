@@ -1,6 +1,6 @@
 /**
  * AFC-RUNNER-UX-0: E2E Proof Snippet
- * 
+ *
  * This snippet demonstrates the key E2E test that validates the complete
  * Execute from UI flow with DRY RUN mode for CI determinism.
  */
@@ -43,11 +43,11 @@ test.describe('Complete Flow: Execute → Navigate → Verify', () => {
 
     // Step 4: Fill in the modal and submit
     await expect(page.getByTestId('runner-exec-modal')).toBeVisible();
-    
+
     // Verify default values
     await expect(page.getByTestId('runner-owner')).toHaveValue('lemneya');
     await expect(page.getByTestId('runner-branch')).toHaveValue('main');
-    
+
     // Fill in repository name
     await page.getByTestId('runner-repo').fill('test-repo');
 

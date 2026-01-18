@@ -127,7 +127,7 @@ export function ExecuteWorkOrderModal({
                 type="text"
                 id="owner"
                 value={owner}
-                onChange={(e) => setOwner(e.target.value)}
+                onChange={e => setOwner(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-cyan-500 focus:ring-cyan-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 placeholder="lemneya"
                 required
@@ -147,7 +147,7 @@ export function ExecuteWorkOrderModal({
                 type="text"
                 id="repo"
                 value={repo}
-                onChange={(e) => setRepo(e.target.value)}
+                onChange={e => setRepo(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-cyan-500 focus:ring-cyan-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 placeholder="my-project"
                 required
@@ -167,7 +167,7 @@ export function ExecuteWorkOrderModal({
                 type="text"
                 id="branch"
                 value={branch}
-                onChange={(e) => setBranch(e.target.value)}
+                onChange={e => setBranch(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-cyan-500 focus:ring-cyan-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 placeholder="main"
                 required

@@ -41,7 +41,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-
 interface CreateWorkOrderBody {
   key: string;
   domain: string;
@@ -58,10 +57,7 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!body.key || !body.domain || !body.title) {
-      return NextResponse.json(
-        { error: 'key, domain, and title are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'key, domain, and title are required' }, { status: 400 });
     }
 
     // Create the work order

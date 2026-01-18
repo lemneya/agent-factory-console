@@ -92,7 +92,14 @@ export default function ExecutionDetailPage() {
   // Auto-refresh for in-progress executions
   useEffect(() => {
     if (!execution) return;
-    const inProgressStatuses = ['PENDING', 'CLONING', 'APPLYING', 'BUILDING', 'TESTING', 'CREATING_PR'];
+    const inProgressStatuses = [
+      'PENDING',
+      'CLONING',
+      'APPLYING',
+      'BUILDING',
+      'TESTING',
+      'CREATING_PR',
+    ];
     if (inProgressStatuses.includes(execution.status)) {
       const interval = setInterval(fetchExecution, 3000);
       return () => clearInterval(interval);
@@ -101,7 +108,10 @@ export default function ExecutionDetailPage() {
 
   // Status icon and colors
   const getStatusDisplay = (status: string) => {
-    const statusConfig: Record<string, { icon: React.ReactNode; className: string; label: string }> = {
+    const statusConfig: Record<
+      string,
+      { icon: React.ReactNode; className: string; label: string }
+    > = {
       PENDING: {
         icon: <Clock className="h-5 w-5" />,
         className: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
@@ -249,7 +259,10 @@ export default function ExecutionDetailPage() {
         </Link>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white" data-testid="page-title">
+            <h1
+              className="text-2xl font-bold text-gray-900 dark:text-white"
+              data-testid="page-title"
+            >
               Execution: {execution.id.slice(0, 8)}...
             </h1>
             <p className="mt-1 text-gray-600 dark:text-gray-400">
@@ -308,7 +321,9 @@ export default function ExecutionDetailPage() {
         {/* Metadata */}
         <div className="mt-6 grid grid-cols-2 gap-4 border-t border-gray-200 pt-4 dark:border-gray-700 md:grid-cols-4">
           <div>
-            <p className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">Created</p>
+            <p className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+              Created
+            </p>
             <p className="mt-1 text-sm text-gray-900 dark:text-white">
               {formatDate(execution.createdAt)}
             </p>
@@ -354,7 +369,7 @@ export default function ExecutionDetailPage() {
         >
           {execution.logs && execution.logs.length > 0 ? (
             <div className="space-y-2">
-              {execution.logs.map((log) => (
+              {execution.logs.map(log => (
                 <div
                   key={log.id}
                   className="flex items-start gap-3 rounded bg-gray-50 p-2 dark:bg-gray-700/50"

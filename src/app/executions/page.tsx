@@ -192,7 +192,7 @@ function ExecutionsContent() {
       {/* Loading state */}
       {isLoading && (
         <div className="animate-pulse space-y-4">
-          {[1, 2, 3].map((i) => (
+          {[1, 2, 3].map(i => (
             <div key={i} className="h-20 rounded-xl bg-gray-200 dark:bg-gray-700" />
           ))}
         </div>
@@ -247,7 +247,7 @@ function ExecutionsContent() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {executions.map((execution) => {
+              {executions.map(execution => {
                 const statusDisplay = getStatusDisplay(execution.status);
                 return (
                   <tr

@@ -166,7 +166,7 @@ function WorkOrdersContent() {
       {/* Loading state */}
       {isLoading && (
         <div className="animate-pulse space-y-4">
-          {[1, 2, 3].map((i) => (
+          {[1, 2, 3].map(i => (
             <div key={i} className="h-20 rounded-xl bg-gray-200 dark:bg-gray-700" />
           ))}
         </div>
@@ -180,7 +180,9 @@ function WorkOrdersContent() {
               <Icon className="h-8 w-8" />
             </div>
           )}
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">No work orders yet</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            No work orders yet
+          </h2>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Work orders are created when blueprints are sliced. Create a blueprint first.
           </p>
@@ -196,7 +198,10 @@ function WorkOrdersContent() {
       {/* WorkOrders table */}
       {!isLoading && !error && workOrders.length > 0 && (
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700" data-testid="workorders-table">
+          <table
+            className="min-w-full divide-y divide-gray-200 dark:divide-gray-700"
+            data-testid="workorders-table"
+          >
             <thead className="bg-gray-50 dark:bg-gray-700/50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
@@ -220,7 +225,7 @@ function WorkOrdersContent() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {workOrders.map((workOrder) => (
+              {workOrders.map(workOrder => (
                 <tr
                   key={workOrder.id}
                   className="hover:bg-gray-50 dark:hover:bg-gray-700/50"

@@ -5,22 +5,26 @@ Implements **AFC-RUNNER-UX-0: Execute from UI + Executions** - allowing users to
 ## Features
 
 ### 1. WorkOrders Page Enhancement
+
 - Added **Execute** button on PENDING WorkOrder rows
 - Button triggers execution modal with repository configuration
 - TestID: `execute-workorder-{id}`
 
 ### 2. Execute Modal
+
 - Modal for configuring execution target repository
 - Fields: Repository Owner (default: `lemneya`), Repository Name, Base Branch (default: `main`)
 - On submit: calls `POST /api/runner/execute`
 - TestIDs: `runner-exec-modal`, `runner-owner`, `runner-repo`, `runner-branch`, `runner-submit`
 
 ### 3. Executions List Page (`/executions`)
+
 - Lists all ExecutionRun records
 - Shows: ID, Repository, Status, PR link, Created date
 - TestIDs: `executions-table`, `execution-row-{id}`
 
 ### 4. Execution Detail Page (`/executions/[id]`)
+
 - Shows execution status with visual indicators
 - Displays execution logs with phase/level/message
 - Shows PR link when available
@@ -28,6 +32,7 @@ Implements **AFC-RUNNER-UX-0: Execute from UI + Executions** - allowing users to
 - TestIDs: `execution-status`, `execution-logs`, `execution-pr-link`, `execution-refresh`
 
 ### 5. CI Determinism (DRY RUN Mode)
+
 - When `RUNNER_DRY_RUN=1` and `NODE_ENV=test`:
   - Skips actual GitHub operations
   - Returns COMPLETED status with dummy PR URL
@@ -35,18 +40,18 @@ Implements **AFC-RUNNER-UX-0: Execute from UI + Executions** - allowing users to
 
 ## Files Changed
 
-| File | Change |
-|------|--------|
-| `src/components/workorders/ExecuteWorkOrderModal.tsx` | New - Execute modal component |
-| `src/components/workorders/index.ts` | New - Component exports |
-| `src/app/workorders/page.tsx` | Modified - Added Execute button and table |
-| `src/app/executions/page.tsx` | New - Executions list page |
-| `src/app/executions/[id]/page.tsx` | New - Execution detail page |
-| `src/services/runner/index.ts` | Modified - Added DRY RUN mode logic |
-| `src/app/api/workorders/route.ts` | Modified - Added POST endpoint for E2E seeding |
-| `tests/runner-ux.spec.ts` | New - E2E tests for runner UI |
-| `evidence/AFC-RUNNER-UX-0/README.md` | New - Evidence documentation |
-| `evidence/AFC-RUNNER-UX-0/e2e-proof-snippet.ts` | New - E2E proof snippet |
+| File                                                  | Change                                         |
+| ----------------------------------------------------- | ---------------------------------------------- |
+| `src/components/workorders/ExecuteWorkOrderModal.tsx` | New - Execute modal component                  |
+| `src/components/workorders/index.ts`                  | New - Component exports                        |
+| `src/app/workorders/page.tsx`                         | Modified - Added Execute button and table      |
+| `src/app/executions/page.tsx`                         | New - Executions list page                     |
+| `src/app/executions/[id]/page.tsx`                    | New - Execution detail page                    |
+| `src/services/runner/index.ts`                        | Modified - Added DRY RUN mode logic            |
+| `src/app/api/workorders/route.ts`                     | Modified - Added POST endpoint for E2E seeding |
+| `tests/runner-ux.spec.ts`                             | New - E2E tests for runner UI                  |
+| `evidence/AFC-RUNNER-UX-0/README.md`                  | New - Evidence documentation                   |
+| `evidence/AFC-RUNNER-UX-0/e2e-proof-snippet.ts`       | New - E2E proof snippet                        |
 
 ## E2E Tests
 
@@ -75,20 +80,20 @@ test.describe('AFC-RUNNER-UX-0: Execute from UI', () => {
 
 ## Required TestIDs (All Implemented)
 
-| TestID | Location |
-|--------|----------|
+| TestID                   | Location         |
+| ------------------------ | ---------------- |
 | `execute-workorder-{id}` | WorkOrders table |
-| `runner-exec-modal` | Execute modal |
-| `runner-owner` | Execute modal |
-| `runner-repo` | Execute modal |
-| `runner-branch` | Execute modal |
-| `runner-submit` | Execute modal |
-| `executions-table` | Executions page |
-| `execution-row-{id}` | Executions page |
-| `execution-status` | Execution detail |
-| `execution-logs` | Execution detail |
-| `execution-pr-link` | Execution detail |
-| `execution-refresh` | Execution detail |
+| `runner-exec-modal`      | Execute modal    |
+| `runner-owner`           | Execute modal    |
+| `runner-repo`            | Execute modal    |
+| `runner-branch`          | Execute modal    |
+| `runner-submit`          | Execute modal    |
+| `executions-table`       | Executions page  |
+| `execution-row-{id}`     | Executions page  |
+| `execution-status`       | Execution detail |
+| `execution-logs`         | Execution detail |
+| `execution-pr-link`      | Execution detail |
+| `execution-refresh`      | Execution detail |
 
 ## CI Note
 

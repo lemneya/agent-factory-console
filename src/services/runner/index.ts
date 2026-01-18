@@ -660,12 +660,32 @@ export async function executeWorkOrders(config: ExecutionConfig): Promise<Execut
     const dummyPrNumber = 999;
 
     // Log dry run phases
-    await logExecution(executionRunId, 'DRY_RUN', 'INFO', 'DRY RUN MODE: Skipping actual execution');
-    await logExecution(executionRunId, 'CLONE', 'INFO', `[DRY RUN] Would clone ${targetRepoOwner}/${targetRepoName}`);
-    await logExecution(executionRunId, 'APPLY', 'INFO', `[DRY RUN] Would apply ${workOrderIds.length} work order(s)`);
+    await logExecution(
+      executionRunId,
+      'DRY_RUN',
+      'INFO',
+      'DRY RUN MODE: Skipping actual execution'
+    );
+    await logExecution(
+      executionRunId,
+      'CLONE',
+      'INFO',
+      `[DRY RUN] Would clone ${targetRepoOwner}/${targetRepoName}`
+    );
+    await logExecution(
+      executionRunId,
+      'APPLY',
+      'INFO',
+      `[DRY RUN] Would apply ${workOrderIds.length} work order(s)`
+    );
     await logExecution(executionRunId, 'BUILD', 'INFO', '[DRY RUN] Would run build');
     await logExecution(executionRunId, 'TEST', 'INFO', '[DRY RUN] Would run tests');
-    await logExecution(executionRunId, 'PR_CREATE', 'INFO', `[DRY RUN] Would create PR: ${dummyPrUrl}`);
+    await logExecution(
+      executionRunId,
+      'PR_CREATE',
+      'INFO',
+      `[DRY RUN] Would create PR: ${dummyPrUrl}`
+    );
     await logExecution(executionRunId, 'COMPLETE', 'INFO', 'DRY RUN completed successfully');
 
     // Update work orders to IN_PROGRESS

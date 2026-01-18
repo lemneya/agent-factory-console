@@ -274,7 +274,10 @@ test.describe('AFC-RUNNER-UX-0: Execute from UI', () => {
 
       // Check for COMPLETED status or PR link
       const statusText = await page.getByTestId('execution-status').textContent();
-      const hasPrLink = await page.getByTestId('execution-pr-link').isVisible().catch(() => false);
+      const hasPrLink = await page
+        .getByTestId('execution-pr-link')
+        .isVisible()
+        .catch(() => false);
 
       // In DRY RUN mode, we expect COMPLETED status and PR link
       if (process.env.RUNNER_DRY_RUN === '1') {
