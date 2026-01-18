@@ -207,11 +207,9 @@ test.describe('AFC-RUNNER-UX-0: Execute from UI', () => {
   });
 
   test.describe('Complete Flow: Execute → Navigate → Verify', () => {
-    // This test requires RUNNER_DRY_RUN=1 to be set in CI
-    // Since we cannot update the workflow file, we skip this test in CI
-    // The test can be run locally with RUNNER_DRY_RUN=1 NODE_ENV=test
-    test.skip('should complete full execution flow with DRY RUN', async ({ page, request }) => {
-      // Step 1: Create a PENDING work order
+    // RUNNER_DRY_RUN=1 is set via playwright.config.ts webServer.env when CI=true
+    test('should complete full execution flow with DRY RUN', async ({ page, request }) => {
+      // Step 1: Create a PENDING work order via API
       const timestamp = Date.now();
       const createWoRes = await request.post('/api/workorders', {
         data: {
@@ -223,19 +221,10 @@ test.describe('AFC-RUNNER-UX-0: Execute from UI', () => {
         },
       });
 
-      // If work order creation fails (e.g., no POST endpoint), skip the test
-      if (!createWoRes.ok()) {
-        test.skip();
-        return;
-      }
-
+      expect(createWoRes.ok()).toBe(true);
       const woData = await createWoRes.json();
       const workOrderId = woData.workOrder?.id;
-
-      if (!workOrderId) {
-        test.skip();
-        return;
-      }
+      expect(workOrderId).toBeTruthy();
 
       // Step 2: Navigate to workorders page
       await page.goto('/workorders?demo=1');
@@ -243,50 +232,39 @@ test.describe('AFC-RUNNER-UX-0: Execute from UI', () => {
 
       // Step 3: Find and click the execute button for our work order
       const executeButton = page.getByTestId(`execute-workorder-${workOrderId}`);
-      const hasButton = await executeButton.isVisible({ timeout: 5000 }).catch(() => false);
-
-      if (!hasButton) {
-        // Work order might not be visible in the list, skip
-        test.skip();
-        return;
-      }
-
+      await expect(executeButton).toBeVisible({ timeout: 5000 });
       await executeButton.click();
 
-      // Step 4: Fill in the modal and submit
+      // Step 4: Verify modal opens and fill in form
       await expect(page.getByTestId('runner-exec-modal')).toBeVisible();
+      await expect(page.getByTestId('runner-owner')).toBeVisible();
+      await expect(page.getByTestId('runner-repo')).toBeVisible();
+      await expect(page.getByTestId('runner-branch')).toBeVisible();
+      await expect(page.getByTestId('runner-submit')).toBeVisible();
 
       // Fill in repository name (owner and branch have defaults)
       await page.getByTestId('runner-repo').fill('test-repo');
 
-      // Submit the form
+      // Step 5: Submit the form - modal submit navigates to /executions/{id}
       await page.getByTestId('runner-submit').click();
+      await page.waitForURL(/\/executions\/[a-zA-Z0-9]+/, { timeout: 15000 });
 
-      // Step 5: Wait for navigation to execution detail page
-      await page.waitForURL(/\/executions\/[a-zA-Z0-9]+/, { timeout: 10000 });
-
-      // Step 6: Verify we're on the execution detail page
+      // Step 6: Verify execution detail page elements
       await expect(page.getByTestId('page-root')).toBeVisible();
       await expect(page.getByTestId('execution-status')).toBeVisible();
+      await expect(page.getByTestId('execution-refresh')).toBeVisible();
 
-      // Step 7: In DRY RUN mode, status should be COMPLETED
-      // Wait for status to update (may take a moment)
+      // Step 7: Wait for data to load and refresh
       await page.waitForTimeout(1000);
       await page.getByTestId('execution-refresh').click();
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(1000);
 
-      // Check for COMPLETED status or PR link
+      // Step 8: Assert execution-status shows Completed
       const statusText = await page.getByTestId('execution-status').textContent();
-      const hasPrLink = await page
-        .getByTestId('execution-pr-link')
-        .isVisible()
-        .catch(() => false);
+      expect(statusText).toContain('Completed');
 
-      // In DRY RUN mode, we expect COMPLETED status and PR link
-      if (process.env.RUNNER_DRY_RUN === '1') {
-        expect(statusText).toContain('Completed');
-        expect(hasPrLink).toBe(true);
-      }
+      // Step 9: Assert execution-pr-link is visible (dummy URL from DRY RUN)
+      await expect(page.getByTestId('execution-pr-link')).toBeVisible();
     });
   });
 });
