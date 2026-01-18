@@ -631,6 +631,10 @@ export async function executeWorkOrders(config: ExecutionConfig): Promise<Execut
 
   // DRY RUN MODE: Skip actual execution and return mock results for CI
   // This check is placed early to avoid requiring GitHub token in CI
+  console.log('[Runner] DRY_RUN check:', {
+    RUNNER_DRY_RUN: process.env.RUNNER_DRY_RUN,
+    isDryRunMode: isDryRunMode(),
+  });
   if (isDryRunMode()) {
     const dummyPrUrl = `https://github.com/${targetRepoOwner}/${targetRepoName}/pull/999`;
     const dummyPrNumber = 999;
