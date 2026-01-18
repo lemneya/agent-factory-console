@@ -20,7 +20,7 @@ declare const page: {
   };
   waitForURL: (pattern: RegExp, options?: { timeout?: number }) => Promise<void>;
 };
-declare const expect: (value: unknown) => {
+declare function expectValue(value: unknown): {
   toBeVisible: () => Promise<void>;
   toContainText: (text: string) => Promise<void>;
   toHaveText: (text: string) => Promise<void>;
@@ -35,14 +35,14 @@ async function blueprintBatchExecuteProof() {
 
   // 2. Assert execute button shows correct count (only 2 PENDING)
   const executeButton = page.getByTestId('blueprint-execute-pending');
-  await expect(executeButton).toContainText('Execute all PENDING (2)');
+  await expectValue(executeButton).toContainText('Execute all PENDING (2)');
 
   // 3. Click execute button
   await executeButton.click();
 
   // 4. Assert modal is visible
   const modal = page.getByTestId('runner-exec-modal');
-  await expect(modal).toBeVisible();
+  await expectValue(modal).toBeVisible();
 
   // 5. Fill in repo name and submit
   await page.getByTestId('runner-repo').fill('e2e-test-repo');
@@ -53,25 +53,25 @@ async function blueprintBatchExecuteProof() {
 
   // 7. Assert run summary card is visible
   const summaryCard = page.getByTestId('run-summary-card');
-  await expect(summaryCard).toBeVisible();
+  await expectValue(summaryCard).toBeVisible();
 
   // 8. Assert total count reflects only the 2 pending executed
   const totalCount = page.getByTestId('run-summary-total');
-  await expect(totalCount).toHaveText('2');
+  await expectValue(totalCount).toHaveText('2');
 
   // 9. Assert status is COMPLETED (DRY RUN mode)
   const statusBadge = page.getByTestId('execution-status');
-  await expect(statusBadge).toContainText('Completed');
+  await expectValue(statusBadge).toContainText('Completed');
 
   // 10. Assert PR link is visible (dummy URL from DRY RUN)
   const prLink = page.getByTestId('execution-pr-link');
-  await expect(prLink).toBeVisible();
+  await expectValue(prLink).toBeVisible();
 
   // 11. Assert run-summary-pr-link is visible
   const summaryPrLink = page.getByTestId('run-summary-pr-link');
-  await expect(summaryPrLink).toBeVisible();
+  await expectValue(summaryPrLink).toBeVisible();
 
   // 12. Assert WorkOrders Executed list is visible
   const workordersList = page.getByTestId('execution-workorders-list');
-  await expect(workordersList).toBeVisible();
+  await expectValue(workordersList).toBeVisible();
 }

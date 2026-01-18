@@ -31,6 +31,7 @@ This feature enables 1-click execution of all PENDING WorkOrders from a Blueprin
 ### 3. Run Summary Card (`run-summary-card`)
 
 Added to execution detail page with:
+
 - **Total count** (`run-summary-total`)
 - **Status breakdown**: Pending, In Progress, Completed, Failed, Skipped
 - **Completed count** (`run-summary-completed`)
@@ -45,14 +46,14 @@ Added to execution detail page with:
 
 ## Required Test IDs
 
-| Test ID | Component | Description |
-|---------|-----------|-------------|
+| Test ID                     | Component        | Description                |
+| --------------------------- | ---------------- | -------------------------- |
 | `blueprint-execute-pending` | Blueprint Detail | Execute all PENDING button |
-| `run-summary-card` | Execution Detail | Run Summary card container |
-| `run-summary-total` | Execution Detail | Total work orders count |
-| `run-summary-completed` | Execution Detail | Completed count |
-| `run-summary-failed` | Execution Detail | Failed count |
-| `run-summary-pr-link` | Execution Detail | PR link in summary |
+| `run-summary-card`          | Execution Detail | Run Summary card container |
+| `run-summary-total`         | Execution Detail | Total work orders count    |
+| `run-summary-completed`     | Execution Detail | Completed count            |
+| `run-summary-failed`        | Execution Detail | Failed count               |
+| `run-summary-pr-link`       | Execution Detail | PR link in summary         |
 
 ## E2E Test Coverage
 
@@ -84,6 +85,7 @@ File: `tests/runner-ux-blueprint.spec.ts`
 ## CI Determinism
 
 Uses existing DRY RUN mode configured in `playwright.config.ts`:
+
 - When `CI=true`, sets `RUNNER_DRY_RUN=1`
 - Returns COMPLETED status + dummy prUrl
 - No external dependencies required
@@ -91,6 +93,7 @@ Uses existing DRY RUN mode configured in `playwright.config.ts`:
 ## Files Changed
 
 ### New Files
+
 - `src/app/api/blueprints/route.ts` - Blueprints list/create API
 - `src/app/api/blueprints/[id]/route.ts` - Blueprint detail API
 - `src/app/blueprints/[id]/page.tsx` - Blueprint detail page
@@ -98,6 +101,7 @@ Uses existing DRY RUN mode configured in `playwright.config.ts`:
 - `evidence/AFC-RUNNER-UX-2/README.md` - This file
 
 ### Modified Files
+
 - `src/app/executions/[id]/page.tsx` - Added Run Summary card
 
 ## CI Status
