@@ -67,5 +67,9 @@ export default defineConfig({
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
+    env: {
+      ...process.env,
+      RUNNER_DRY_RUN: process.env.CI ? '1' : (process.env.RUNNER_DRY_RUN ?? ''),
+    },
   },
 });

@@ -64,6 +64,27 @@ describe('Runner Service', () => {
       const { getGitHubAccessToken } = await import('@/lib/auth');
       (getGitHubAccessToken as jest.Mock).mockResolvedValue(null);
 
+      const { prisma } = await import('@/lib/prisma');
+      // Mock work order lookup to return a valid PENDING work order
+      (prisma.workOrder.findMany as jest.Mock).mockResolvedValue([
+        {
+          id: 'wo-1',
+          key: 'test-wo',
+          domain: 'test',
+          title: 'Test WorkOrder',
+          spec: 'Test spec',
+          status: 'PENDING',
+        },
+      ]);
+      // Mock execution run creation
+      (prisma.executionRun.create as jest.Mock).mockResolvedValue({
+        id: 'run-1',
+      });
+      // Mock execution run update (for FAILED status)
+      (prisma.executionRun.update as jest.Mock).mockResolvedValue({});
+      // Mock execution log creation
+      (prisma.executionLog.create as jest.Mock).mockResolvedValue({});
+
       const { executeWorkOrders } = await import('@/services/runner');
 
       const result = await executeWorkOrders({
@@ -75,6 +96,8 @@ describe('Runner Service', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('GitHub access token not found');
+      // Now returns executionRunId since the run is created before token check
+      expect(result.executionRunId).toBe('run-1');
     });
 
     it('should reject when work orders are not found', async () => {
@@ -141,6 +164,15 @@ describe('Runner Service', () => {
           status: 'PENDING',
         },
       ]);
+      // Mock execution run creation
+      (prisma.executionRun.create as jest.Mock).mockResolvedValue({
+        id: 'run-1',
+      });
+      // Mock execution run update (for FAILED status)
+      (prisma.executionRun.update as jest.Mock).mockResolvedValue({});
+      // Mock execution log creation
+      (prisma.executionLog.create as jest.Mock).mockResolvedValue({});
+      // Mock council decision to return null (no approval)
       (prisma.councilDecision.findFirst as jest.Mock).mockResolvedValue(null);
 
       const { executeWorkOrders } = await import('@/services/runner');
@@ -155,6 +187,8 @@ describe('Runner Service', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('Council Gate');
+      // Now returns executionRunId since the run is created before council check
+      expect(result.executionRunId).toBe('run-1');
     });
   });
 

@@ -54,6 +54,13 @@ export interface WorkOrderSpec {
 const WORK_DIR = '/tmp/afc-runner';
 const EVIDENCE_DIR = 'evidence/AFC-RUNNER-0/runs';
 
+// DRY RUN mode for CI determinism
+// When RUNNER_DRY_RUN=1, skip actual execution and return mock results
+// This is set via playwright.config.ts webServer.env when CI=true
+const isDryRunMode = () => {
+  return process.env.RUNNER_DRY_RUN === '1';
+};
+
 // Security: Pattern to detect and redact tokens in strings
 const TOKEN_PATTERNS = [
   /ghp_[a-zA-Z0-9]{36}/g, // GitHub personal access tokens
@@ -86,6 +93,10 @@ function redactSecretsFromObject(obj: unknown): unknown {
   }
   if (Array.isArray(obj)) {
     return obj.map(redactSecretsFromObject);
+  }
+  // Preserve Date objects as-is (they are not sensitive)
+  if (obj instanceof Date) {
+    return obj;
   }
   if (obj && typeof obj === 'object') {
     const result: Record<string, unknown> = {};
@@ -570,17 +581,7 @@ export async function executeWorkOrders(config: ExecutionConfig): Promise<Execut
     };
   }
 
-  // Get access token
-  const accessToken = await getGitHubAccessToken(userId);
-  if (!accessToken) {
-    return {
-      success: false,
-      executionRunId: '',
-      error: 'GitHub access token not found. Please re-authenticate.',
-    };
-  }
-
-  // Fetch work orders and verify they are approved
+  // Fetch work orders and verify they exist
   const workOrders = await prisma.workOrder.findMany({
     where: {
       id: { in: workOrderIds },
@@ -605,22 +606,7 @@ export async function executeWorkOrders(config: ExecutionConfig): Promise<Execut
     };
   }
 
-  // SAFETY: Verify Council Gate if project is specified
-  if (projectId) {
-    const councilDecision = await prisma.councilDecision.findFirst({
-      where: { projectId },
-    });
-
-    if (!councilDecision) {
-      return {
-        success: false,
-        executionRunId: '',
-        error: 'Council Gate: No Council decision found for this project. Execution blocked.',
-      };
-    }
-  }
-
-  // Generate branch name
+  // Generate branch name and work order specs
   const workOrderSpecs: WorkOrderSpec[] = workOrders.map(wo => ({
     id: wo.id,
     key: wo.key,
@@ -646,6 +632,108 @@ export async function executeWorkOrders(config: ExecutionConfig): Promise<Execut
   });
 
   const executionRunId = executionRun.id;
+
+  // DRY RUN MODE: Skip actual execution and return mock results for CI
+  // This check is placed early to avoid requiring GitHub token in CI
+  if (isDryRunMode()) {
+    const dummyPrUrl = `https://github.com/${targetRepoOwner}/${targetRepoName}/pull/999`;
+    const dummyPrNumber = 999;
+
+    // Log dry run phases
+    await logExecution(
+      executionRunId,
+      'DRY_RUN',
+      'INFO',
+      'DRY RUN MODE: Skipping actual execution'
+    );
+    await logExecution(
+      executionRunId,
+      'CLONE',
+      'INFO',
+      `[DRY RUN] Would clone ${targetRepoOwner}/${targetRepoName}`
+    );
+    await logExecution(
+      executionRunId,
+      'APPLY',
+      'INFO',
+      `[DRY RUN] Would apply ${workOrderIds.length} work order(s)`
+    );
+    await logExecution(executionRunId, 'BUILD', 'INFO', '[DRY RUN] Would run build');
+    await logExecution(executionRunId, 'TEST', 'INFO', '[DRY RUN] Would run tests');
+    await logExecution(
+      executionRunId,
+      'PR_CREATE',
+      'INFO',
+      `[DRY RUN] Would create PR: ${dummyPrUrl}`
+    );
+    await logExecution(executionRunId, 'COMPLETE', 'INFO', 'DRY RUN completed successfully');
+
+    // Update work orders to IN_PROGRESS
+    await prisma.workOrder.updateMany({
+      where: { id: { in: workOrderIds } },
+      data: { status: 'IN_PROGRESS' },
+    });
+
+    // Mark execution as complete with dummy PR
+    await updateStatus(executionRunId, 'COMPLETED', {
+      completedAt: new Date(),
+      prNumber: dummyPrNumber,
+      prUrl: dummyPrUrl,
+      prTitle: `[AFC-DRY-RUN] ${workOrderSpecs.map(wo => wo.title).join(', ')}`,
+      prBody: 'This is a dry run PR for CI testing.',
+    });
+
+    return {
+      success: true,
+      executionRunId,
+      prUrl: dummyPrUrl,
+      prNumber: dummyPrNumber,
+    };
+  }
+
+  // Get access token (only needed for real execution)
+  const accessToken = await getGitHubAccessToken(userId);
+  if (!accessToken) {
+    await updateStatus(executionRunId, 'FAILED', {
+      failedAt: new Date(),
+    });
+    await logExecution(
+      executionRunId,
+      'AUTH',
+      'ERROR',
+      'GitHub access token not found. Please re-authenticate.'
+    );
+    return {
+      success: false,
+      executionRunId,
+      error: 'GitHub access token not found. Please re-authenticate.',
+    };
+  }
+
+  // SAFETY: Verify Council Gate if project is specified
+  if (projectId) {
+    const councilDecision = await prisma.councilDecision.findFirst({
+      where: { projectId },
+    });
+
+    if (!councilDecision) {
+      await updateStatus(executionRunId, 'FAILED', {
+        failedAt: new Date(),
+      });
+      await logExecution(
+        executionRunId,
+        'COUNCIL_GATE',
+        'ERROR',
+        'Council Gate: No Council decision found for this project. Execution blocked.'
+      );
+      return {
+        success: false,
+        executionRunId,
+        error: 'Council Gate: No Council decision found for this project. Execution blocked.',
+      };
+    }
+  }
+
   let repoDir = '';
 
   try {

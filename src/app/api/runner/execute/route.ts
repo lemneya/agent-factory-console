@@ -26,9 +26,11 @@ interface ExecuteRequestBody {
 
 export async function POST(request: NextRequest) {
   try {
-    // Check for dev auth bypass
+    // Check for dev auth bypass (also enabled in CI for E2E tests)
     const devAuthBypass =
-      process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS === 'true' || process.env.NODE_ENV === 'test';
+      process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS === 'true' ||
+      process.env.NODE_ENV === 'test' ||
+      process.env.CI === 'true';
 
     // Get user session
     const session = await getServerSession(authOptions);
