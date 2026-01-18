@@ -53,6 +53,16 @@ interface CreateWorkOrderBody {
 
 export async function POST(request: NextRequest) {
   try {
+    // Only allow seeding in test/CI/dev environments
+    const allowSeed =
+      process.env.NODE_ENV === 'test' ||
+      process.env.CI === 'true' ||
+      process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS === 'true';
+
+    if (!allowSeed) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const body: CreateWorkOrderBody = await request.json();
 
     // Validate required fields
