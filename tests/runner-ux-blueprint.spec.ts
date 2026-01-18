@@ -112,6 +112,9 @@ test.describe('AFC-RUNNER-UX-2: Blueprint Batch Execute', () => {
       // Navigate to blueprint detail page
       await page.goto(`/blueprints/${blueprintId}?demo=1`);
 
+      // Wait for page to load
+      await expect(page.getByTestId('page-title')).toBeVisible({ timeout: 10000 });
+
       // Click execute button
       await page.getByTestId('blueprint-execute-pending').click();
 
