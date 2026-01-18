@@ -173,7 +173,9 @@ WorkOrder ID: ${workOrder.id}
 
     // Commit changes
     await execAsync('git add -A', { cwd: repoDir });
-    await execAsync('git commit -m "[AFC] Demo: Apply WorkOrder afc-demo-workorder"', { cwd: repoDir });
+    await execAsync('git commit -m "[AFC] Demo: Apply WorkOrder afc-demo-workorder"', {
+      cwd: repoDir,
+    });
     await log(result, 'Changes committed');
 
     // Push branch

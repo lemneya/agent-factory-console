@@ -7,12 +7,14 @@ This gate implements the **Build-to-PR Execution Engine** that transforms approv
 ## Proof of Life
 
 ### Demo PR Created
+
 - **PR URL**: https://github.com/lemneya/orange-cab/pull/34
 - **Title**: [AFC-RUNNER-0] Proof-of-Life Demo PR
 - **Branch**: `afc/runner-demo-1768695678`
 - **Created At**: 2026-01-17T19:21:20-05:00
 
 ### Demo Execution Log
+
 ```
 === AFC-RUNNER-0 Proof-of-Life Demo ===
 Target: lemneya/orange-cab
@@ -53,20 +55,20 @@ Step 7: Cleaning up...
 
 ### New Files
 
-| File | Purpose |
-|------|---------|
-| `src/services/runner/index.ts` | Core execution engine service |
-| `src/app/api/runner/execute/route.ts` | Execute WorkOrders endpoint |
-| `src/app/api/runner/runs/route.ts` | List execution runs endpoint |
-| `src/app/api/runner/runs/[id]/route.ts` | Get execution run details |
-| `src/app/api/workorders/route.ts` | List WorkOrders endpoint |
-| `src/app/api/workorders/[id]/route.ts` | WorkOrder detail endpoint |
-| `src/app/api/workorders/[id]/execute/route.ts` | Execute single WorkOrder |
-| `prisma/migrations/20260117000000_add_execution_run/migration.sql` | Database migration |
-| `tests/runner-execute.spec.ts` | E2E tests for runner |
-| `__tests__/services/runner/runner.test.ts` | Unit tests for runner service |
-| `scripts/demo-runner-cli.sh` | CLI demo script |
-| `scripts/demo-runner-poc.ts` | TypeScript demo script |
+| File                                                               | Purpose                       |
+| ------------------------------------------------------------------ | ----------------------------- |
+| `src/services/runner/index.ts`                                     | Core execution engine service |
+| `src/app/api/runner/execute/route.ts`                              | Execute WorkOrders endpoint   |
+| `src/app/api/runner/runs/route.ts`                                 | List execution runs endpoint  |
+| `src/app/api/runner/runs/[id]/route.ts`                            | Get execution run details     |
+| `src/app/api/workorders/route.ts`                                  | List WorkOrders endpoint      |
+| `src/app/api/workorders/[id]/route.ts`                             | WorkOrder detail endpoint     |
+| `src/app/api/workorders/[id]/execute/route.ts`                     | Execute single WorkOrder      |
+| `prisma/migrations/20260117000000_add_execution_run/migration.sql` | Database migration            |
+| `tests/runner-execute.spec.ts`                                     | E2E tests for runner          |
+| `__tests__/services/runner/runner.test.ts`                         | Unit tests for runner service |
+| `scripts/demo-runner-cli.sh`                                       | CLI demo script               |
+| `scripts/demo-runner-poc.ts`                                       | TypeScript demo script        |
 
 ### Database Schema Additions
 
@@ -123,15 +125,15 @@ enum ExecutionStatus {
 
 ### API Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/runner/execute` | POST | Execute approved WorkOrders |
-| `/api/runner/runs` | GET | List execution runs |
-| `/api/runner/runs/[id]` | GET | Get execution run details |
-| `/api/workorders` | GET | List WorkOrders |
-| `/api/workorders/[id]` | GET | Get WorkOrder details |
-| `/api/workorders/[id]` | PATCH | Update WorkOrder status |
-| `/api/workorders/[id]/execute` | POST | Execute single WorkOrder |
+| Endpoint                       | Method | Description                 |
+| ------------------------------ | ------ | --------------------------- |
+| `/api/runner/execute`          | POST   | Execute approved WorkOrders |
+| `/api/runner/runs`             | GET    | List execution runs         |
+| `/api/runner/runs/[id]`        | GET    | Get execution run details   |
+| `/api/workorders`              | GET    | List WorkOrders             |
+| `/api/workorders/[id]`         | GET    | Get WorkOrder details       |
+| `/api/workorders/[id]`         | PATCH  | Update WorkOrder status     |
+| `/api/workorders/[id]/execute` | POST   | Execute single WorkOrder    |
 
 ### Safety Gates Preserved
 
@@ -144,6 +146,7 @@ enum ExecutionStatus {
 ## Tests
 
 ### Unit Tests (9 passing)
+
 ```
 Runner Service
   executeWorkOrders
@@ -161,20 +164,22 @@ Runner Service
 ```
 
 ### E2E Tests
+
 - `tests/runner-execute.spec.ts` - API validation and safety gate tests
 - `tests/memory.spec.ts` - Re-enabled memory tests (Issue #17 fix)
 
 ## Environment Variables
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DATABASE_URL` | Yes | PostgreSQL connection string |
-| `GITHUB_ID` | Yes | GitHub OAuth App ID |
-| `GITHUB_SECRET` | Yes | GitHub OAuth App Secret |
+| Variable        | Required | Description                  |
+| --------------- | -------- | ---------------------------- |
+| `DATABASE_URL`  | Yes      | PostgreSQL connection string |
+| `GITHUB_ID`     | Yes      | GitHub OAuth App ID          |
+| `GITHUB_SECRET` | Yes      | GitHub OAuth App Secret      |
 
 ## Usage
 
 ### Via API
+
 ```bash
 curl -X POST http://localhost:3000/api/runner/execute \
   -H "Content-Type: application/json" \
@@ -186,6 +191,7 @@ curl -X POST http://localhost:3000/api/runner/execute \
 ```
 
 ### Via CLI Demo
+
 ```bash
 ./scripts/demo-runner-cli.sh
 ```

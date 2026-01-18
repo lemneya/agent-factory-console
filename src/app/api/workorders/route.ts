@@ -17,12 +17,11 @@ export async function GET(request: NextRequest) {
     const workOrders = await prisma.workOrder.findMany({
       where: {
         ...(blueprintId && { blueprintId }),
-        ...(status && { status: status as 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED' | 'SKIPPED' }),
+        ...(status && {
+          status: status as 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED' | 'SKIPPED',
+        }),
       },
-      orderBy: [
-        { domain: 'asc' },
-        { key: 'asc' },
-      ],
+      orderBy: [{ domain: 'asc' }, { key: 'asc' }],
       take: limit,
       include: {
         blueprint: {
@@ -37,9 +36,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ workOrders });
   } catch (error) {
     console.error('Error listing work orders:', error);
-    return NextResponse.json(
-      { error: 'Failed to list work orders' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to list work orders' }, { status: 500 });
   }
 }

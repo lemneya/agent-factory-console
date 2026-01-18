@@ -91,9 +91,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error executing work orders:', error);
-    return NextResponse.json(
-      { error: 'Failed to execute work orders' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to execute work orders' }, { status: 500 });
   }
 }

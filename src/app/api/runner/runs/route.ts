@@ -18,9 +18,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ runs });
   } catch (error) {
     console.error('Error listing execution runs:', error);
-    return NextResponse.json(
-      { error: 'Failed to list execution runs' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to list execution runs' }, { status: 500 });
   }
 }

@@ -20,7 +20,6 @@ import { promisify } from 'util';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
-
 const execAsync = promisify(exec);
 
 // Types
@@ -70,7 +69,7 @@ async function logExecution(
       phase,
       level,
       message,
-      detailsJson: details as object ?? undefined,
+      detailsJson: (details as object) ?? undefined,
     },
   });
 }
@@ -351,12 +350,7 @@ async function createPullRequest(
   await logExecution(executionRunId, 'PR_CREATE', 'INFO', `Pushing branch ${headBranch}...`);
 
   // Push the branch
-  await execWithLog(
-    executionRunId,
-    'PR_CREATE',
-    `git push origin ${headBranch}`,
-    repoDir
-  );
+  await execWithLog(executionRunId, 'PR_CREATE', `git push origin ${headBranch}`, repoDir);
 
   await logExecution(executionRunId, 'PR_CREATE', 'INFO', 'Creating pull request...');
 

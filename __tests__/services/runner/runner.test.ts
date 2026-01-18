@@ -164,9 +164,7 @@ describe('Runner Service', () => {
       const mockRun = {
         id: 'run-1',
         status: 'COMPLETED',
-        logs: [
-          { id: 'log-1', phase: 'CLONE', message: 'Cloning...' },
-        ],
+        logs: [{ id: 'log-1', phase: 'CLONE', message: 'Cloning...' }],
       };
       (prisma.executionRun.findUnique as jest.Mock).mockResolvedValue(mockRun);
 

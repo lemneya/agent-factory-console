@@ -24,10 +24,7 @@ interface ExecuteRequestBody {
   targetBranch?: string;
 }
 
-export async function POST(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;
 
@@ -58,10 +55,7 @@ export async function POST(
     });
 
     if (!workOrder) {
-      return NextResponse.json(
-        { error: 'Work order not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Work order not found' }, { status: 404 });
     }
 
     // Parse request body for target repo
@@ -102,9 +96,6 @@ export async function POST(
     });
   } catch (error) {
     console.error('Error executing work order:', error);
-    return NextResponse.json(
-      { error: 'Failed to execute work order' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to execute work order' }, { status: 500 });
   }
 }

@@ -8,10 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export async function GET(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;
 
@@ -24,26 +21,17 @@ export async function GET(
     });
 
     if (!workOrder) {
-      return NextResponse.json(
-        { error: 'Work order not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Work order not found' }, { status: 404 });
     }
 
     return NextResponse.json({ workOrder });
   } catch (error) {
     console.error('Error getting work order:', error);
-    return NextResponse.json(
-      { error: 'Failed to get work order' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to get work order' }, { status: 500 });
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;
     const body = await request.json();
@@ -59,10 +47,7 @@ export async function PATCH(
     }
 
     if (Object.keys(updateData).length === 0) {
-      return NextResponse.json(
-        { error: 'No valid fields to update' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
     }
 
     const workOrder = await prisma.workOrder.update({
@@ -73,9 +58,6 @@ export async function PATCH(
     return NextResponse.json({ workOrder });
   } catch (error) {
     console.error('Error updating work order:', error);
-    return NextResponse.json(
-      { error: 'Failed to update work order' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update work order' }, { status: 500 });
   }
 }
