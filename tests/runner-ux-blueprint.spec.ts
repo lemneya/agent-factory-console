@@ -122,6 +122,9 @@ test.describe('AFC-RUNNER-UX-2: Blueprint Batch Execute', () => {
       // Wait for navigation to execution detail page
       await page.waitForURL(/\/executions\/[a-zA-Z0-9]+/);
 
+      // Wait for page to finish loading (execution status should be visible)
+      await expect(page.getByTestId('execution-status')).toBeVisible({ timeout: 15000 });
+
       // Assert run summary card is visible
       const summaryCard = page.getByTestId('run-summary-card');
       await expect(summaryCard).toBeVisible();
@@ -168,6 +171,9 @@ test.describe('AFC-RUNNER-UX-2: Blueprint Batch Execute', () => {
 
       // Wait for navigation to execution detail page
       await page.waitForURL(/\/executions\/[a-zA-Z0-9]+/, { timeout: 30000 });
+
+      // Wait for page to finish loading (execution status should be visible)
+      await expect(page.getByTestId('execution-status')).toBeVisible({ timeout: 15000 });
 
       // Assert run summary card is visible
       const summaryCard = page.getByTestId('run-summary-card');
