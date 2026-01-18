@@ -9,6 +9,7 @@
  * 5. Open PR back to GitHub
  *
  * SAFETY: Execution only proceeds after explicit approval (Council Gate satisfied)
+ * SECURITY: No secrets are logged - all tokens are redacted from logs, DB, and evidence files
  */
 
 import { prisma } from '@/lib/prisma';
@@ -53,8 +54,58 @@ export interface WorkOrderSpec {
 const WORK_DIR = '/tmp/afc-runner';
 const EVIDENCE_DIR = 'evidence/AFC-RUNNER-0/runs';
 
+// Security: Pattern to detect and redact tokens in strings
+const TOKEN_PATTERNS = [
+  /ghp_[a-zA-Z0-9]{36}/g, // GitHub personal access tokens
+  /gho_[a-zA-Z0-9]{36}/g, // GitHub OAuth tokens
+  /ghs_[a-zA-Z0-9]{36}/g, // GitHub App installation tokens
+  /ghu_[a-zA-Z0-9]{36}/g, // GitHub user-to-server tokens
+  /github_pat_[a-zA-Z0-9]{22}_[a-zA-Z0-9]{59}/g, // Fine-grained PATs
+  /x-access-token:[^@\s]+/gi, // x-access-token in URLs
+  /Bearer\s+[a-zA-Z0-9._-]+/gi, // Bearer tokens
+  /token=[a-zA-Z0-9._-]+/gi, // Token query params
+];
+
+/**
+ * SECURITY: Redact any tokens or secrets from a string
+ */
+function redactSecrets(input: string): string {
+  let result = input;
+  for (const pattern of TOKEN_PATTERNS) {
+    result = result.replace(pattern, '[REDACTED]');
+  }
+  return result;
+}
+
+/**
+ * SECURITY: Redact secrets from an object recursively
+ */
+function redactSecretsFromObject(obj: unknown): unknown {
+  if (typeof obj === 'string') {
+    return redactSecrets(obj);
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(redactSecretsFromObject);
+  }
+  if (obj && typeof obj === 'object') {
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      // Redact any key that might contain sensitive data
+      const sensitiveKeys = ['token', 'secret', 'password', 'auth', 'key', 'credential'];
+      if (sensitiveKeys.some(k => key.toLowerCase().includes(k))) {
+        result[key] = '[REDACTED]';
+      } else {
+        result[key] = redactSecretsFromObject(value);
+      }
+    }
+    return result;
+  }
+  return obj;
+}
+
 /**
  * Log a message to the execution run
+ * SECURITY: All messages are redacted before storage
  */
 async function logExecution(
   executionRunId: string,
@@ -68,25 +119,27 @@ async function logExecution(
       executionRunId,
       phase,
       level,
-      message,
-      detailsJson: (details as object) ?? undefined,
+      message: redactSecrets(message),
+      detailsJson: details ? (redactSecretsFromObject(details) as object) : undefined,
     },
   });
 }
 
 /**
  * Update execution run status
+ * SECURITY: Additional data is redacted before storage
  */
 async function updateStatus(
   executionRunId: string,
   status: ExecutionStatus,
   additionalData?: Record<string, unknown>
 ): Promise<void> {
+  const safeData = additionalData ? (redactSecretsFromObject(additionalData) as object) : {};
   await prisma.executionRun.update({
     where: { id: executionRunId },
     data: {
       status,
-      ...additionalData,
+      ...safeData,
       updatedAt: new Date(),
     },
   });
@@ -142,6 +195,7 @@ ${workOrderList}
 
 /**
  * Execute shell command with logging
+ * SECURITY: Commands are logged with secrets redacted
  */
 async function execWithLog(
   executionRunId: string,
@@ -150,7 +204,9 @@ async function execWithLog(
   cwd: string,
   env?: Record<string, string>
 ): Promise<{ stdout: string; stderr: string }> {
-  await logExecution(executionRunId, phase, 'DEBUG', `Executing: ${command}`, { cwd });
+  // SECURITY: Redact the command before logging
+  const safeCommand = redactSecrets(command);
+  await logExecution(executionRunId, phase, 'DEBUG', `Executing: ${safeCommand}`, { cwd });
 
   try {
     const result = await execAsync(command, {
@@ -161,17 +217,36 @@ async function execWithLog(
     return result;
   } catch (error) {
     const execError = error as { stdout?: string; stderr?: string; message?: string };
-    await logExecution(executionRunId, phase, 'ERROR', `Command failed: ${command}`, {
-      stdout: execError.stdout,
-      stderr: execError.stderr,
-      error: execError.message,
+    // SECURITY: Redact all output before logging
+    await logExecution(executionRunId, phase, 'ERROR', `Command failed: ${safeCommand}`, {
+      stdout: execError.stdout ? redactSecrets(execError.stdout) : undefined,
+      stderr: execError.stderr ? redactSecrets(execError.stderr) : undefined,
+      error: execError.message ? redactSecrets(execError.message) : undefined,
     });
     throw error;
   }
 }
 
 /**
+ * Configure git with credentials helper for secure auth
+ * SECURITY: Uses credential helper instead of embedding token in URL
+ */
+async function configureGitAuth(
+  executionRunId: string,
+  repoDir: string,
+  accessToken: string
+): Promise<void> {
+  // Set up credential helper that provides the token
+  await execAsync(
+    `git config credential.helper '!f() { echo "username=x-access-token"; echo "password=${accessToken}"; }; f'`,
+    { cwd: repoDir }
+  );
+  await logExecution(executionRunId, 'AUTH', 'DEBUG', 'Git credentials configured');
+}
+
+/**
  * Clone the target repository
+ * SECURITY: Uses HTTPS URL without embedded token
  */
 async function cloneRepository(
   executionRunId: string,
@@ -187,19 +262,32 @@ async function cloneRepository(
   // Ensure work directory exists
   await fs.mkdir(WORK_DIR, { recursive: true });
 
-  // Clone with token auth
-  const cloneUrl = `https://x-access-token:${accessToken}@github.com/${owner}/${repo}.git`;
-  const { stdout, stderr } = await execWithLog(
-    executionRunId,
-    'CLONE',
+  // SECURITY: Clone using HTTPS URL without embedded token
+  // We'll configure git credentials after clone
+  const cloneUrl = `https://github.com/${owner}/${repo}.git`;
+
+  // Use environment variable for auth during clone
+  const { stdout, stderr } = await execAsync(
     `git clone --branch ${branch} --single-branch ${cloneUrl} ${repoDir}`,
-    WORK_DIR
+    {
+      cwd: WORK_DIR,
+      env: {
+        ...process.env,
+        GIT_ASKPASS: 'echo',
+        GIT_USERNAME: 'x-access-token',
+        GIT_PASSWORD: accessToken,
+        GIT_TERMINAL_PROMPT: '0',
+      },
+    }
   );
 
-  // Update clone log
+  // Configure git auth for subsequent operations (push)
+  await configureGitAuth(executionRunId, repoDir, accessToken);
+
+  // SECURITY: Redact any secrets from clone output before storing
   await prisma.executionRun.update({
     where: { id: executionRunId },
-    data: { cloneLog: `${stdout}\n${stderr}` },
+    data: { cloneLog: redactSecrets(`${stdout}\n${stderr}`) },
   });
 
   await logExecution(executionRunId, 'CLONE', 'INFO', `Clone complete: ${repoDir}`);
@@ -282,22 +370,28 @@ async function runBuild(executionRunId: string, repoDir: string): Promise<boolea
       await logExecution(executionRunId, 'BUILD', 'INFO', 'Running build...');
       const buildResult = await execWithLog(executionRunId, 'BUILD', 'npm run build', repoDir);
 
+      // SECURITY: Redact any secrets from build output
       await prisma.executionRun.update({
         where: { id: executionRunId },
-        data: { buildLog: `${installResult.stdout}\n${buildResult.stdout}` },
+        data: { buildLog: redactSecrets(`${installResult.stdout}\n${buildResult.stdout}`) },
       });
     } else {
       await logExecution(executionRunId, 'BUILD', 'INFO', 'No build script found, skipping build');
       await prisma.executionRun.update({
         where: { id: executionRunId },
-        data: { buildLog: installResult.stdout },
+        data: { buildLog: redactSecrets(installResult.stdout) },
       });
     }
 
     return true;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    await logExecution(executionRunId, 'BUILD', 'WARN', `Build step skipped: ${errorMessage}`);
+    await logExecution(
+      executionRunId,
+      'BUILD',
+      'WARN',
+      `Build step skipped: ${redactSecrets(errorMessage)}`
+    );
     return false;
   }
 }
@@ -317,9 +411,10 @@ async function runTests(executionRunId: string, repoDir: string): Promise<boolea
       await logExecution(executionRunId, 'TEST', 'INFO', 'Running tests...');
       const testResult = await execWithLog(executionRunId, 'TEST', 'npm test', repoDir);
 
+      // SECURITY: Redact any secrets from test output
       await prisma.executionRun.update({
         where: { id: executionRunId },
-        data: { testLog: testResult.stdout },
+        data: { testLog: redactSecrets(testResult.stdout) },
       });
       return true;
     } else {
@@ -328,13 +423,19 @@ async function runTests(executionRunId: string, repoDir: string): Promise<boolea
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    await logExecution(executionRunId, 'TEST', 'WARN', `Tests skipped: ${errorMessage}`);
+    await logExecution(
+      executionRunId,
+      'TEST',
+      'WARN',
+      `Tests skipped: ${redactSecrets(errorMessage)}`
+    );
     return true; // Don't fail execution if tests fail
   }
 }
 
 /**
  * Push branch and create PR using Octokit
+ * SECURITY: Uses configured git credentials, not URL-embedded token
  */
 async function createPullRequest(
   executionRunId: string,
@@ -349,7 +450,7 @@ async function createPullRequest(
 ): Promise<{ prNumber: number; prUrl: string }> {
   await logExecution(executionRunId, 'PR_CREATE', 'INFO', `Pushing branch ${headBranch}...`);
 
-  // Push the branch
+  // Push the branch (uses configured credential helper)
   await execWithLog(executionRunId, 'PR_CREATE', `git push origin ${headBranch}`, repoDir);
 
   await logExecution(executionRunId, 'PR_CREATE', 'INFO', 'Creating pull request...');
@@ -385,6 +486,7 @@ async function createPullRequest(
 
 /**
  * Save evidence to the evidence folder
+ * SECURITY: All evidence content is redacted before writing
  */
 async function saveEvidence(
   executionRunId: string,
@@ -401,7 +503,7 @@ async function saveEvidence(
     orderBy: { createdAt: 'asc' },
   });
 
-  // Write execution log
+  // Write execution log - logs are already redacted when stored
   const logContent = logs
     .map(log => `[${log.createdAt.toISOString()}] [${log.phase}] [${log.level}] ${log.message}`)
     .join('\n');
@@ -446,6 +548,7 @@ async function cleanup(repoDir: string): Promise<void> {
 /**
  * Main execution function
  * SAFETY: This function enforces Council Gate and approval requirements
+ * SECURITY: No secrets are logged or stored
  */
 export async function executeWorkOrders(config: ExecutionConfig): Promise<ExecutionResult> {
   const {
@@ -617,7 +720,8 @@ export async function executeWorkOrders(config: ExecutionConfig): Promise<Execut
       prNumber,
     };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    // SECURITY: Redact any secrets from error messages
+    const errorMessage = error instanceof Error ? redactSecrets(error.message) : 'Unknown error';
 
     await updateStatus(executionRunId, 'FAILED', {
       errorMessage,
