@@ -577,17 +577,7 @@ export async function executeWorkOrders(config: ExecutionConfig): Promise<Execut
     };
   }
 
-  // Get access token
-  const accessToken = await getGitHubAccessToken(userId);
-  if (!accessToken) {
-    return {
-      success: false,
-      executionRunId: '',
-      error: 'GitHub access token not found. Please re-authenticate.',
-    };
-  }
-
-  // Fetch work orders and verify they are approved
+  // Fetch work orders and verify they exist
   const workOrders = await prisma.workOrder.findMany({
     where: {
       id: { in: workOrderIds },
@@ -612,22 +602,7 @@ export async function executeWorkOrders(config: ExecutionConfig): Promise<Execut
     };
   }
 
-  // SAFETY: Verify Council Gate if project is specified
-  if (projectId) {
-    const councilDecision = await prisma.councilDecision.findFirst({
-      where: { projectId },
-    });
-
-    if (!councilDecision) {
-      return {
-        success: false,
-        executionRunId: '',
-        error: 'Council Gate: No Council decision found for this project. Execution blocked.',
-      };
-    }
-  }
-
-  // Generate branch name
+  // Generate branch name and work order specs
   const workOrderSpecs: WorkOrderSpec[] = workOrders.map(wo => ({
     id: wo.id,
     key: wo.key,
@@ -653,9 +628,9 @@ export async function executeWorkOrders(config: ExecutionConfig): Promise<Execut
   });
 
   const executionRunId = executionRun.id;
-  let repoDir = '';
 
   // DRY RUN MODE: Skip actual execution and return mock results for CI
+  // This check is placed early to avoid requiring GitHub token in CI
   if (isDryRunMode()) {
     const dummyPrUrl = `https://github.com/${targetRepoOwner}/${targetRepoName}/pull/999`;
     const dummyPrNumber = 999;
@@ -711,6 +686,51 @@ export async function executeWorkOrders(config: ExecutionConfig): Promise<Execut
       prNumber: dummyPrNumber,
     };
   }
+
+  // Get access token (only needed for real execution)
+  const accessToken = await getGitHubAccessToken(userId);
+  if (!accessToken) {
+    await updateStatus(executionRunId, 'FAILED', {
+      failedAt: new Date(),
+    });
+    await logExecution(
+      executionRunId,
+      'AUTH',
+      'ERROR',
+      'GitHub access token not found. Please re-authenticate.'
+    );
+    return {
+      success: false,
+      executionRunId,
+      error: 'GitHub access token not found. Please re-authenticate.',
+    };
+  }
+
+  // SAFETY: Verify Council Gate if project is specified
+  if (projectId) {
+    const councilDecision = await prisma.councilDecision.findFirst({
+      where: { projectId },
+    });
+
+    if (!councilDecision) {
+      await updateStatus(executionRunId, 'FAILED', {
+        failedAt: new Date(),
+      });
+      await logExecution(
+        executionRunId,
+        'COUNCIL_GATE',
+        'ERROR',
+        'Council Gate: No Council decision found for this project. Execution blocked.'
+      );
+      return {
+        success: false,
+        executionRunId,
+        error: 'Council Gate: No Council decision found for this project. Execution blocked.',
+      };
+    }
+  }
+
+  let repoDir = '';
 
   try {
     // Phase 1: Clone
