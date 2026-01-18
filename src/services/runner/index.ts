@@ -54,6 +54,12 @@ export interface WorkOrderSpec {
 const WORK_DIR = '/tmp/afc-runner';
 const EVIDENCE_DIR = 'evidence/AFC-RUNNER-0/runs';
 
+// DRY RUN mode for CI determinism
+// When RUNNER_DRY_RUN=1 and NODE_ENV=test, skip actual execution and return mock results
+const isDryRunMode = () => {
+  return process.env.RUNNER_DRY_RUN === '1' && process.env.NODE_ENV === 'test';
+};
+
 // Security: Pattern to detect and redact tokens in strings
 const TOKEN_PATTERNS = [
   /ghp_[a-zA-Z0-9]{36}/g, // GitHub personal access tokens
@@ -647,6 +653,43 @@ export async function executeWorkOrders(config: ExecutionConfig): Promise<Execut
 
   const executionRunId = executionRun.id;
   let repoDir = '';
+
+  // DRY RUN MODE: Skip actual execution and return mock results for CI
+  if (isDryRunMode()) {
+    const dummyPrUrl = `https://github.com/${targetRepoOwner}/${targetRepoName}/pull/999`;
+    const dummyPrNumber = 999;
+
+    // Log dry run phases
+    await logExecution(executionRunId, 'DRY_RUN', 'INFO', 'DRY RUN MODE: Skipping actual execution');
+    await logExecution(executionRunId, 'CLONE', 'INFO', `[DRY RUN] Would clone ${targetRepoOwner}/${targetRepoName}`);
+    await logExecution(executionRunId, 'APPLY', 'INFO', `[DRY RUN] Would apply ${workOrderIds.length} work order(s)`);
+    await logExecution(executionRunId, 'BUILD', 'INFO', '[DRY RUN] Would run build');
+    await logExecution(executionRunId, 'TEST', 'INFO', '[DRY RUN] Would run tests');
+    await logExecution(executionRunId, 'PR_CREATE', 'INFO', `[DRY RUN] Would create PR: ${dummyPrUrl}`);
+    await logExecution(executionRunId, 'COMPLETE', 'INFO', 'DRY RUN completed successfully');
+
+    // Update work orders to IN_PROGRESS
+    await prisma.workOrder.updateMany({
+      where: { id: { in: workOrderIds } },
+      data: { status: 'IN_PROGRESS' },
+    });
+
+    // Mark execution as complete with dummy PR
+    await updateStatus(executionRunId, 'COMPLETED', {
+      completedAt: new Date(),
+      prNumber: dummyPrNumber,
+      prUrl: dummyPrUrl,
+      prTitle: `[AFC-DRY-RUN] ${workOrderSpecs.map(wo => wo.title).join(', ')}`,
+      prBody: 'This is a dry run PR for CI testing.',
+    });
+
+    return {
+      success: true,
+      executionRunId,
+      prUrl: dummyPrUrl,
+      prNumber: dummyPrNumber,
+    };
+  }
 
   try {
     // Phase 1: Clone
