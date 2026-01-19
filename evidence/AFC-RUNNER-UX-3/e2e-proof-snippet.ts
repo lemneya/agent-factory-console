@@ -1,6 +1,6 @@
 /**
  * AFC-RUNNER-UX-3: E2E Proof Snippet
- * 
+ *
  * This snippet demonstrates the core test case that proves
  * project repo binding works as specified.
  */
@@ -29,13 +29,7 @@ test('executes blueprint batch without modal when project repo config exists', a
   );
 
   // Seed: create 2 PENDING work orders
-  const woId1 = await seedWorkOrder(
-    request,
-    blueprintId,
-    'auth-module',
-    'Auth Module',
-    'auth'
-  );
+  const woId1 = await seedWorkOrder(request, blueprintId, 'auth-module', 'Auth Module', 'auth');
   const woId2 = await seedWorkOrder(request, blueprintId, 'crud-api', 'CRUD API', 'crud');
 
   // Navigate to blueprint detail page in demo mode

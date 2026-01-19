@@ -24,6 +24,7 @@ Enable blueprint batch execution to pull repository configuration from Project s
     - `baseBranch` optional, defaults to "main"
 
 **Files:**
+
 - `prisma/schema.prisma` - Project model updated
 - `prisma/migrations/20260118201805_add_project_repo_binding/migration.sql` - Migration SQL
 - `src/app/api/projects/[id]/route.ts` - PATCH endpoint added
@@ -38,6 +39,7 @@ Enable blueprint batch execution to pull repository configuration from Project s
   - `project-repo-save` (save button)
 
 **Files:**
+
 - `src/app/projects/[id]/settings/page.tsx` - Settings UI component
 
 ### 3. Blueprint Detail Execute Behavior ✅
@@ -46,13 +48,13 @@ Enable blueprint batch execution to pull repository configuration from Project s
   - Blueprint API now fetches project repo config if `projectId` exists
   - If config exists: Execute immediately without modal
   - If config missing: Show blocking warning banner with link to settings
-  
 - **Test IDs:**
   - `blueprint-execute-pending` - Execute button (existing)
   - `blueprint-missing-repo-config` - Warning banner when config missing
   - `blueprint-go-to-project-settings` - Link to project settings
 
 **Files:**
+
 - `src/app/api/blueprints/[id]/route.ts` - Fetch project repo config
 - `src/app/blueprints/[id]/page.tsx` - Execute logic updated
 
@@ -61,6 +63,7 @@ Enable blueprint batch execution to pull repository configuration from Project s
 **Test File:** `tests/runner-ux-project-repo-binding.spec.ts`
 
 **Test Cases:**
+
 1. ✅ Execute blueprint batch without modal when project repo config exists
    - Seeds project with repo config
    - Seeds blueprint attached to project
@@ -86,33 +89,39 @@ Enable blueprint batch execution to pull repository configuration from Project s
    - Asserts success message
 
 **Supporting Files:**
+
 - `src/app/api/test/seed/project/route.ts` - Test seed endpoint for projects
 
 ### 5. Evidence ✅
 
 **Files:**
+
 - `evidence/AFC-RUNNER-UX-3/README.md` - This file
 - `evidence/AFC-RUNNER-UX-3/e2e-proof-snippet.ts` - E2E test proof snippet
 
 ## Implementation Summary
 
 ### Database Schema
+
 ```sql
-ALTER TABLE "Project" 
+ALTER TABLE "Project"
   ADD COLUMN "repoOwner" TEXT,
   ADD COLUMN "baseBranch" TEXT DEFAULT 'main';
 ```
 
 ### API Changes
+
 - **PATCH /api/projects/[id]** - New endpoint for updating repo config
 - **GET /api/blueprints/[id]** - Enhanced to include `projectRepoConfig`
 
 ### UI Components
+
 - **Project Settings Page** - New page at `/projects/[id]/settings`
 - **Blueprint Detail Page** - Updated to use project config for batch execute
 - **Warning Banner** - Shows when config is missing with link to settings
 
 ### E2E Tests
+
 - **3 test cases** covering happy path, missing config, and settings page
 - Uses DRY RUN mode for deterministic execution
 - Includes test seed endpoint for projects

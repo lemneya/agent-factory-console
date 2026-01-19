@@ -50,7 +50,7 @@ export default function ProjectSettingsPage() {
       }
       const data = await response.json();
       setProject(data);
-      
+
       // Initialize form with existing values
       setRepoOwner(data.repoOwner || '');
       setRepoName(data.repoName || data.repoName || '');
@@ -98,7 +98,7 @@ export default function ProjectSettingsPage() {
       const updatedProject = await response.json();
       setProject(updatedProject);
       setSaveSuccess(true);
-      
+
       // Clear success message after 3 seconds
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {
@@ -235,7 +235,7 @@ export default function ProjectSettingsPage() {
               type="text"
               id="repoOwner"
               value={repoOwner}
-              onChange={(e) => setRepoOwner(e.target.value)}
+              onChange={e => setRepoOwner(e.target.value)}
               className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               placeholder="e.g., lemneya"
               required
@@ -258,7 +258,7 @@ export default function ProjectSettingsPage() {
               type="text"
               id="repoName"
               value={repoName}
-              onChange={(e) => setRepoName(e.target.value)}
+              onChange={e => setRepoName(e.target.value)}
               className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               placeholder="e.g., agent-factory-console"
               required
@@ -281,7 +281,7 @@ export default function ProjectSettingsPage() {
               type="text"
               id="baseBranch"
               value={baseBranch}
-              onChange={(e) => setBaseBranch(e.target.value)}
+              onChange={e => setBaseBranch(e.target.value)}
               className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               placeholder="main"
               data-testid="project-repo-branch"

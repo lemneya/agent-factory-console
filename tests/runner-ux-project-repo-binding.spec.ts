@@ -94,13 +94,7 @@ test.describe('AFC-RUNNER-UX-3: Project Repo Binding (Zero Typing)', () => {
     );
 
     // Seed: create 2 PENDING work orders
-    const woId1 = await seedWorkOrder(
-      request,
-      blueprintId,
-      'auth-module',
-      'Auth Module',
-      'auth'
-    );
+    const woId1 = await seedWorkOrder(request, blueprintId, 'auth-module', 'Auth Module', 'auth');
     const woId2 = await seedWorkOrder(request, blueprintId, 'crud-api', 'CRUD API', 'crud');
 
     // Navigate to blueprint detail page in demo mode

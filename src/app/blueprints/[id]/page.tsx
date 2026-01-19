@@ -293,7 +293,8 @@ export default function BlueprintDetailPage() {
               </h3>
               <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-500">
                 This blueprint is linked to a project, but repository settings are not configured.
-                Please configure the repository settings to execute work orders without manual input.
+                Please configure the repository settings to execute work orders without manual
+                input.
               </p>
               <Link
                 href={`/projects/${blueprint.projectId}/settings`}
