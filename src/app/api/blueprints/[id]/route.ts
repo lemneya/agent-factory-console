@@ -33,6 +33,27 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Blueprint not found' }, { status: 404 });
     }
 
+    // AFC-RUNNER-UX-3: Fetch project repo config if projectId exists
+    let projectRepoConfig = null;
+    if (blueprint.projectId) {
+      const project = await prisma.project.findUnique({
+        where: { id: blueprint.projectId },
+        select: {
+          id: true,
+          repoOwner: true,
+          repoName: true,
+          baseBranch: true,
+        },
+      });
+      if (project && project.repoOwner && project.repoName) {
+        projectRepoConfig = {
+          repoOwner: project.repoOwner,
+          repoName: project.repoName,
+          baseBranch: project.baseBranch || 'main',
+        };
+      }
+    }
+
     // Calculate status counts
     const statusCounts = blueprint.workOrders.reduce(
       (acc, wo) => {
@@ -53,6 +74,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         statusCounts,
         pendingCount: statusCounts['PENDING'] || 0,
         pendingWorkOrderIds,
+        projectRepoConfig, // AFC-RUNNER-UX-3: Include project repo config
       },
     });
   } catch (error) {

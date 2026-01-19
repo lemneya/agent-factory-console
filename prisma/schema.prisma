@@ -75,6 +75,9 @@ model Project {
   // AFC-1.6: Memory Layer relations
   memoryItems      MemoryItem[]
   memoryPolicy     MemoryPolicy?
+  // AFC-RUNNER-UX-3: Project Repo Binding
+  repoOwner        String?
+  baseBranch       String?           @default("main")
   createdAt        DateTime          @default(now())
 }
 
