@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface ExecuteWorkOrderModalProps {
   isOpen: boolean;
@@ -17,6 +17,7 @@ export function ExecuteWorkOrderModal({
   workOrderTitles = [],
 }: ExecuteWorkOrderModalProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [owner, setOwner] = useState('lemneya');
   const [repo, setRepo] = useState('');
   const [branch, setBranch] = useState('main');
@@ -50,8 +51,13 @@ export function ExecuteWorkOrderModal({
         throw new Error(data.error || 'Failed to execute work orders');
       }
 
-      // Navigate to the execution detail page
-      router.push(`/executions/${data.executionRunId}`);
+      // Navigate to the execution detail page, preserving demo mode if active
+      const demoParam = searchParams.get('demo');
+      const url =
+        demoParam === '1'
+          ? `/executions/${data.executionRunId}?demo=1`
+          : `/executions/${data.executionRunId}`;
+      router.push(url);
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
