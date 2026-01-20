@@ -157,3 +157,47 @@ Tests: 13 passed, 13 total
 - No background cron (refresh only on-demand)
 - No adapter invocation or runtime calls
 - No UI (optional future enhancement)
+
+## Verification Status (2026-01-20)
+
+### CI Verification
+
+All checks passed on PR #42:
+
+- ✅ Lint: SUCCESS
+- ✅ Type Check: SUCCESS
+- ✅ Test: SUCCESS (13 unit tests)
+- ✅ Build: SUCCESS
+- ✅ Docker Build: SUCCESS
+- ✅ E2E Tests: SUCCESS
+
+### Merge Status
+
+- PR #40 (AFC-ADAPTER-2): MERGED
+- PR #42 (AFC-ADAPTER-3): MERGED
+
+### Production Smoke Test Commands
+
+Once deployed to an environment with DATABASE_URL:
+
+```bash
+# 1. Seed default adapters
+curl -X POST https://your-afc-host/api/adapters/seed
+
+# 2. Refresh all adapter health status
+curl -X POST https://your-afc-host/api/adapters/status/refresh
+
+# 3. Get adapter status (cached)
+curl https://your-afc-host/api/adapters/status
+
+# 4. Get adapter status (force refresh)
+curl "https://your-afc-host/api/adapters/status?refresh=1"
+
+# 5. Add unreachable test adapter (via SQL)
+INSERT INTO "Adapter" (id, name, version, "baseUrl", enabled, "createdAt", "updatedAt")
+VALUES ('test-dead', 'dead-adapter', '1.0.0', 'http://localhost:9999', true, NOW(), NOW());
+
+# 6. Refresh and verify UNREACHABLE status
+curl -X POST https://your-afc-host/api/adapters/status/refresh
+# Expected: {"ok":1,"unreachable":1,"skipped":0,"total":2,...}
+```
