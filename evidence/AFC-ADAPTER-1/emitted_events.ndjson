@@ -1,0 +1,9 @@
+{"ts": 1768879787132, "run_id": "3856fb75-6139-41a4-839a-8e0c5b47ebb7", "span_id": "e944ccd1-73d9-4f24-b1c1-526bddebffb5", "parent_span_id": null, "type": "LOG", "payload": {"msg": "run created"}}
+{"ts": 1768879787133, "run_id": "3856fb75-6139-41a4-839a-8e0c5b47ebb7", "span_id": "e944ccd1-73d9-4f24-b1c1-526bddebffb5", "parent_span_id": null, "type": "LOG", "payload": {"msg": "plan"}}
+{"ts": 1768879787133, "run_id": "3856fb75-6139-41a4-839a-8e0c5b47ebb7", "span_id": "e944ccd1-73d9-4f24-b1c1-526bddebffb5", "parent_span_id": null, "type": "STATE_UPDATE", "payload": {"state": {"plan": "planned"}}}
+{"ts": 1768879787133, "run_id": "3856fb75-6139-41a4-839a-8e0c5b47ebb7", "span_id": "e944ccd1-73d9-4f24-b1c1-526bddebffb5", "parent_span_id": null, "type": "CHECKPOINT_SAVED", "payload": {"at": "plan"}}
+{"ts": 1768879787134, "run_id": "3856fb75-6139-41a4-839a-8e0c5b47ebb7", "span_id": "e944ccd1-73d9-4f24-b1c1-526bddebffb5", "parent_span_id": null, "type": "INTERRUPT_REQUIRED", "payload": {"gate_type": "approval", "resume_schema": {"approved": "bool", "notes": "str?"}}}
+{"ts": 1768879787175, "run_id": "3856fb75-6139-41a4-839a-8e0c5b47ebb7", "span_id": "e944ccd1-73d9-4f24-b1c1-526bddebffb5", "parent_span_id": null, "type": "RESUMED", "payload": {"approved": true, "notes": "ok"}}
+{"ts": 1768879787176, "run_id": "3856fb75-6139-41a4-839a-8e0c5b47ebb7", "span_id": "e944ccd1-73d9-4f24-b1c1-526bddebffb5", "parent_span_id": null, "type": "LOG", "payload": {"msg": "plan"}}
+{"ts": 1768879787176, "run_id": "3856fb75-6139-41a4-839a-8e0c5b47ebb7", "span_id": "e944ccd1-73d9-4f24-b1c1-526bddebffb5", "parent_span_id": null, "type": "STATE_UPDATE", "payload": {"state": {"plan": "planned"}}}
+{"ts": 1768879787176, "run_id": "3856fb75-6139-41a4-839a-8e0c5b47ebb7", "span_id": "e944ccd1-73d9-4f24-b1c1-526bddebffb5", "parent_span_id": null, "type": "CHECKPOINT_SAVED", "payload": {"at": "plan"}}
