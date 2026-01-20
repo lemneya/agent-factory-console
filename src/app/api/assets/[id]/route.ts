@@ -1,5 +1,14 @@
+/**
+ * GET/PUT/DELETE /api/assets/[id]
+ *
+ * SECURITY-0: Write operations require authentication.
+ * Assets are shared resources without per-user ownership,
+ * so only session validation is required (not ownership).
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { requireAuth } from '@/lib/auth-helpers';
 
 // GET /api/assets/[id] - Get asset details with all versions
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -39,6 +48,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+
+    // SECURITY-0: Require authentication
+    const authResult = await requireAuth();
+    if (authResult.error) return authResult.error;
+
     const body = await request.json();
     const { name, description, category, defaultLicense, tags } = body;
 
@@ -89,6 +103,10 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
+
+    // SECURITY-0: Require authentication
+    const authResult = await requireAuth();
+    if (authResult.error) return authResult.error;
 
     // Check if asset exists
     const existingAsset = await prisma.asset.findUnique({

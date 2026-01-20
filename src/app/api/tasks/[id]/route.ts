@@ -1,5 +1,14 @@
+/**
+ * GET/PUT/DELETE /api/tasks/[id]
+ *
+ * SECURITY-0: All write operations require:
+ * - Authentication (session required)
+ * - Ownership verification (user must own the task via run -> project chain)
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { requireAuth, requireTaskOwnership } from '@/lib/auth-helpers';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -47,6 +56,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+
+    // SECURITY-0: Require authentication
+    const authResult = await requireAuth();
+    if (authResult.error) return authResult.error;
+    const { userId } = authResult;
+
+    // SECURITY-0: Verify ownership (via run -> project chain)
+    const ownershipResult = await requireTaskOwnership(id, userId);
+    if (ownershipResult.error) return ownershipResult.error;
+
     const body = await request.json();
     const { title, description, status, priority, assignee } = body;
 
@@ -96,6 +115,15 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
+
+    // SECURITY-0: Require authentication
+    const authResult = await requireAuth();
+    if (authResult.error) return authResult.error;
+    const { userId } = authResult;
+
+    // SECURITY-0: Verify ownership (via run -> project chain)
+    const ownershipResult = await requireTaskOwnership(id, userId);
+    if (ownershipResult.error) return ownershipResult.error;
 
     await prisma.task.delete({
       where: { id },

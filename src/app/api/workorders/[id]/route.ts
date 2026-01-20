@@ -3,10 +3,14 @@
  * PATCH /api/workorders/[id]
  *
  * AFC-RUNNER-0: WorkOrder detail and update endpoints
+ *
+ * SECURITY-0: Write operations require authentication.
+ * WorkOrders with a project association require ownership verification.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireAuth, requireWorkOrderOwnership } from '@/lib/auth-helpers';
 
 export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
@@ -34,6 +38,16 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
 export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;
+
+    // SECURITY-0: Require authentication
+    const authResult = await requireAuth();
+    if (authResult.error) return authResult.error;
+    const { userId } = authResult;
+
+    // SECURITY-0: Verify ownership (via blueprint -> project chain if exists)
+    const ownershipResult = await requireWorkOrderOwnership(id, userId);
+    if (ownershipResult.error) return ownershipResult.error;
+
     const body = await request.json();
 
     // Only allow updating status and runId

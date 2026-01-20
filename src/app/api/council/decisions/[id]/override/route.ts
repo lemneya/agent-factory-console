@@ -1,10 +1,29 @@
+/**
+ * POST /api/council/decisions/[id]/override
+ *
+ * SECURITY-0: Override requires:
+ * - Authentication (session required)
+ * - Ownership verification (user must own the project)
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { requireAuth, requireCouncilDecisionOwnership } from '@/lib/auth-helpers';
 
 // POST /api/council/decisions/[id]/override - Override a decision with justification
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+
+    // SECURITY-0: Require authentication
+    const authResult = await requireAuth();
+    if (authResult.error) return authResult.error;
+    const { userId } = authResult;
+
+    // SECURITY-0: Verify ownership (via project)
+    const ownershipResult = await requireCouncilDecisionOwnership(id, userId);
+    if (ownershipResult.error) return ownershipResult.error;
+
     const body = await request.json();
     const { decision, rationale, overrideReason } = body;
 
