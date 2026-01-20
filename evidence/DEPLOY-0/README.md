@@ -5,36 +5,37 @@
 This document provides the complete deployment guide for the Agent Factory Console application. It includes environment configuration, deployment scripts, health checks, and operational runbook.
 
 ## Audit Date
+
 2026-01-19
 
 ## Deliverables
 
 ### 1. Environment Templates
 
-| File | Purpose |
-|------|---------|
-| `.env.example` | Development environment template |
-| `.env.production.example` | Production environment template |
+| File                      | Purpose                          |
+| ------------------------- | -------------------------------- |
+| `.env.example`            | Development environment template |
+| `.env.production.example` | Production environment template  |
 
 ### 2. Docker Configuration
 
-| File | Purpose |
-|------|---------|
-| `docker-compose.yml` | Development environment |
-| `docker-compose.production.yml` | Production environment |
-| `Dockerfile` | Multi-stage build (dev/prod) |
+| File                            | Purpose                      |
+| ------------------------------- | ---------------------------- |
+| `docker-compose.yml`            | Development environment      |
+| `docker-compose.production.yml` | Production environment       |
+| `Dockerfile`                    | Multi-stage build (dev/prod) |
 
 ### 3. Deployment Scripts
 
-| File | Purpose |
-|------|---------|
-| `scripts/deploy.sh` | Automated deployment script |
-| `scripts/migrate.sh` | Database migration script |
+| File                 | Purpose                     |
+| -------------------- | --------------------------- |
+| `scripts/deploy.sh`  | Automated deployment script |
+| `scripts/migrate.sh` | Database migration script   |
 
 ### 4. Health Checks
 
-| Endpoint | Purpose |
-|----------|---------|
+| Endpoint          | Purpose                                         |
+| ----------------- | ----------------------------------------------- |
 | `GET /api/health` | Comprehensive health check with DB connectivity |
 
 ---
@@ -65,6 +66,7 @@ cp .env.production.example .env.production
 ```
 
 **Generate secrets:**
+
 ```bash
 # Generate NEXTAUTH_SECRET
 openssl rand -base64 32
@@ -151,10 +153,12 @@ npx prisma migrate status
 **URL**: `GET /api/health`
 
 **Response Codes**:
+
 - `200`: All systems healthy
 - `503`: One or more systems unhealthy
 
 **Checks Performed**:
+
 - Database connectivity and latency
 - Memory usage
 

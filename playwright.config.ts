@@ -71,7 +71,9 @@ export default defineConfig({
       ...process.env,
       // SECURITY-0: Enable auth bypass for E2E tests (explicit opt-in)
       // This is the ONLY way auth bypass is enabled in CI - not implicitly via CI env var
-      NEXT_PUBLIC_DEV_AUTH_BYPASS: process.env.CI ? 'true' : (process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS ?? 'false'),
+      NEXT_PUBLIC_DEV_AUTH_BYPASS: process.env.CI
+        ? 'true'
+        : (process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS ?? 'false'),
       RUNNER_DRY_RUN: process.env.CI ? '1' : (process.env.RUNNER_DRY_RUN ?? ''),
     },
   },

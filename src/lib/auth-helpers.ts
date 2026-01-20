@@ -30,10 +30,7 @@ import { prisma } from '@/lib/prisma';
  * NOTE: CI alone does NOT enable bypass. E2E tests set NEXT_PUBLIC_DEV_AUTH_BYPASS explicitly.
  */
 export function isDevAuthBypass(): boolean {
-  return (
-    process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS === 'true' ||
-    process.env.NODE_ENV === 'test'
-  );
+  return process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS === 'true' || process.env.NODE_ENV === 'test';
 }
 
 export interface AuthResult {
