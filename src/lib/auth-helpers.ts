@@ -17,6 +17,17 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
+export class AuthHelperError extends Error {
+  constructor(
+    message: string,
+    public readonly operation: string,
+    public readonly cause?: unknown
+  ) {
+    super(message);
+    this.name = 'AuthHelperError';
+  }
+}
+
 /**
  * Check if running in a test/dev bypass context.
  *
@@ -77,34 +88,44 @@ export async function requireProjectOwnership(
   projectId: string,
   userId: string
 ): Promise<{ success: true; error?: never } | { success?: never; error: NextResponse }> {
-  const devAuthBypass = isDevAuthBypass();
+  try {
+    const devAuthBypass = isDevAuthBypass();
 
-  // In dev bypass mode, skip ownership check
-  if (devAuthBypass && userId === 'dev-bypass-user') {
+    // In dev bypass mode, skip ownership check
+    if (devAuthBypass && userId === 'dev-bypass-user') {
+      return { success: true };
+    }
+
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: { userId: true },
+    });
+
+    if (!project) {
+      return {
+        error: NextResponse.json({ error: 'Project not found' }, { status: 404 }),
+      };
+    }
+
+    if (project.userId !== userId) {
+      return {
+        error: NextResponse.json(
+          { error: 'Forbidden: You do not have permission to modify this project' },
+          { status: 403 }
+        ),
+      };
+    }
+
     return { success: true };
-  }
-
-  const project = await prisma.project.findUnique({
-    where: { id: projectId },
-    select: { userId: true },
-  });
-
-  if (!project) {
-    return {
-      error: NextResponse.json({ error: 'Project not found' }, { status: 404 }),
-    };
-  }
-
-  if (project.userId !== userId) {
+  } catch (error) {
+    console.error(`[Auth] Failed to check project ownership for project ${projectId}:`, error);
     return {
       error: NextResponse.json(
-        { error: 'Forbidden: You do not have permission to modify this project' },
-        { status: 403 }
+        { error: 'Internal server error while checking project ownership' },
+        { status: 500 }
       ),
     };
   }
-
-  return { success: true };
 }
 
 /**
@@ -115,42 +136,52 @@ export async function requireTaskOwnership(
   taskId: string,
   userId: string
 ): Promise<{ success: true; error?: never } | { success?: never; error: NextResponse }> {
-  const devAuthBypass = isDevAuthBypass();
+  try {
+    const devAuthBypass = isDevAuthBypass();
 
-  // In dev bypass mode, skip ownership check
-  if (devAuthBypass && userId === 'dev-bypass-user') {
-    return { success: true };
-  }
+    // In dev bypass mode, skip ownership check
+    if (devAuthBypass && userId === 'dev-bypass-user') {
+      return { success: true };
+    }
 
-  const task = await prisma.task.findUnique({
-    where: { id: taskId },
-    select: {
-      run: {
-        select: {
-          project: {
-            select: { userId: true },
+    const task = await prisma.task.findUnique({
+      where: { id: taskId },
+      select: {
+        run: {
+          select: {
+            project: {
+              select: { userId: true },
+            },
           },
         },
       },
-    },
-  });
+    });
 
-  if (!task) {
-    return {
-      error: NextResponse.json({ error: 'Task not found' }, { status: 404 }),
-    };
-  }
+    if (!task) {
+      return {
+        error: NextResponse.json({ error: 'Task not found' }, { status: 404 }),
+      };
+    }
 
-  if (task.run.project.userId !== userId) {
+    if (task.run.project.userId !== userId) {
+      return {
+        error: NextResponse.json(
+          { error: 'Forbidden: You do not have permission to modify this task' },
+          { status: 403 }
+        ),
+      };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error(`[Auth] Failed to check task ownership for task ${taskId}:`, error);
     return {
       error: NextResponse.json(
-        { error: 'Forbidden: You do not have permission to modify this task' },
-        { status: 403 }
+        { error: 'Internal server error while checking task ownership' },
+        { status: 500 }
       ),
     };
   }
-
-  return { success: true };
 }
 
 /**
@@ -161,35 +192,45 @@ export async function requireDraftOwnership(
   draftId: string,
   userId: string
 ): Promise<{ success: true; error?: never } | { success?: never; error: NextResponse }> {
-  const devAuthBypass = isDevAuthBypass();
+  try {
+    const devAuthBypass = isDevAuthBypass();
 
-  // In dev bypass mode, skip ownership check
-  if (devAuthBypass && userId === 'dev-bypass-user') {
+    // In dev bypass mode, skip ownership check
+    if (devAuthBypass && userId === 'dev-bypass-user') {
+      return { success: true };
+    }
+
+    const draft = await prisma.copilotDraft.findUnique({
+      where: { id: draftId },
+      select: { userId: true },
+    });
+
+    if (!draft) {
+      return {
+        error: NextResponse.json({ error: 'Draft not found' }, { status: 404 }),
+      };
+    }
+
+    // Allow if draft has no owner (demo mode) or if user matches
+    if (draft.userId && draft.userId !== userId) {
+      return {
+        error: NextResponse.json(
+          { error: 'Forbidden: You do not have permission to modify this draft' },
+          { status: 403 }
+        ),
+      };
+    }
+
     return { success: true };
-  }
-
-  const draft = await prisma.copilotDraft.findUnique({
-    where: { id: draftId },
-    select: { userId: true },
-  });
-
-  if (!draft) {
-    return {
-      error: NextResponse.json({ error: 'Draft not found' }, { status: 404 }),
-    };
-  }
-
-  // Allow if draft has no owner (demo mode) or if user matches
-  if (draft.userId && draft.userId !== userId) {
+  } catch (error) {
+    console.error(`[Auth] Failed to check draft ownership for draft ${draftId}:`, error);
     return {
       error: NextResponse.json(
-        { error: 'Forbidden: You do not have permission to modify this draft' },
-        { status: 403 }
+        { error: 'Internal server error while checking draft ownership' },
+        { status: 500 }
       ),
     };
   }
-
-  return { success: true };
 }
 
 /**
@@ -200,38 +241,48 @@ export async function requireCouncilDecisionOwnership(
   decisionId: string,
   userId: string
 ): Promise<{ success: true; error?: never } | { success?: never; error: NextResponse }> {
-  const devAuthBypass = isDevAuthBypass();
+  try {
+    const devAuthBypass = isDevAuthBypass();
 
-  // In dev bypass mode, skip ownership check
-  if (devAuthBypass && userId === 'dev-bypass-user') {
-    return { success: true };
-  }
+    // In dev bypass mode, skip ownership check
+    if (devAuthBypass && userId === 'dev-bypass-user') {
+      return { success: true };
+    }
 
-  const decision = await prisma.councilDecision.findUnique({
-    where: { id: decisionId },
-    select: {
-      project: {
-        select: { userId: true },
+    const decision = await prisma.councilDecision.findUnique({
+      where: { id: decisionId },
+      select: {
+        project: {
+          select: { userId: true },
+        },
       },
-    },
-  });
+    });
 
-  if (!decision) {
-    return {
-      error: NextResponse.json({ error: 'Council decision not found' }, { status: 404 }),
-    };
-  }
+    if (!decision) {
+      return {
+        error: NextResponse.json({ error: 'Council decision not found' }, { status: 404 }),
+      };
+    }
 
-  if (decision.project.userId !== userId) {
+    if (decision.project.userId !== userId) {
+      return {
+        error: NextResponse.json(
+          { error: 'Forbidden: You do not have permission to modify this council decision' },
+          { status: 403 }
+        ),
+      };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error(`[Auth] Failed to check council decision ownership for decision ${decisionId}:`, error);
     return {
       error: NextResponse.json(
-        { error: 'Forbidden: You do not have permission to modify this council decision' },
-        { status: 403 }
+        { error: 'Internal server error while checking council decision ownership' },
+        { status: 500 }
       ),
     };
   }
-
-  return { success: true };
 }
 
 /**
@@ -243,49 +294,59 @@ export async function requireWorkOrderOwnership(
   workOrderId: string,
   userId: string
 ): Promise<{ success: true; error?: never } | { success?: never; error: NextResponse }> {
-  const devAuthBypass = isDevAuthBypass();
+  try {
+    const devAuthBypass = isDevAuthBypass();
 
-  // In dev bypass mode, skip ownership check
-  if (devAuthBypass && userId === 'dev-bypass-user') {
-    return { success: true };
-  }
+    // In dev bypass mode, skip ownership check
+    if (devAuthBypass && userId === 'dev-bypass-user') {
+      return { success: true };
+    }
 
-  const workOrder = await prisma.workOrder.findUnique({
-    where: { id: workOrderId },
-    select: {
-      blueprint: {
-        select: {
-          projectId: true,
+    const workOrder = await prisma.workOrder.findUnique({
+      where: { id: workOrderId },
+      select: {
+        blueprint: {
+          select: {
+            projectId: true,
+          },
         },
       },
-    },
-  });
-
-  if (!workOrder) {
-    return {
-      error: NextResponse.json({ error: 'Work order not found' }, { status: 404 }),
-    };
-  }
-
-  // If work order has a project via blueprint, check ownership
-  if (workOrder.blueprint?.projectId) {
-    const project = await prisma.project.findUnique({
-      where: { id: workOrder.blueprint.projectId },
-      select: { userId: true },
     });
 
-    if (project && project.userId !== userId) {
+    if (!workOrder) {
       return {
-        error: NextResponse.json(
-          { error: 'Forbidden: You do not have permission to modify this work order' },
-          { status: 403 }
-        ),
+        error: NextResponse.json({ error: 'Work order not found' }, { status: 404 }),
       };
     }
-  }
 
-  // Work order without project association - auth is sufficient
-  return { success: true };
+    // If work order has a project via blueprint, check ownership
+    if (workOrder.blueprint?.projectId) {
+      const project = await prisma.project.findUnique({
+        where: { id: workOrder.blueprint.projectId },
+        select: { userId: true },
+      });
+
+      if (project && project.userId !== userId) {
+        return {
+          error: NextResponse.json(
+            { error: 'Forbidden: You do not have permission to modify this work order' },
+            { status: 403 }
+          ),
+        };
+      }
+    }
+
+    // Work order without project association - auth is sufficient
+    return { success: true };
+  } catch (error) {
+    console.error(`[Auth] Failed to check work order ownership for work order ${workOrderId}:`, error);
+    return {
+      error: NextResponse.json(
+        { error: 'Internal server error while checking work order ownership' },
+        { status: 500 }
+      ),
+    };
+  }
 }
 
 /**
@@ -297,41 +358,51 @@ export async function requireBlueprintOwnership(
   blueprintId: string,
   userId: string
 ): Promise<{ success: true; error?: never } | { success?: never; error: NextResponse }> {
-  const devAuthBypass = isDevAuthBypass();
+  try {
+    const devAuthBypass = isDevAuthBypass();
 
-  // In dev bypass mode, skip ownership check
-  if (devAuthBypass && userId === 'dev-bypass-user') {
-    return { success: true };
-  }
+    // In dev bypass mode, skip ownership check
+    if (devAuthBypass && userId === 'dev-bypass-user') {
+      return { success: true };
+    }
 
-  const blueprint = await prisma.blueprint.findUnique({
-    where: { id: blueprintId },
-    select: { projectId: true },
-  });
-
-  if (!blueprint) {
-    return {
-      error: NextResponse.json({ error: 'Blueprint not found' }, { status: 404 }),
-    };
-  }
-
-  // If blueprint has a project, check ownership
-  if (blueprint.projectId) {
-    const project = await prisma.project.findUnique({
-      where: { id: blueprint.projectId },
-      select: { userId: true },
+    const blueprint = await prisma.blueprint.findUnique({
+      where: { id: blueprintId },
+      select: { projectId: true },
     });
 
-    if (project && project.userId !== userId) {
+    if (!blueprint) {
       return {
-        error: NextResponse.json(
-          { error: 'Forbidden: You do not have permission to modify this blueprint' },
-          { status: 403 }
-        ),
+        error: NextResponse.json({ error: 'Blueprint not found' }, { status: 404 }),
       };
     }
-  }
 
-  // Blueprint without project association - auth is sufficient
-  return { success: true };
+    // If blueprint has a project, check ownership
+    if (blueprint.projectId) {
+      const project = await prisma.project.findUnique({
+        where: { id: blueprint.projectId },
+        select: { userId: true },
+      });
+
+      if (project && project.userId !== userId) {
+        return {
+          error: NextResponse.json(
+            { error: 'Forbidden: You do not have permission to modify this blueprint' },
+            { status: 403 }
+          ),
+        };
+      }
+    }
+
+    // Blueprint without project association - auth is sufficient
+    return { success: true };
+  } catch (error) {
+    console.error(`[Auth] Failed to check blueprint ownership for blueprint ${blueprintId}:`, error);
+    return {
+      error: NextResponse.json(
+        { error: 'Internal server error while checking blueprint ownership' },
+        { status: 500 }
+      ),
+    };
+  }
 }

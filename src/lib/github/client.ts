@@ -1,8 +1,36 @@
 import { Octokit } from 'octokit';
 import * as crypto from 'crypto';
 
+export class GitHubClientError extends Error {
+  constructor(
+    message: string,
+    public readonly operation: string,
+    public readonly cause?: unknown
+  ) {
+    super(message);
+    this.name = 'GitHubClientError';
+  }
+}
+
+export class GitHubRateLimitError extends GitHubClientError {
+  constructor(operation: string) {
+    super('GitHub API rate limit exceeded. Please try again later.', operation);
+    this.name = 'GitHubRateLimitError';
+  }
+}
+
+export class GitHubAuthenticationError extends GitHubClientError {
+  constructor(operation: string) {
+    super('GitHub authentication failed. Please re-authenticate.', operation);
+    this.name = 'GitHubAuthenticationError';
+  }
+}
+
 // Create an authenticated Octokit client for a user
 export function createGitHubClient(accessToken: string): Octokit {
+  if (!accessToken) {
+    throw new GitHubAuthenticationError('createGitHubClient');
+  }
   return new Octokit({
     auth: accessToken,
   });
@@ -85,22 +113,45 @@ export interface GitHubPullRequest {
   closed_at: string | null;
 }
 
-// Fetch all repositories for the authenticated user
-export async function fetchUserRepositories(client: Octokit): Promise<GitHubRepository[]> {
-  const repos: GitHubRepository[] = [];
+function handleGitHubError(error: unknown, operation: string): never {
+  if (error instanceof GitHubClientError) throw error;
 
-  for await (const response of client.paginate.iterator(
-    client.rest.repos.listForAuthenticatedUser,
-    {
-      per_page: 100,
-      sort: 'updated',
-      direction: 'desc',
+  const errorObj = error as { status?: number; message?: string };
+
+  if (errorObj.status === 401 || errorObj.status === 403) {
+    if (errorObj.message?.toLowerCase().includes('rate limit')) {
+      throw new GitHubRateLimitError(operation);
     }
-  )) {
-    repos.push(...(response.data as GitHubRepository[]));
+    throw new GitHubAuthenticationError(operation);
   }
 
-  return repos;
+  throw new GitHubClientError(
+    `GitHub API error: ${errorObj.message || 'Unknown error'}`,
+    operation,
+    error
+  );
+}
+
+// Fetch all repositories for the authenticated user
+export async function fetchUserRepositories(client: Octokit): Promise<GitHubRepository[]> {
+  try {
+    const repos: GitHubRepository[] = [];
+
+    for await (const response of client.paginate.iterator(
+      client.rest.repos.listForAuthenticatedUser,
+      {
+        per_page: 100,
+        sort: 'updated',
+        direction: 'desc',
+      }
+    )) {
+      repos.push(...(response.data as GitHubRepository[]));
+    }
+
+    return repos;
+  } catch (error) {
+    handleGitHubError(error, 'fetchUserRepositories');
+  }
 }
 
 // Fetch issues for a repository
@@ -110,20 +161,24 @@ export async function fetchRepositoryIssues(
   repo: string,
   state: 'open' | 'closed' | 'all' = 'all'
 ): Promise<GitHubIssue[]> {
-  const issues: GitHubIssue[] = [];
+  try {
+    const issues: GitHubIssue[] = [];
 
-  for await (const response of client.paginate.iterator(client.rest.issues.listForRepo, {
-    owner,
-    repo,
-    state,
-    per_page: 100,
-  })) {
-    // Filter out pull requests (GitHub API returns PRs in issues endpoint)
-    const repoIssues = (response.data as GitHubIssue[]).filter(issue => !issue.pull_request);
-    issues.push(...repoIssues);
+    for await (const response of client.paginate.iterator(client.rest.issues.listForRepo, {
+      owner,
+      repo,
+      state,
+      per_page: 100,
+    })) {
+      // Filter out pull requests (GitHub API returns PRs in issues endpoint)
+      const repoIssues = (response.data as GitHubIssue[]).filter(issue => !issue.pull_request);
+      issues.push(...repoIssues);
+    }
+
+    return issues;
+  } catch (error) {
+    handleGitHubError(error, `fetchRepositoryIssues(${owner}/${repo})`);
   }
-
-  return issues;
 }
 
 // Fetch pull requests for a repository
@@ -133,18 +188,22 @@ export async function fetchRepositoryPullRequests(
   repo: string,
   state: 'open' | 'closed' | 'all' = 'all'
 ): Promise<GitHubPullRequest[]> {
-  const pullRequests: GitHubPullRequest[] = [];
+  try {
+    const pullRequests: GitHubPullRequest[] = [];
 
-  for await (const response of client.paginate.iterator(client.rest.pulls.list, {
-    owner,
-    repo,
-    state,
-    per_page: 100,
-  })) {
-    pullRequests.push(...(response.data as unknown as GitHubPullRequest[]));
+    for await (const response of client.paginate.iterator(client.rest.pulls.list, {
+      owner,
+      repo,
+      state,
+      per_page: 100,
+    })) {
+      pullRequests.push(...(response.data as unknown as GitHubPullRequest[]));
+    }
+
+    return pullRequests;
+  } catch (error) {
+    handleGitHubError(error, `fetchRepositoryPullRequests(${owner}/${repo})`);
   }
-
-  return pullRequests;
 }
 
 // Fetch a single repository
@@ -153,12 +212,16 @@ export async function fetchRepository(
   owner: string,
   repo: string
 ): Promise<GitHubRepository> {
-  const response = await client.rest.repos.get({
-    owner,
-    repo,
-  });
+  try {
+    const response = await client.rest.repos.get({
+      owner,
+      repo,
+    });
 
-  return response.data as GitHubRepository;
+    return response.data as GitHubRepository;
+  } catch (error) {
+    handleGitHubError(error, `fetchRepository(${owner}/${repo})`);
+  }
 }
 
 // Verify webhook signature
