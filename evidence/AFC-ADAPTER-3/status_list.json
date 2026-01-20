@@ -5,8 +5,8 @@
     "baseUrl": "http://localhost:3000/api",
     "enabled": true,
     "healthStatus": "OK",
-    "lastSeenAt": "2026-01-20T20:12:11.933Z",
-    "lastHealthCheckAt": "2026-01-20T20:12:11.933Z",
+    "lastSeenAt": "2026-01-20T20:40:16.637Z",
+    "lastHealthCheckAt": "2026-01-20T20:40:16.637Z",
     "lastHealthError": null
   },
   {
@@ -16,7 +16,7 @@
     "enabled": true,
     "healthStatus": "UNREACHABLE",
     "lastSeenAt": null,
-    "lastHealthCheckAt": "2026-01-20T20:12:11.930Z",
+    "lastHealthCheckAt": "2026-01-20T20:40:16.625Z",
     "lastHealthError": "fetch failed"
   },
   {
@@ -24,9 +24,9 @@
     "name": "langgraph-host",
     "baseUrl": "http://localhost:8123",
     "enabled": true,
-    "healthStatus": "UNREACHABLE",
-    "lastSeenAt": null,
-    "lastHealthCheckAt": "2026-01-20T20:12:11.930Z",
-    "lastHealthError": "fetch failed"
+    "healthStatus": "OK",
+    "lastSeenAt": "2026-01-20T20:40:16.625Z",
+    "lastHealthCheckAt": "2026-01-20T20:40:16.625Z",
+    "lastHealthError": null
   }
 ]
