@@ -74,10 +74,9 @@ test.describe('AFC-UX-PREVIEW-1: Preview Presets + Persistence', () => {
   test('route health grid shows status legend', async ({ page }) => {
     await page.goto('/preview', { waitUntil: 'domcontentloaded' });
     const grid = page.locator('[data-testid="route-health-grid"]');
-    await expect(grid).toContainText('200');
-    await expect(grid).toContainText('Auth');
-    await expect(grid).toContainText('Redirect');
-    await expect(grid).toContainText('404');
+    // AFC-AUTH-UI-1: Updated legend - Healthy, Auth required, Error
+    await expect(grid).toContainText('Healthy');
+    await expect(grid).toContainText('Auth required');
     await expect(grid).toContainText('Error');
   });
 });

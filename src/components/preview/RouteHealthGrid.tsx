@@ -2,15 +2,18 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getRouteHealthItems, type NavItem } from '@/config/nav';
+import {
+  classifyRouteHealth,
+  getStatusIcon,
+  getStatusLabel,
+  getStatusColorClass,
+  getStatusTooltip,
+  type RouteHealthData,
+} from '@/lib/route-health-classifier';
 
-interface RouteHealth {
+interface RouteHealth extends RouteHealthData {
   path: string;
-  status: number;
-  ok: boolean;
   latencyMs: number;
-  redirected?: boolean;
-  redirectUrl?: string;
-  error?: string;
   headers?: Record<string, string>;
   contentType?: string;
   contentLength?: number;
@@ -19,58 +22,6 @@ interface RouteHealth {
 interface RouteHealthGridProps {
   onRouteSelect: (path: string) => void;
   baseUrl?: string; // Optional custom base URL for preset support
-}
-
-function getStatusIcon(health: RouteHealth | null): string {
-  if (!health) return '⏳';
-  if (health.status === 200) return '✅';
-  // Redirect to auth
-  if (health.redirected && health.redirectUrl) {
-    const url = health.redirectUrl.toLowerCase();
-    if (url.includes('/login') || url.includes('/signin') || url.includes('/auth')) {
-      return '🔒';
-    }
-  }
-  // Other redirects
-  if (health.redirected) return '↪️';
-  if (health.status === 401 || health.status === 403) return '🔒';
-  if (health.status === 404) return '⚠️';
-  if (health.status >= 500) return '❌';
-  if (health.status === 0 || health.error) return '❌';
-  return '⚠️';
-}
-
-function getStatusColor(health: RouteHealth | null): string {
-  if (!health) return 'text-gray-400';
-  if (health.status === 200) return 'text-green-600';
-  // Redirect to auth
-  if (health.redirected && health.redirectUrl) {
-    const url = health.redirectUrl.toLowerCase();
-    if (url.includes('/login') || url.includes('/signin') || url.includes('/auth')) {
-      return 'text-yellow-600';
-    }
-  }
-  // Other redirects (considered ok)
-  if (health.redirected) return 'text-blue-600';
-  if (health.status === 401 || health.status === 403) return 'text-yellow-600';
-  if (health.status === 404) return 'text-orange-500';
-  if (health.status >= 500 || health.status === 0 || health.error) return 'text-red-600';
-  return 'text-yellow-600';
-}
-
-function getStatusLabel(health: RouteHealth | null): string {
-  if (!health) return '...';
-  if (health.error) return 'Error';
-  if (health.redirected) {
-    if (health.redirectUrl) {
-      const url = health.redirectUrl.toLowerCase();
-      if (url.includes('/login') || url.includes('/signin') || url.includes('/auth')) {
-        return `${health.status} → Auth`;
-      }
-    }
-    return `${health.status} →`;
-  }
-  return String(health.status);
 }
 
 function getLatencyColor(latencyMs: number): string {
@@ -189,6 +140,12 @@ export function RouteHealthGrid({ onRouteSelect, baseUrl }: RouteHealthGridProps
         {navItems.map(item => {
           const health = healthMap[item.key];
           const isExpanded = expandedRows.has(item.key);
+          const status = classifyRouteHealth(health);
+          const icon = getStatusIcon(status);
+          const label = getStatusLabel(status);
+          const colorClass = getStatusColorClass(status);
+          const tooltip = getStatusTooltip(status);
+
           return (
             <div key={item.key} data-testid={`route-row-${item.key}`}>
               <div className="flex items-center justify-between px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50">
@@ -214,8 +171,12 @@ export function RouteHealthGrid({ onRouteSelect, baseUrl }: RouteHealthGridProps
                       />
                     </svg>
                   </button>
-                  <span className={`text-lg ${getStatusColor(health)}`}>
-                    {getStatusIcon(health)}
+                  <span
+                    className={`text-lg ${colorClass}`}
+                    title={tooltip || undefined}
+                    data-testid={`route-status-icon-${item.key}`}
+                  >
+                    {icon}
                   </span>
                   <div>
                     <div className="text-sm font-medium text-gray-900 dark:text-white">
@@ -226,8 +187,11 @@ export function RouteHealthGrid({ onRouteSelect, baseUrl }: RouteHealthGridProps
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="text-right">
-                    <div className={`text-sm font-medium ${getStatusColor(health)}`}>
-                      {getStatusLabel(health)}
+                    <div
+                      className={`text-sm font-medium ${colorClass}`}
+                      data-testid={`route-status-label-${item.key}`}
+                    >
+                      {label}
                     </div>
                     <div
                       className={`text-xs ${health ? getLatencyColor(health.latencyMs) : 'text-gray-500'}`}
@@ -257,7 +221,7 @@ export function RouteHealthGrid({ onRouteSelect, baseUrl }: RouteHealthGridProps
                   <div className="grid grid-cols-2 gap-4 text-xs">
                     <div>
                       <span className="font-medium text-gray-500 dark:text-gray-400">Status:</span>
-                      <span className={`ml-2 ${getStatusColor(health)}`}>{health.status}</span>
+                      <span className={`ml-2 ${colorClass}`}>{health.status}</span>
                     </div>
                     <div>
                       <span className="font-medium text-gray-500 dark:text-gray-400">Latency:</span>
@@ -311,10 +275,8 @@ export function RouteHealthGrid({ onRouteSelect, baseUrl }: RouteHealthGridProps
       {/* Legend */}
       <div className="border-t border-gray-200 px-4 py-2 dark:border-gray-700">
         <div className="flex flex-wrap gap-3 text-xs text-gray-500">
-          <span>✅ 200</span>
-          <span>🔒 Auth</span>
-          <span>↪️ Redirect</span>
-          <span>⚠️ 404</span>
+          <span>✅ Healthy</span>
+          <span>🔒 Auth required</span>
           <span>❌ Error</span>
         </div>
       </div>
