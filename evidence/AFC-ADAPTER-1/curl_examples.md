@@ -7,8 +7,9 @@ curl -s http://localhost:8001/health
 ```
 
 Response:
+
 ```json
-{"status":"ok","service":"AFC Adapter Host"}
+{ "status": "ok", "service": "AFC Adapter Host" }
 ```
 
 ## Create Run
@@ -20,8 +21,9 @@ curl -s -X POST http://localhost:8001/runs \
 ```
 
 Response:
+
 ```json
-{"runId":"<uuid>","status":"WAITING_APPROVAL"}
+{ "runId": "<uuid>", "status": "WAITING_APPROVAL" }
 ```
 
 ## Get Run Status
@@ -31,6 +33,7 @@ curl -s http://localhost:8001/runs/<run_id>
 ```
 
 Response:
+
 ```json
 {
   "runId": "<uuid>",
@@ -39,7 +42,7 @@ Response:
   "updatedAtMs": 1737331200100,
   "interrupt": {
     "gate_type": "approval",
-    "resume_schema": {"approved": "bool", "notes": "str?"}
+    "resume_schema": { "approved": "bool", "notes": "str?" }
   },
   "error": null
 }
@@ -52,6 +55,7 @@ curl -s http://localhost:8001/runs/<run_id>/events
 ```
 
 Response (one JSON object per line):
+
 ```
 {"ts":1737331200000,"run_id":"<uuid>","span_id":"<uuid>","parent_span_id":null,"type":"LOG","payload":{"msg":"run created"}}
 {"ts":1737331200001,"run_id":"<uuid>","span_id":"<uuid>","parent_span_id":null,"type":"LOG","payload":{"msg":"plan"}}
@@ -69,8 +73,9 @@ curl -s -X POST http://localhost:8001/runs/<run_id>/resume \
 ```
 
 Response:
+
 ```json
-{"success":true}
+{ "success": true }
 ```
 
 ## Cancel Run
@@ -80,8 +85,9 @@ curl -s -X POST http://localhost:8001/runs/<run_id>/cancel
 ```
 
 Response:
+
 ```json
-{"success":true}
+{ "success": true }
 ```
 
 ## Full Workflow Example

@@ -8,10 +8,16 @@
         "status": "WAITING_APPROVAL",
         "interrupt": {
           "gate_type": "approval",
-          "resume_schema": {"approved": "bool", "notes": "str?"}
+          "resume_schema": { "approved": "bool", "notes": "str?" }
         }
       },
-      "events_emitted": ["LOG(run created)", "LOG(plan)", "STATE_UPDATE", "CHECKPOINT_SAVED", "INTERRUPT_REQUIRED"]
+      "events_emitted": [
+        "LOG(run created)",
+        "LOG(plan)",
+        "STATE_UPDATE",
+        "CHECKPOINT_SAVED",
+        "INTERRUPT_REQUIRED"
+      ]
     },
     {
       "step": 2,

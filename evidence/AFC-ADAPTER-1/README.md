@@ -3,6 +3,7 @@
 ## Summary
 
 This implements a standalone Python/FastAPI adapter host that:
+
 - Hosts a LangGraph workflow with interrupt/resume capability
 - Emits AFC-compatible events (NDJSON stream)
 - Provides 5 REST endpoints for run lifecycle management
@@ -42,14 +43,14 @@ cd adapter_host
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/health` | Health check |
-| POST | `/runs` | Create a new run (starts execution until interrupt) |
-| GET | `/runs/{run_id}` | Get run status and metadata |
-| GET | `/runs/{run_id}/events` | Stream events as NDJSON |
-| POST | `/runs/{run_id}/resume` | Resume a paused run |
-| POST | `/runs/{run_id}/cancel` | Cancel a running/waiting run |
+| Method | Endpoint                | Description                                         |
+| ------ | ----------------------- | --------------------------------------------------- |
+| GET    | `/health`               | Health check                                        |
+| POST   | `/runs`                 | Create a new run (starts execution until interrupt) |
+| GET    | `/runs/{run_id}`        | Get run status and metadata                         |
+| GET    | `/runs/{run_id}/events` | Stream events as NDJSON                             |
+| POST   | `/runs/{run_id}/resume` | Resume a paused run                                 |
+| POST   | `/runs/{run_id}/cancel` | Cancel a running/waiting run                        |
 
 ## Event Types (AFC-Compatible)
 
