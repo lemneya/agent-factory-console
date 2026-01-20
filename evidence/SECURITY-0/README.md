@@ -65,14 +65,16 @@ export async function requireWorkOrderOwnership(workOrderId: string, userId: str
 export async function requireBlueprintOwnership(blueprintId: string, userId: string)
 ```
 
-### Dev/Test/CI Bypass
+### Dev/Test Bypass
 
-The auth helpers support bypass mode for testing:
-- `process.env.CI === 'true'`
-- `process.env.NODE_ENV === 'test'`
-- `process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS === 'true'`
+The auth helpers support bypass mode for testing (explicit opt-in only):
+- `process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS === 'true'` (set by Playwright config for E2E)
+- `process.env.NODE_ENV === 'test'` (Jest unit tests)
 
-**IMPORTANT**: `NEXT_PUBLIC_DEV_AUTH_BYPASS` should NEVER be set in production.
+**IMPORTANT**:
+- `CI === 'true'` alone does NOT enable bypass (security hardening)
+- Playwright config explicitly sets `NEXT_PUBLIC_DEV_AUTH_BYPASS='true'` when CI=true for E2E tests
+- `NEXT_PUBLIC_DEV_AUTH_BYPASS` should NEVER be set in production
 
 ### Fixed Endpoints
 

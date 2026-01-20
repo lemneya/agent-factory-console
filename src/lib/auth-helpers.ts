@@ -18,16 +18,21 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 /**
- * Check if running in a test/CI/dev bypass context.
+ * Check if running in a test/dev bypass context.
  *
- * SECURITY: This should ONLY be enabled in test/CI environments.
+ * SECURITY: This should ONLY be enabled in test environments.
  * The NEXT_PUBLIC_DEV_AUTH_BYPASS should NEVER be set in production.
+ *
+ * Bypass conditions (explicit opt-in only):
+ * - NEXT_PUBLIC_DEV_AUTH_BYPASS === 'true' (set explicitly in Playwright config for E2E)
+ * - NODE_ENV === 'test' (Jest unit tests)
+ *
+ * NOTE: CI alone does NOT enable bypass. E2E tests set NEXT_PUBLIC_DEV_AUTH_BYPASS explicitly.
  */
 export function isDevAuthBypass(): boolean {
   return (
     process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS === 'true' ||
-    process.env.NODE_ENV === 'test' ||
-    process.env.CI === 'true'
+    process.env.NODE_ENV === 'test'
   );
 }
 

@@ -1,4 +1,4 @@
-import { test, expect, request } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
 /**
  * SECURITY-0: Authentication & Ownership Enforcement Tests
@@ -7,24 +7,21 @@ import { test, expect, request } from '@playwright/test';
  * 1. Authentication (401 for unauthenticated requests)
  * 2. Resource ownership (403 for non-owners)
  *
- * NOTE: When CI=true or NEXT_PUBLIC_DEV_AUTH_BYPASS=true, auth is bypassed.
- * These tests verify the auth code paths exist but may pass in CI due to bypass.
- * Full security testing should be done in a non-bypass environment.
+ * NOTE: In E2E tests, NEXT_PUBLIC_DEV_AUTH_BYPASS is set to 'true' by playwright.config.ts
+ * when CI=true. This is an EXPLICIT opt-in, not implicit CI detection.
+ *
+ * Auth bypass conditions (explicit opt-in only):
+ * - NEXT_PUBLIC_DEV_AUTH_BYPASS === 'true' (set by Playwright config for E2E)
+ * - NODE_ENV === 'test' (Jest unit tests)
+ *
+ * CI alone does NOT enable bypass - this prevents accidental auth bypass in production CI.
  */
 
 test.describe('SECURITY-0: Write Endpoint Auth Enforcement', () => {
-  // Test base URL for API requests
-  let baseURL: string;
-
-  test.beforeAll(async ({ playwright }) => {
-    // Get base URL from playwright config
-    baseURL = process.env.BASE_URL || 'http://localhost:3000';
-  });
-
   test.describe('Projects API (/api/projects/[id])', () => {
     test('PUT should return 401 without auth (when bypass disabled)', async ({ request }) => {
-      // Note: In CI/test mode, auth bypass is enabled, so this will pass with 200
-      // This test documents expected behavior when bypass is disabled
+      // In E2E with bypass enabled, returns 404 (resource not found)
+      // Without bypass, would return 401 (auth required)
       const response = await request.put('/api/projects/nonexistent-id', {
         data: { repoName: 'test' },
       });
@@ -135,34 +132,47 @@ test.describe('SECURITY-0: Auth Helper Response Codes', () => {
     }
   });
 
-  test('should return 403 with proper error for forbidden access', async ({ request }) => {
+  test('should return 403 with proper error for forbidden access', async () => {
     // This test would need a real project owned by another user
-    // In CI with bypass, this test documents the expected behavior
+    // In E2E with bypass, this test documents the expected behavior
     // Actual ownership tests require a seeded database with multiple users
   });
 });
 
 test.describe('SECURITY-0: Dev Auth Bypass Behavior', () => {
-  test('should document bypass conditions', () => {
+  test('should document bypass conditions (CI removed)', () => {
     // Document the auth bypass conditions for security audit
+    // IMPORTANT: CI alone is NOT a bypass condition anymore
     const bypassConditions = [
       'process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS === "true"',
       'process.env.NODE_ENV === "test"',
-      'process.env.CI === "true"',
     ];
 
-    // This test just documents the bypass conditions exist
-    // In production, NEXT_PUBLIC_DEV_AUTH_BYPASS should NEVER be set
-    expect(bypassConditions).toContain('process.env.CI === "true"');
+    // CI is NOT in bypass conditions - must use explicit NEXT_PUBLIC_DEV_AUTH_BYPASS
+    expect(bypassConditions).not.toContain('process.env.CI === "true"');
+
+    // Verify we have exactly 2 bypass conditions
+    expect(bypassConditions).toHaveLength(2);
   });
 
-  test('CI environment should use dev bypass', () => {
-    // Verify CI test environment uses bypass (expected behavior)
-    const isCI = process.env.CI === 'true';
-    const isTest = process.env.NODE_ENV === 'test';
+  test('E2E tests use explicit NEXT_PUBLIC_DEV_AUTH_BYPASS', () => {
+    // Playwright config sets NEXT_PUBLIC_DEV_AUTH_BYPASS='true' when CI=true
+    // This is explicit opt-in, not implicit CI detection
     const hasDevBypass = process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS === 'true';
+    const isTest = process.env.NODE_ENV === 'test';
 
-    // In CI/test, at least one bypass condition should be true
-    expect(isCI || isTest || hasDevBypass).toBe(true);
+    // In E2E/test, one of these explicit conditions should be true
+    expect(hasDevBypass || isTest).toBe(true);
+  });
+
+  test('CI environment alone should NOT bypass auth', () => {
+    // This documents that CI=true alone is insufficient
+    // The Playwright config must explicitly set NEXT_PUBLIC_DEV_AUTH_BYPASS
+    const isCI = process.env.CI === 'true';
+
+    if (isCI) {
+      // When CI=true, bypass should come from explicit env var, not CI detection
+      expect(process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS).toBe('true');
+    }
   });
 });
