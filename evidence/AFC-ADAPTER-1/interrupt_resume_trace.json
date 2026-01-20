@@ -1,0 +1,46 @@
+{
+  "run_id": "3856fb75-6139-41a4-839a-8e0c5b47ebb7",
+  "trace": [
+    {
+      "step": 1,
+      "action": "POST /runs",
+      "result": {
+        "status": "WAITING_APPROVAL",
+        "interrupt": {
+          "gate_type": "approval",
+          "resume_schema": { "approved": "bool", "notes": "str?" }
+        }
+      },
+      "events_emitted": [
+        "LOG(run created)",
+        "LOG(plan)",
+        "STATE_UPDATE",
+        "CHECKPOINT_SAVED",
+        "INTERRUPT_REQUIRED"
+      ]
+    },
+    {
+      "step": 2,
+      "action": "POST /runs/{id}/resume with {approved: true, notes: 'ok'}",
+      "result": {
+        "success": true
+      },
+      "events_emitted": ["RESUMED"]
+    },
+    {
+      "step": 3,
+      "action": "GET /runs/{id}",
+      "result": {
+        "status": "COMPLETED",
+        "interrupt": null,
+        "error": null
+      }
+    }
+  ],
+  "verification": {
+    "interrupt_triggered": true,
+    "resume_successful": true,
+    "final_status": "COMPLETED",
+    "ndjson_stream_available": true
+  }
+}

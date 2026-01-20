@@ -1,0 +1,34 @@
+Health check:
+{"status":"ok","service":"AFC Adapter Host"}
+
+Create run:
+{"runId":"3856fb75-6139-41a4-839a-8e0c5b47ebb7","status":"WAITING_APPROVAL"}
+RUN_ID=3856fb75-6139-41a4-839a-8e0c5b47ebb7
+
+Status after create:
+{"runId":"3856fb75-6139-41a4-839a-8e0c5b47ebb7","status":"WAITING_APPROVAL","createdAtMs":1768879787132,"updatedAtMs":1768879787134,"interrupt":{"gate_type":"approval","resume_schema":{"approved":"bool","notes":"str?"}},"error":null}
+
+Events (ndjson):
+{"ts": 1768879787132, "run_id": "3856fb75-6139-41a4-839a-8e0c5b47ebb7", "span_id": "e944ccd1-73d9-4f24-b1c1-526bddebffb5", "parent_span_id": null, "type": "LOG", "payload": {"msg": "run created"}}
+{"ts": 1768879787133, "run_id": "3856fb75-6139-41a4-839a-8e0c5b47ebb7", "span_id": "e944ccd1-73d9-4f24-b1c1-526bddebffb5", "parent_span_id": null, "type": "LOG", "payload": {"msg": "plan"}}
+{"ts": 1768879787133, "run_id": "3856fb75-6139-41a4-839a-8e0c5b47ebb7", "span_id": "e944ccd1-73d9-4f24-b1c1-526bddebffb5", "parent_span_id": null, "type": "STATE_UPDATE", "payload": {"state": {"plan": "planned"}}}
+{"ts": 1768879787133, "run_id": "3856fb75-6139-41a4-839a-8e0c5b47ebb7", "span_id": "e944ccd1-73d9-4f24-b1c1-526bddebffb5", "parent_span_id": null, "type": "CHECKPOINT_SAVED", "payload": {"at": "plan"}}
+{"ts": 1768879787134, "run_id": "3856fb75-6139-41a4-839a-8e0c5b47ebb7", "span_id": "e944ccd1-73d9-4f24-b1c1-526bddebffb5", "parent_span_id": null, "type": "INTERRUPT_REQUIRED", "payload": {"gate_type": "approval", "resume_schema": {"approved": "bool", "notes": "str?"}}}
+
+Resume:
+{"success":true}
+
+Final status:
+{"runId":"3856fb75-6139-41a4-839a-8e0c5b47ebb7","status":"COMPLETED","createdAtMs":1768879787132,"updatedAtMs":1768879787176,"interrupt":null,"error":null}
+
+Final events:
+{"ts": 1768879787132, "run_id": "3856fb75-6139-41a4-839a-8e0c5b47ebb7", "span_id": "e944ccd1-73d9-4f24-b1c1-526bddebffb5", "parent_span_id": null, "type": "LOG", "payload": {"msg": "run created"}}
+{"ts": 1768879787133, "run_id": "3856fb75-6139-41a4-839a-8e0c5b47ebb7", "span_id": "e944ccd1-73d9-4f24-b1c1-526bddebffb5", "parent_span_id": null, "type": "LOG", "payload": {"msg": "plan"}}
+{"ts": 1768879787133, "run_id": "3856fb75-6139-41a4-839a-8e0c5b47ebb7", "span_id": "e944ccd1-73d9-4f24-b1c1-526bddebffb5", "parent_span_id": null, "type": "STATE_UPDATE", "payload": {"state": {"plan": "planned"}}}
+{"ts": 1768879787133, "run_id": "3856fb75-6139-41a4-839a-8e0c5b47ebb7", "span_id": "e944ccd1-73d9-4f24-b1c1-526bddebffb5", "parent_span_id": null, "type": "CHECKPOINT_SAVED", "payload": {"at": "plan"}}
+{"ts": 1768879787134, "run_id": "3856fb75-6139-41a4-839a-8e0c5b47ebb7", "span_id": "e944ccd1-73d9-4f24-b1c1-526bddebffb5", "parent_span_id": null, "type": "INTERRUPT_REQUIRED", "payload": {"gate_type": "approval", "resume_schema": {"approved": "bool", "notes": "str?"}}}
+{"ts": 1768879787175, "run_id": "3856fb75-6139-41a4-839a-8e0c5b47ebb7", "span_id": "e944ccd1-73d9-4f24-b1c1-526bddebffb5", "parent_span_id": null, "type": "RESUMED", "payload": {"approved": true, "notes": "ok"}}
+{"ts": 1768879787176, "run_id": "3856fb75-6139-41a4-839a-8e0c5b47ebb7", "span_id": "e944ccd1-73d9-4f24-b1c1-526bddebffb5", "parent_span_id": null, "type": "LOG", "payload": {"msg": "plan"}}
+{"ts": 1768879787176, "run_id": "3856fb75-6139-41a4-839a-8e0c5b47ebb7", "span_id": "e944ccd1-73d9-4f24-b1c1-526bddebffb5", "parent_span_id": null, "type": "STATE_UPDATE", "payload": {"state": {"plan": "planned"}}}
+{"ts": 1768879787176, "run_id": "3856fb75-6139-41a4-839a-8e0c5b47ebb7", "span_id": "e944ccd1-73d9-4f24-b1c1-526bddebffb5", "parent_span_id": null, "type": "CHECKPOINT_SAVED", "payload": {"at": "plan"}}
+
