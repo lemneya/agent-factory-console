@@ -1,0 +1,9 @@
+{
+  "_comment": "POST /api/adapters/status/refresh - Expected output",
+  "_note": "Summary after probing all enabled adapters",
+  "ok": 1,
+  "unreachable": 1,
+  "skipped": 1,
+  "total": 3,
+  "checkedAt": "2026-01-20T12:00:00.000Z"
+}
