@@ -1,36 +1,32 @@
-{
-  "_comment": "GET /api/adapters/status?refresh=1 - Expected output",
-  "_note": "Shows both reachable and unreachable adapter scenarios",
-  "adapters": [
-    {
-      "id": "clx1234567890abcdef",
-      "name": "langgraph-host",
-      "baseUrl": "http://localhost:8123",
-      "enabled": true,
-      "healthStatus": "OK",
-      "lastSeenAt": "2026-01-20T12:00:00.000Z",
-      "lastHealthCheckAt": "2026-01-20T12:00:00.000Z",
-      "lastHealthError": null
-    },
-    {
-      "id": "clx0987654321fedcba",
-      "name": "dead-adapter",
-      "baseUrl": "http://localhost:9999",
-      "enabled": true,
-      "healthStatus": "UNREACHABLE",
-      "lastSeenAt": null,
-      "lastHealthCheckAt": "2026-01-20T12:00:00.000Z",
-      "lastHealthError": "Connection refused"
-    },
-    {
-      "id": "clxdisabled123456",
-      "name": "disabled-adapter",
-      "baseUrl": "http://localhost:7777",
-      "enabled": false,
-      "healthStatus": "UNKNOWN",
-      "lastSeenAt": null,
-      "lastHealthCheckAt": null,
-      "lastHealthError": null
-    }
-  ]
-}
+[
+  {
+    "id": "test-ok",
+    "name": "afc-self",
+    "baseUrl": "http://localhost:3000/api",
+    "enabled": true,
+    "healthStatus": "OK",
+    "lastSeenAt": "2026-01-20T20:12:11.933Z",
+    "lastHealthCheckAt": "2026-01-20T20:12:11.933Z",
+    "lastHealthError": null
+  },
+  {
+    "id": "test-dead",
+    "name": "dead-adapter",
+    "baseUrl": "http://localhost:9999",
+    "enabled": true,
+    "healthStatus": "UNREACHABLE",
+    "lastSeenAt": null,
+    "lastHealthCheckAt": "2026-01-20T20:12:11.930Z",
+    "lastHealthError": "fetch failed"
+  },
+  {
+    "id": "cmkn14pzb0000uta88rl3tx7q",
+    "name": "langgraph-host",
+    "baseUrl": "http://localhost:8123",
+    "enabled": true,
+    "healthStatus": "UNREACHABLE",
+    "lastSeenAt": null,
+    "lastHealthCheckAt": "2026-01-20T20:12:11.930Z",
+    "lastHealthError": "fetch failed"
+  }
+]
