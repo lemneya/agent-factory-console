@@ -15,6 +15,7 @@ import {
   Loader2,
   AlertCircle,
   SkipForward,
+  Settings,
 } from 'lucide-react';
 import { ExecuteWorkOrderModal } from '@/components/workorders';
 
@@ -28,6 +29,12 @@ interface WorkOrder {
   createdAt: string;
 }
 
+interface ProjectRepoConfig {
+  repoOwner: string;
+  repoName: string;
+  baseBranch: string;
+}
+
 interface Blueprint {
   id: string;
   name: string;
@@ -37,6 +44,7 @@ interface Blueprint {
   statusCounts: Record<string, number>;
   pendingCount: number;
   pendingWorkOrderIds: string[];
+  projectRepoConfig: ProjectRepoConfig | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -87,9 +95,49 @@ export default function BlueprintDetailPage() {
   const handleExecuteAllPending = async () => {
     if (!blueprint || blueprint.pendingCount === 0) return;
 
-    // If no project config, show modal to collect repo info
-    // For now, we'll use defaults: owner=lemneya, branch=main, repo=blueprint name
-    setShowExecuteModal(true);
+    // AFC-RUNNER-UX-3: Check if project repo config exists
+    if (blueprint.projectRepoConfig) {
+      // Execute directly with project config (no modal)
+      await executeWithConfig(
+        blueprint.projectRepoConfig.repoOwner,
+        blueprint.projectRepoConfig.repoName,
+        blueprint.projectRepoConfig.baseBranch
+      );
+    } else {
+      // No config available - show modal to collect repo info
+      setShowExecuteModal(true);
+    }
+  };
+
+  // Execute with provided config
+  const executeWithConfig = async (owner: string, repo: string, branch: string) => {
+    try {
+      const response = await fetch('/api/runner/execute', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          targetRepoOwner: owner,
+          targetRepoName: repo,
+          targetBranch: branch,
+          workOrderIds: blueprint!.pendingWorkOrderIds,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to execute work orders');
+      }
+
+      // Navigate to the execution detail page, preserving demo mode if active
+      const demoParam = isDemoMode ? '?demo=1' : '';
+      window.location.href = `/executions/${data.executionRunId}${demoParam}`;
+    } catch (err) {
+      console.error('Execute error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to execute work orders');
+    }
   };
 
   // Get status icon
@@ -230,6 +278,36 @@ export default function BlueprintDetailPage() {
           </button>
         </div>
       </div>
+
+      {/* AFC-RUNNER-UX-3: Missing repo config warning */}
+      {!blueprint.projectRepoConfig && blueprint.projectId && (
+        <div
+          className="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-900/20"
+          data-testid="blueprint-missing-repo-config"
+        >
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-400">
+                Repository Configuration Required
+              </h3>
+              <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-500">
+                This blueprint is linked to a project, but repository settings are not configured.
+                Please configure the repository settings to execute work orders without manual
+                input.
+              </p>
+              <Link
+                href={`/projects/${blueprint.projectId}/settings`}
+                className="mt-3 inline-flex items-center gap-2 rounded-lg bg-yellow-600 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-700"
+                data-testid="blueprint-go-to-project-settings"
+              >
+                <Settings className="h-4 w-4" />
+                Configure Project Settings
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Status Summary */}
       <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-5">
