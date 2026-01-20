@@ -1,0 +1,36 @@
+{
+  "_comment": "GET /api/adapters/status?refresh=1 - Expected output",
+  "_note": "Shows both reachable and unreachable adapter scenarios",
+  "adapters": [
+    {
+      "id": "clx1234567890abcdef",
+      "name": "langgraph-host",
+      "baseUrl": "http://localhost:8123",
+      "enabled": true,
+      "healthStatus": "OK",
+      "lastSeenAt": "2026-01-20T12:00:00.000Z",
+      "lastHealthCheckAt": "2026-01-20T12:00:00.000Z",
+      "lastHealthError": null
+    },
+    {
+      "id": "clx0987654321fedcba",
+      "name": "dead-adapter",
+      "baseUrl": "http://localhost:9999",
+      "enabled": true,
+      "healthStatus": "UNREACHABLE",
+      "lastSeenAt": null,
+      "lastHealthCheckAt": "2026-01-20T12:00:00.000Z",
+      "lastHealthError": "Connection refused"
+    },
+    {
+      "id": "clxdisabled123456",
+      "name": "disabled-adapter",
+      "baseUrl": "http://localhost:7777",
+      "enabled": false,
+      "healthStatus": "UNKNOWN",
+      "lastSeenAt": null,
+      "lastHealthCheckAt": null,
+      "lastHealthError": null
+    }
+  ]
+}
