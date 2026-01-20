@@ -10,10 +10,7 @@ import {
   getStatusTooltip,
   type RouteHealthData,
 } from '@/lib/route-health-classifier';
-import {
-  getProbeUrlResult,
-  getNetworkErrorHint,
-} from '@/lib/probe-url-resolver';
+import { getProbeUrlResult, getNetworkErrorHint } from '@/lib/probe-url-resolver';
 
 interface RouteHealth extends RouteHealthData {
   path: string;
@@ -44,10 +41,7 @@ export function RouteHealthGrid({ onRouteSelect, baseUrl }: RouteHealthGridProps
   const navItems = getRouteHealthItems();
 
   // ROUTE-HEALTH-NET-0: Resolve probe URL and detect localhost mismatch
-  const probeUrlResult = useMemo(
-    () => getProbeUrlResult({ baseUrl }),
-    [baseUrl]
-  );
+  const probeUrlResult = useMemo(() => getProbeUrlResult({ baseUrl }), [baseUrl]);
 
   const toggleExpanded = (key: string) => {
     setExpandedRows(prev => {
@@ -161,7 +155,10 @@ export function RouteHealthGrid({ onRouteSelect, baseUrl }: RouteHealthGridProps
                 {probeUrlResult.mismatchWarning}
               </p>
               <p className="mt-1 text-xs text-yellow-700 dark:text-yellow-400">
-                Target: <code className="rounded bg-yellow-100 px-1 dark:bg-yellow-800">{probeUrlResult.resolvedUrl}</code>
+                Target:{' '}
+                <code className="rounded bg-yellow-100 px-1 dark:bg-yellow-800">
+                  {probeUrlResult.resolvedUrl}
+                </code>
               </p>
             </div>
           </div>

@@ -9,12 +9,14 @@ Route Health showed 0ms latency / network error when the UI was accessed from a 
 ### A) Base URL Resolution (`src/lib/probe-url-resolver.ts`)
 
 Created `resolveProbeBaseUrl()` function with the following rules:
+
 - If `baseUrl` is provided and non-empty → use it
 - Else → use `window.location.origin` (same-origin default)
 
 ### B) Localhost Mismatch Warning
 
 Added detection logic:
+
 - If resolved baseUrl hostname is `localhost` or `127.0.0.1`
 - AND `window.location.hostname` is NOT localhost/127.0.0.1
 - Show warning banner: "Route health is probing localhost from a non-local origin. Use same-origin or update base URL preset."
@@ -22,6 +24,7 @@ Added detection logic:
 ### C) Network Error Hinting
 
 When probe fails with `status === 0` or fetch throws:
+
 - If localhost mismatch detected: "Network error (baseUrl mismatch: probing localhost from non-local origin)"
 - Otherwise: "Network error (possible baseUrl mismatch)"
 
