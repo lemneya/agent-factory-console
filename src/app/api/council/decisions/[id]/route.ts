@@ -1,5 +1,14 @@
+/**
+ * GET/DELETE /api/council/decisions/[id]
+ *
+ * SECURITY-0: DELETE requires:
+ * - Authentication (session required)
+ * - Ownership verification (user must own the project)
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { requireAuth, requireCouncilDecisionOwnership } from '@/lib/auth-helpers';
 
 // GET /api/council/decisions/[id] - Get specific decision details
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -47,13 +56,14 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    const decision = await prisma.councilDecision.findUnique({
-      where: { id },
-    });
+    // SECURITY-0: Require authentication
+    const authResult = await requireAuth();
+    if (authResult.error) return authResult.error;
+    const { userId } = authResult;
 
-    if (!decision) {
-      return NextResponse.json({ error: 'Council decision not found' }, { status: 404 });
-    }
+    // SECURITY-0: Verify ownership (via project)
+    const ownershipResult = await requireCouncilDecisionOwnership(id, userId);
+    if (ownershipResult.error) return ownershipResult.error;
 
     await prisma.councilDecision.delete({
       where: { id },

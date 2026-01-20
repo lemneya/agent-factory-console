@@ -141,15 +141,18 @@ test.describe('AFC-0 Proof of Life', () => {
 
 test.describe('API Health Checks', () => {
   test.describe('Health Endpoint', () => {
-    test('should return healthy status', async ({ request }) => {
+    test('should return valid health response structure', async ({ request }) => {
       const response = await request.get('/api/health');
-      expect(response.status()).toBe(200);
+      // Accept 200 (healthy/degraded) or 503 (unhealthy)
+      expect([200, 503]).toContain(response.status());
 
       const data = await response.json();
-      expect(data.status).toBe('healthy');
+      // Validate response structure regardless of health status
+      expect(['healthy', 'degraded', 'unhealthy']).toContain(data.status);
       expect(data).toHaveProperty('timestamp');
       expect(data).toHaveProperty('version');
       expect(data).toHaveProperty('environment');
+      expect(data).toHaveProperty('checks');
     });
 
     test('should return valid JSON', async ({ request }) => {

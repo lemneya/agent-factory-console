@@ -1,0 +1,145 @@
+# ============================================================================
+# PRODUCTION DOCKER COMPOSE
+# ============================================================================
+# Usage:
+#   docker-compose -f docker-compose.production.yml up -d
+#
+# Prerequisites:
+#   - .env.production file with all required values
+#   - External PostgreSQL database (recommended) OR use included db service
+# ============================================================================
+
+services:
+  # ==========================================================================
+  # WEB APPLICATION
+  # ==========================================================================
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - '${PORT:-3000}:3000'
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
+      - GITHUB_WEBHOOK_SECRET=${GITHUB_WEBHOOK_SECRET}
+      - NEXT_PUBLIC_PREVIEW_URL=${NEXT_PUBLIC_PREVIEW_URL}
+      # SECURITY: Never set NEXT_PUBLIC_DEV_AUTH_BYPASS in production
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/api/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - afc-production
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+  # ==========================================================================
+  # DATABASE (Optional - Use external managed DB in production)
+  # ==========================================================================
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB:-agent_factory}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - afc-production
+    restart: unless-stopped
+    # Uncomment to disable if using external database
+    profiles:
+      - with-db
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+
+  # ==========================================================================
+  # MIGRATION SERVICE (One-shot)
+  # ==========================================================================
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    command: npx prisma migrate deploy
+    profiles:
+      - migrate
+    networks:
+      - afc-production
+    depends_on:
+      db:
+        condition: service_healthy
+        required: false
+
+  # ==========================================================================
+  # TERMINAL GATEWAY (Optional - Disabled by default)
+  # ==========================================================================
+  terminal-gateway:
+    build:
+      context: ./docker/terminal-gateway
+      dockerfile: Dockerfile
+    ports:
+      - '${TERMINAL_GATEWAY_PORT:-7681}:7681'
+    environment:
+      - TERMINAL_ENABLED=${TERMINAL_ENABLED:-false}
+      - GATEWAY_AUTH_TOKEN=${GATEWAY_AUTH_TOKEN}
+      - DEFAULT_MODE=READ_ONLY
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - AUDIT_LOG_PATH=/var/log/terminal-gateway/audit.log
+    volumes:
+      - terminal-logs:/var/log/terminal-gateway
+    networks:
+      - afc-production
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:7681/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    profiles:
+      - terminal
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+volumes:
+  pgdata:
+    driver: local
+  terminal-logs:
+    driver: local
+
+networks:
+  afc-production:
+    driver: bridge
