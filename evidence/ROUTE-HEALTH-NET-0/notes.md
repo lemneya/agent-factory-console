@@ -125,3 +125,31 @@ Tests:       33 passed, 33 total
 
 - `same_origin_ok.png` - Route Health working with same-origin probes from ngrok
 - `localhost_mismatch_warning.png` - Warning banner when localhost mismatch detected
+
+## Post-Merge Sanity Check (2026-01-20)
+
+### API-Level Verification
+
+```bash
+# Test 1: Same-origin probe via ngrok (real latency)
+$ curl -X POST -H "Content-Type: application/json" \
+  -d '{"path":"/","baseUrl":"https://supremely-unstabilized-griselda.ngrok-free.dev"}' \
+  "https://supremely-unstabilized-griselda.ngrok-free.dev/api/preview/route-health"
+
+{"path":"/","status":200,"ok":true,"latencyMs":269,"redirected":false}
+# ✅ Real latency (269ms), not 0ms - PASS
+
+# Test 2: Localhost probe from localhost (baseline)
+$ curl -X POST -H "Content-Type: application/json" \
+  -d '{"path":"/","baseUrl":"http://localhost:3000"}' \
+  "http://localhost:3000/api/preview/route-health"
+
+{"path":"/","status":200,"ok":true,"latencyMs":22,"redirected":false}
+# ✅ Low latency (22ms) - PASS
+```
+
+### Summary
+
+- Same-origin probes work correctly from remote origins (ngrok)
+- Real latency values returned (not 0ms network errors)
+- Fix verified working in production
