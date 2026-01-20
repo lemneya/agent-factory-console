@@ -804,3 +804,22 @@ enum ExecutionStatus {
   COMPLETED
   FAILED
 }
+
+// ============================================================================
+// AFC-ADAPTER-2: Adapter Registry
+// ============================================================================
+
+// Adapter: External runtime adapter registration (e.g., LangGraph host)
+model Adapter {
+  id           String   @id @default(cuid())
+  name         String   @unique
+  version      String
+  baseUrl      String
+  capabilities Json     @default("[]") // string[] of capability identifiers
+  enabled      Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([enabled])
+  @@index([name])
+}
