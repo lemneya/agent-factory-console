@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { getRouteHealthItems, type NavItem } from '@/config/nav';
 import {
   classifyRouteHealth,
@@ -10,6 +10,10 @@ import {
   getStatusTooltip,
   type RouteHealthData,
 } from '@/lib/route-health-classifier';
+import {
+  getProbeUrlResult,
+  getNetworkErrorHint,
+} from '@/lib/probe-url-resolver';
 
 interface RouteHealth extends RouteHealthData {
   path: string;
@@ -39,6 +43,12 @@ export function RouteHealthGrid({ onRouteSelect, baseUrl }: RouteHealthGridProps
 
   const navItems = getRouteHealthItems();
 
+  // ROUTE-HEALTH-NET-0: Resolve probe URL and detect localhost mismatch
+  const probeUrlResult = useMemo(
+    () => getProbeUrlResult({ baseUrl }),
+    [baseUrl]
+  );
+
   const toggleExpanded = (key: string) => {
     setExpandedRows(prev => {
       const next = new Set(prev);
@@ -59,21 +69,23 @@ export function RouteHealthGrid({ onRouteSelect, baseUrl }: RouteHealthGridProps
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             path: item.href,
-            baseUrl: baseUrl || undefined,
+            // ROUTE-HEALTH-NET-0: Use resolved URL (same-origin by default)
+            baseUrl: probeUrlResult.resolvedUrl,
           }),
         });
         return (await response.json()) as RouteHealth;
       } catch {
+        // ROUTE-HEALTH-NET-0: Enhanced network error hint
         return {
           path: item.href,
           status: 0,
           ok: false,
           latencyMs: 0,
-          error: 'Failed to check route',
+          error: getNetworkErrorHint(probeUrlResult.resolvedUrl),
         };
       }
     },
-    [baseUrl]
+    [probeUrlResult.resolvedUrl]
   );
 
   const refreshAll = useCallback(async () => {
@@ -136,6 +148,25 @@ export function RouteHealthGrid({ onRouteSelect, baseUrl }: RouteHealthGridProps
           </button>
         </div>
       </div>
+      {/* ROUTE-HEALTH-NET-0: Localhost mismatch warning */}
+      {probeUrlResult.isLocalhostMismatch && (
+        <div
+          className="border-b border-yellow-200 bg-yellow-50 px-4 py-2 dark:border-yellow-800 dark:bg-yellow-900/20"
+          data-testid="localhost-mismatch-warning"
+        >
+          <div className="flex items-start gap-2">
+            <span className="text-yellow-600 dark:text-yellow-400">⚠️</span>
+            <div>
+              <p className="text-xs font-medium text-yellow-800 dark:text-yellow-300">
+                {probeUrlResult.mismatchWarning}
+              </p>
+              <p className="mt-1 text-xs text-yellow-700 dark:text-yellow-400">
+                Target: <code className="rounded bg-yellow-100 px-1 dark:bg-yellow-800">{probeUrlResult.resolvedUrl}</code>
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="divide-y divide-gray-100 dark:divide-gray-700">
         {navItems.map(item => {
           const health = healthMap[item.key];
