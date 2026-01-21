@@ -1,0 +1,13 @@
+=== DEPLOY-FIX-1 Environment Proof ===
+Date: 2026-01-21T00:55:18Z
+
+=== DATABASE_URL inside web container ===
+postgresql://postgres:postgres@db:5432/agent_factory
+
+=== Expected: db:5432 (not localhost:5432) ===
+
+=== Verification: Host extracted ===
+db
+
+=== .env.production DATABASE_URL (source of truth) ===
+DATABASE_URL="postgresql://postgres:postgres@db:5432/agent_factory"

@@ -1,0 +1,248 @@
+=== DEPLOY-FIX-1 Deployment Log ===
+Date: 2026-01-21T00:51:13Z
+
+=== Build Phase ===
+#1 [internal] load local bake definitions
+#1 reading from stdin 589B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 1.13kB done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/node:20-alpine
+#3 DONE 0.0s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 455B done
+#4 DONE 0.0s
+
+#5 [base 1/3] FROM docker.io/library/node:20-alpine@sha256:3960ed74dfe320a67bf8da9555b6bade25ebda2b22b6081d2f60fd7d5d430e9c
+#5 resolve docker.io/library/node:20-alpine@sha256:3960ed74dfe320a67bf8da9555b6bade25ebda2b22b6081d2f60fd7d5d430e9c done
+#5 DONE 0.0s
+
+#6 [internal] load build context
+#6 transferring context: 239.50kB 0.1s done
+#6 DONE 0.1s
+
+#7 [deps 1/2] COPY package.json package-lock.json* ./
+#7 CACHED
+
+#8 [deps 2/2] RUN npm ci
+#8 CACHED
+
+#9 [base 2/3] RUN apk add --no-cache libc6-compat openssl
+#9 CACHED
+
+#10 [builder 1/5] WORKDIR /app
+#10 CACHED
+
+#11 [base 3/3] WORKDIR /app
+#11 CACHED
+
+#12 [builder 2/5] COPY --from=deps /app/node_modules ./node_modules
+#12 CACHED
+
+#13 [builder 3/5] COPY . .
+#13 DONE 0.1s
+
+#14 [builder 4/5] RUN npx prisma generate
+#14 0.387 Prisma schema loaded from prisma/schema.prisma
+#14 1.304 
+#14 1.304 ✔ Generated Prisma Client (v5.22.0) to ./node_modules/@prisma/client in 143ms
+#14 1.304 
+#14 1.304 Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+#14 1.304 
+#14 1.304 Tip: Want to turn off tips and other hints? https://pris.ly/tip-4-nohints
+#14 1.304 
+#14 1.508 npm notice
+#14 1.508 npm notice New major version of npm available! 10.8.2 -> 11.7.0
+#14 1.508 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.7.0
+#14 1.508 npm notice To update run: npm install -g npm@11.7.0
+#14 1.508 npm notice
+#14 DONE 1.5s
+
+#15 [builder 5/5] RUN npm run build
+#15 0.169 
+#15 0.169 > agent-factory-console@0.1.0 build
+#15 0.169 > next build
+#15 0.169 
+#15 0.398 Attention: Next.js now collects completely anonymous telemetry regarding usage.
+#15 0.398 This information is used to shape Next.js' roadmap and prioritize features.
+#15 0.398 You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+#15 0.398 https://nextjs.org/telemetry
+#15 0.398 
+#15 0.403 ▲ Next.js 16.1.1 (Turbopack)
+#15 0.403 - Environments: .env.production
+#15 0.403 
+#15 0.444   Creating an optimized production build ...
+#15 38.80 ✓ Compiled successfully in 38.2s
+#15 38.84   Running TypeScript ...
+#15 42.62   Collecting page data using 13 workers ...
+#15 42.99   Generating static pages using 13 workers (0/51) ...
+#15 43.01   Generating static pages using 13 workers (12/51) 
+#15 43.07   Generating static pages using 13 workers (25/51) 
+#15 43.10   Generating static pages using 13 workers (38/51) 
+#15 43.17 ✓ Generating static pages using 13 workers (51/51) in 175.7ms
+#15 43.17   Finalizing page optimization ...
+#15 43.35 
+#15 43.35 Route (app)
+#15 43.35 ┌ ○ /
+#15 43.35 ├ ○ /_not-found
+#15 43.35 ├ ƒ /api/adapters
+#15 43.35 ├ ƒ /api/adapters/[id]
+#15 43.35 ├ ƒ /api/adapters/seed
+#15 43.35 ├ ƒ /api/adapters/status
+#15 43.35 ├ ƒ /api/adapters/status/refresh
+#15 43.35 ├ ƒ /api/assets
+#15 43.35 ├ ƒ /api/assets/[id]
+#15 43.35 ├ ƒ /api/assets/[id]/versions
+#15 43.35 ├ ƒ /api/auth/[...nextauth]
+#15 43.35 ├ ƒ /api/blueprints
+#15 43.35 ├ ƒ /api/blueprints/[id]
+#15 43.35 ├ ƒ /api/copilot/chat
+#15 43.35 ├ ƒ /api/copilot/draft
+#15 43.35 ├ ƒ /api/copilot/drafts
+#15 43.35 ├ ƒ /api/copilot/drafts/[id]
+#15 43.35 ├ ƒ /api/copilot/drafts/[id]/approve
+#15 43.35 ├ ƒ /api/copilot/drafts/[id]/diff
+#15 43.35 ├ ƒ /api/copilot/drafts/[id]/reject
+#15 43.35 ├ ƒ /api/council/decisions
+#15 43.35 ├ ƒ /api/council/decisions/[id]
+#15 43.35 ├ ƒ /api/council/decisions/[id]/override
+#15 43.35 ├ ƒ /api/council/evaluate
+#15 43.35 ├ ƒ /api/github-events
+#15 43.35 ├ ƒ /api/github-events/[id]
+#15 43.35 ├ ƒ /api/health
+#15 43.35 ├ ƒ /api/memory/ingest
+#15 43.35 ├ ƒ /api/memory/policy
+#15 43.35 ├ ƒ /api/memory/query
+#15 43.35 ├ ƒ /api/preview/route-health
+#15 43.35 ├ ƒ /api/preview/smoke-status
+#15 43.35 ├ ƒ /api/projects
+#15 43.35 ├ ƒ /api/projects/[id]
+#15 43.35 ├ ƒ /api/projects/[id]/assets
+#15 43.35 ├ ƒ /api/projects/[id]/assets/attach
+#15 43.35 ├ ƒ /api/projects/[id]/assets/detach
+#15 43.35 ├ ƒ /api/projects/[id]/assets/generate-tasks
+#15 43.35 ├ ƒ /api/projects/[id]/council
+#15 43.35 ├ ƒ /api/projects/sync
+#15 43.35 ├ ƒ /api/queue
+#15 43.35 ├ ƒ /api/runner/execute
+#15 43.35 ├ ƒ /api/runner/runs
+#15 43.35 ├ ƒ /api/runner/runs/[id]
+#15 43.35 ├ ƒ /api/runs
+#15 43.35 ├ ƒ /api/runs/[id]
+#15 43.35 ├ ƒ /api/runs/[id]/checkpoints
+#15 43.35 ├ ƒ /api/runs/[id]/checkpoints/latest
+#15 43.35 ├ ƒ /api/runs/[id]/iterations
+#15 43.35 ├ ƒ /api/runs/[id]/iterations/[n]
+#15 43.35 ├ ƒ /api/runs/[id]/memory/snapshots
+#15 43.35 ├ ƒ /api/runs/[id]/memory/uses
+#15 43.35 ├ ƒ /api/runs/[id]/policy
+#15 43.35 ├ ƒ /api/runs/[id]/ralph
+#15 43.35 ├ ƒ /api/runs/[id]/stream
+#15 43.35 ├ ƒ /api/runs/[id]/verify-result
+#15 43.35 ├ ƒ /api/tasks
+#15 43.35 ├ ƒ /api/tasks/[id]
+#15 43.35 ├ ƒ /api/test/seed/project
+#15 43.35 ├ ƒ /api/webhooks/github
+#15 43.35 ├ ƒ /api/workers
+#15 43.35 ├ ƒ /api/workers/[id]
+#15 43.35 ├ ƒ /api/workers/[id]/claim
+#15 43.35 ├ ƒ /api/workers/[id]/complete
+#15 43.35 ├ ƒ /api/workers/[id]/heartbeat
+#15 43.35 ├ ƒ /api/workers/[id]/lease/renew
+#15 43.35 ├ ƒ /api/workers/[id]/release
+#15 43.35 ├ ƒ /api/workers/stats
+#15 43.35 ├ ƒ /api/workorders
+#15 43.35 ├ ƒ /api/workorders/[id]
+#15 43.35 ├ ƒ /api/workorders/[id]/execute
+#15 43.35 ├ ○ /assets
+#15 43.35 ├ ƒ /assets/[id]
+#15 43.35 ├ ○ /assets/new
+#15 43.35 ├ ○ /audit
+#15 43.35 ├ ○ /blueprints
+#15 43.35 ├ ƒ /blueprints/[id]
+#15 43.35 ├ ○ /copilot
+#15 43.35 ├ ○ /council
+#15 43.35 ├ ƒ /council/[id]
+#15 43.35 ├ ○ /council/new
+#15 43.35 ├ ○ /drafts
+#15 43.35 ├ ƒ /drafts/[id]
+#15 43.35 ├ ○ /executions
+#15 43.35 ├ ƒ /executions/[id]
+#15 43.35 ├ ○ /memory
+#15 43.35 ├ ○ /notifications
+#15 43.35 ├ ○ /preview
+#15 43.35 ├ ○ /projects
+#15 43.35 ├ ƒ /projects/[id]
+#15 43.35 ├ ƒ /projects/[id]/assets
+#15 43.35 ├ ƒ /projects/[id]/council
+#15 43.35 ├ ƒ /projects/[id]/memory
+#15 43.35 ├ ƒ /projects/[id]/settings
+#15 43.35 ├ ○ /projects/new
+#15 43.35 ├ ○ /runs
+#15 43.35 ├ ƒ /runs/[id]
+#15 43.35 ├ ○ /runs/new
+#15 43.35 └ ○ /workorders
+#15 43.35 
+#15 43.35 
+#15 43.35 ○  (Static)   prerendered as static content
+#15 43.35 ƒ  (Dynamic)  server-rendered on demand
+#15 43.35 
+#15 DONE 43.5s
+
+#16 [production 3/9] RUN addgroup --system --gid 1001 nodejs
+#16 CACHED
+
+#17 [production 2/9] RUN apk add --no-cache curl
+#17 CACHED
+
+#18 [production 4/9] RUN adduser --system --uid 1001 nextjs
+#18 CACHED
+
+#19 [production 5/9] COPY --from=builder /app/public ./public
+#19 CACHED
+
+#20 [production 6/9] COPY --from=builder /app/.next/standalone ./
+#20 DONE 0.2s
+
+#21 [production 7/9] COPY --from=builder /app/.next/static ./.next/static
+#21 DONE 0.0s
+
+#22 [production 8/9] COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+#22 DONE 0.0s
+
+#23 [production 9/9] COPY --from=builder /app/prisma ./prisma
+#23 DONE 0.0s
+
+#24 exporting to image
+#24 exporting layers
+#24 exporting layers 1.7s done
+#24 exporting manifest sha256:b63a4646f24292a316a4a62135796697f21ccb1b547725bf68baa251e88865f1 done
+#24 exporting config sha256:4ff532676c2d412a4b9b7a5856c8cd9fa7bfa1937d24902ae239afed980c559b done
+#24 exporting attestation manifest sha256:40b0f4ea67ec4cb8d3983319d55ab4b9d6e3e232dc43154fe02981cf2bb80055 done
+#24 exporting manifest list sha256:e8bb0d1398075580f9787a91d63c2b6308b8554aaaeb3ea5b63f7e07c204ae8c done
+#24 naming to docker.io/library/agent-factory-console-web:latest done
+#24 unpacking to docker.io/library/agent-factory-console-web:latest
+#24 unpacking to docker.io/library/agent-factory-console-web:latest 0.4s done
+#24 DONE 2.1s
+
+#25 resolving provenance for metadata file
+#25 DONE 0.0s
+ agent-factory-console-web  Built
+
+=== Start DB ===
+ Container agent-factory-console-db-1  Running
+
+=== Wait for DB healthy ===
+agent-factory-console-db-1: Up 28 minutes (healthy)
+
+=== Start Web ===
+ Container agent-factory-console-web-1  Creating
+ Container agent-factory-console-web-1  Created
+ Container agent-factory-console-web-1  Starting
+ Container agent-factory-console-web-1  Started
+
+=== Deployment Complete ===
