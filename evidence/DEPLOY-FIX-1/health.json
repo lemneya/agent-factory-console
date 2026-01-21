@@ -1,0 +1,17 @@
+{
+    "status": "degraded",
+    "timestamp": "2026-01-21T00:55:07.786Z",
+    "version": "0.1.0",
+    "environment": "production",
+    "checks": {
+        "database": {
+            "status": "healthy",
+            "latencyMs": 1
+        },
+        "memory": {
+            "status": "warning",
+            "heapUsedMB": 27,
+            "heapTotalMB": 30
+        }
+    }
+}

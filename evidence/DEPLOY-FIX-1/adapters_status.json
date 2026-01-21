@@ -1,0 +1,32 @@
+[
+    {
+        "id": "test-ok",
+        "name": "afc-self",
+        "baseUrl": "http://localhost:3000/api",
+        "enabled": true,
+        "healthStatus": "OK",
+        "lastSeenAt": "2026-01-20T23:11:19.631Z",
+        "lastHealthCheckAt": "2026-01-20T23:11:19.631Z",
+        "lastHealthError": null
+    },
+    {
+        "id": "test-dead",
+        "name": "dead-adapter",
+        "baseUrl": "http://localhost:9999",
+        "enabled": true,
+        "healthStatus": "UNREACHABLE",
+        "lastSeenAt": null,
+        "lastHealthCheckAt": "2026-01-20T23:11:19.626Z",
+        "lastHealthError": "fetch failed"
+    },
+    {
+        "id": "cmkn14pzb0000uta88rl3tx7q",
+        "name": "langgraph-host",
+        "baseUrl": "http://localhost:8123",
+        "enabled": true,
+        "healthStatus": "OK",
+        "lastSeenAt": "2026-01-20T23:11:19.630Z",
+        "lastHealthCheckAt": "2026-01-20T23:11:19.630Z",
+        "lastHealthError": null
+    }
+]
