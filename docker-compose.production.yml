@@ -116,7 +116,7 @@ services:
       - '${TERMINAL_GATEWAY_PORT:-7681}:7681'
     environment:
       - TERMINAL_ENABLED=${TERMINAL_ENABLED:-false}
-      - GATEWAY_AUTH_TOKEN=${GATEWAY_AUTH_TOKEN}
+      - GATEWAY_AUTH_TOKEN=${GATEWAY_AUTH_TOKEN:?GATEWAY_AUTH_TOKEN is required in production}
       - DEFAULT_MODE=READ_ONLY
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - AUDIT_LOG_PATH=/var/log/terminal-gateway/audit.log

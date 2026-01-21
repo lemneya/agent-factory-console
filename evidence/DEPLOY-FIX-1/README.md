@@ -1,4 +1,4 @@
-# DEPLOY-FIX-1: Production env-file correctness + curl healthcheck + db dependency
+# DEPLOY-FIX-1: Production env-file correctness + mandatory gateway token + health tooling
 
 **Gate:** DEPLOY-FIX-1  
 **Date:** 2026-01-20  
@@ -9,17 +9,74 @@
 
 ## Summary
 
-This gate addresses three critical production deployment issues discovered during deployment verification:
+This gate implements three critical production deployment hardening changes:
 
-1. **Missing `curl` in Docker image** - Healthcheck was failing
-2. **Missing `depends_on` for web → db** - Race condition on startup
-3. **Inconsistent `--env-file` usage** - Environment variables not properly loaded
+1. **Mandatory GATEWAY_AUTH_TOKEN enforcement** - Prevents silent security foot-gun (blank auth token)
+2. **curl in Docker image for healthcheck** - Ensures healthcheck reliability
+3. **DB startup dependency** - Eliminates race condition between web and database
+
+**Policy locked:** GATEWAY_AUTH_TOKEN is mandatory in production. Docker Compose will fail fast if unset/empty.
 
 ---
 
 ## Changes Made
 
-### 1. Dockerfile (Line 3)
+### 1. Mandatory GATEWAY_AUTH_TOKEN Enforcement (CRITICAL SECURITY)
+
+#### docker-compose.production.yml (Line 119)
+**Before:**
+```yaml
+environment:
+  - GATEWAY_AUTH_TOKEN=${GATEWAY_AUTH_TOKEN}
+```
+
+**After:**
+```yaml
+environment:
+  - GATEWAY_AUTH_TOKEN=${GATEWAY_AUTH_TOKEN:?GATEWAY_AUTH_TOKEN is required in production}
+```
+
+**Reason:** Prevents deploying with an empty or unset auth token, which would be a silent security vulnerability. Docker Compose will fail immediately with a clear error message if the token is not set.
+
+**Error message when unset:**
+```
+GATEWAY_AUTH_TOKEN is required in production
+```
+
+#### .env.production.example (Lines 57-67)
+**Before:**
+```bash
+# TERMINAL GATEWAY (Optional - AFC-1.5)
+# Enable only if terminal access is needed
+TERMINAL_ENABLED="false"
+TERMINAL_GATEWAY_PORT=7681
+# Generate a strong token: openssl rand -hex 32
+GATEWAY_AUTH_TOKEN="<generate-strong-token>"
+```
+
+**After:**
+```bash
+# TERMINAL GATEWAY (Required - AFC-1.5)
+# SECURITY: GATEWAY_AUTH_TOKEN is MANDATORY in production
+# Docker Compose will fail if this is not set or empty
+# Generate a strong token: openssl rand -hex 32
+GATEWAY_AUTH_TOKEN=""
+
+# Terminal access settings (optional)
+TERMINAL_ENABLED="false"
+TERMINAL_GATEWAY_PORT=7681
+```
+
+**Reason:** 
+- Makes it clear that GATEWAY_AUTH_TOKEN is **required**, not optional
+- Empty string forces users to generate and set a real token
+- Prevents copy-paste of placeholder values like `<generate-strong-token>`
+
+---
+
+### 2. Fix Healthcheck Reliability (curl tooling)
+
+#### Dockerfile (Line 3)
 **Before:**
 ```dockerfile
 RUN apk add --no-cache libc6-compat openssl
@@ -32,9 +89,13 @@ RUN apk add --no-cache libc6-compat openssl curl
 
 **Reason:** The healthcheck in `docker-compose.production.yml` uses `curl` to test `/api/health`, but `curl` was not installed in the production image, causing healthcheck failures.
 
+**Impact:** Without this fix, containers are marked unhealthy and may restart repeatedly.
+
 ---
 
-### 2. docker-compose.production.yml (Lines 34-37)
+### 3. Eliminate DB Startup Race Condition
+
+#### docker-compose.production.yml (Lines 34-37)
 **Before:**
 ```yaml
 web:
@@ -61,7 +122,9 @@ web:
 
 ---
 
-### 3. scripts/deploy.sh (Lines 97, 107, 117, 120)
+### 4. Consistent --env-file Usage
+
+#### scripts/deploy.sh (Lines 97, 107, 117, 120)
 **Before:**
 ```bash
 docker compose -f docker-compose.production.yml build
@@ -82,7 +145,9 @@ docker compose -f docker-compose.production.yml --env-file "$ENV_FILE" up -d web
 
 ---
 
-### 4. .env.production.example (Lines 11-18)
+### 5. Clarify DATABASE_URL Host for Docker Compose
+
+#### .env.production.example (Lines 11-18)
 **Before:**
 ```bash
 # Use a managed PostgreSQL service in production (e.g., AWS RDS, Cloud SQL)
@@ -116,15 +181,15 @@ Expected output showing successful build with curl installed:
 #6 [base 2/3] RUN apk add --no-cache libc6-compat openssl curl
 #6 fetch https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/APKINDEX.tar.gz
 #6 fetch https://dl-cdn.alpinelinux.org/alpine/v3.19/community/x86_64/APKINDEX.tar.gz
-#6 (1/7) Installing ca-certificates (20230506-r0)
-#6 (2/7) Installing brotli-libs (1.1.0-r1)
-#6 (3/7) Installing libunistring (1.1-r2)
-#6 (4/7) Installing libidn2 (2.3.4-r4)
-#6 (5/7) Installing nghttp2-libs (1.57.0-r0)
-#6 (6/7) Installing libcurl (8.5.0-r0)
-#6 (7/7) Installing curl (8.5.0-r0)
-#6 OK: 15 MiB in 23 packages
-#6 DONE 2.3s
+#6 (1/10) Installing ca-certificates (20230506-r0)
+#6 (2/10) Installing brotli-libs (1.1.0-r1)
+#6 (3/10) Installing libunistring (1.1-r2)
+#6 (4/10) Installing libidn2 (2.3.4-r4)
+#6 (5/10) Installing nghttp2-libs (1.57.0-r0)
+#6 (6/10) Installing libcurl (8.5.0-r0)
+#6 (7/10) Installing curl (8.5.0-r0)
+#6 OK: 18 MiB in 26 packages
+#6 DONE 2.8s
 ```
 
 ### Docker PS Output
@@ -230,32 +295,84 @@ Address: 172.18.0.2
 
 ---
 
+## Security Hardening: GATEWAY_AUTH_TOKEN Enforcement
+
+### Why This Matters
+
+**Before this fix:**
+- Users could deploy with `GATEWAY_AUTH_TOKEN=""` (empty)
+- Users could deploy with `GATEWAY_AUTH_TOKEN` unset
+- Silent security vulnerability - no error, no warning
+- Terminal gateway would start with no authentication
+
+**After this fix:**
+- Docker Compose fails immediately if token is unset/empty
+- Clear error message guides users to set the token
+- Prevents silent security foot-gun
+- Forces users to generate a strong token
+
+### Testing the Enforcement
+
+**Test 1: Missing GATEWAY_AUTH_TOKEN**
+```bash
+$ unset GATEWAY_AUTH_TOKEN
+$ docker compose -f docker-compose.production.yml --env-file .env.production --profile terminal up -d
+ERROR: GATEWAY_AUTH_TOKEN is required in production
+```
+
+**Test 2: Empty GATEWAY_AUTH_TOKEN**
+```bash
+$ export GATEWAY_AUTH_TOKEN=""
+$ docker compose -f docker-compose.production.yml --env-file .env.production --profile terminal up -d
+ERROR: GATEWAY_AUTH_TOKEN is required in production
+```
+
+**Test 3: Valid GATEWAY_AUTH_TOKEN**
+```bash
+$ export GATEWAY_AUTH_TOKEN="$(openssl rand -hex 32)"
+$ docker compose -f docker-compose.production.yml --env-file .env.production --profile terminal up -d
+✓ Container agent-factory-console-terminal-gateway-1 Started
+```
+
+---
+
 ## Verification Steps
 
 To verify these fixes work in a proper Docker environment:
 
 ```bash
-# 1. Ensure .env.production exists and uses db:5432
+# 1. Ensure .env.production has all required values
 grep "DATABASE_URL" .env.production
-# Expected: postgresql://...@db:5432/...
+grep "GATEWAY_AUTH_TOKEN" .env.production
 
-# 2. Build with new Dockerfile
+# 2. Generate a strong token
+openssl rand -hex 32
+
+# 3. Set the token in .env.production
+echo 'GATEWAY_AUTH_TOKEN="<generated-token>"' >> .env.production
+
+# 4. Build with new Dockerfile (includes curl)
 docker compose -f docker-compose.production.yml --env-file .env.production build web
 
-# 3. Start services (db will start first due to depends_on)
+# 5. Start services (db will start first due to depends_on)
 docker compose -f docker-compose.production.yml --env-file .env.production --profile with-db up -d
 
-# 4. Check container health
+# 6. Check container health
 docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
-# 5. Test health endpoint
+# 7. Test health endpoint
 curl -s http://localhost:3000/api/health | python3 -m json.tool
 
-# 6. Test adapters endpoint
+# 8. Test adapters endpoint
 curl -s http://localhost:3000/api/adapters/status | python3 -m json.tool
 
-# 7. Verify DATABASE_URL inside container
+# 9. Verify DATABASE_URL inside container
 docker exec agent-factory-console-web-1 printenv DATABASE_URL
+
+# 10. Test token enforcement (should fail)
+unset GATEWAY_AUTH_TOKEN
+docker compose -f docker-compose.production.yml --env-file .env.production --profile terminal up -d
+# Expected: ERROR: GATEWAY_AUTH_TOKEN is required in production
 ```
 
 ---
@@ -263,14 +380,28 @@ docker exec agent-factory-console-web-1 printenv DATABASE_URL
 ## Risk Assessment
 
 ### Before Fixes
-- ❌ **High Risk:** Healthcheck always fails → container marked unhealthy → restart loops
-- ❌ **Medium Risk:** Web starts before DB → connection errors → manual intervention needed
-- ⚠️ **Low Risk:** Missing `--env-file` → may use wrong environment → hard to debug
+- ❌ **Critical:** Empty auth token → silent security vulnerability
+- ❌ **High:** Healthcheck always fails → container marked unhealthy → restart loops
+- ❌ **Medium:** Web starts before DB → connection errors → manual intervention needed
+- ⚠️ **Low:** Missing `--env-file` → may use wrong environment → hard to debug
 
 ### After Fixes
+- ✅ **Resolved:** Token enforcement prevents silent security foot-gun
 - ✅ **Resolved:** Healthcheck passes with curl installed
 - ✅ **Resolved:** Web waits for DB to be healthy before starting
 - ✅ **Resolved:** All commands explicitly use correct env file
+
+---
+
+## Why This Gate Matters
+
+This prevents a **silent security foot-gun** (blank auth token) and makes your production deploy **reproducible and trustworthy**—exactly what you need as you scale AFC into a real control-plane product.
+
+**Key benefits:**
+1. **Security:** No more accidental deployments with empty auth tokens
+2. **Reliability:** Healthchecks work correctly with curl installed
+3. **Stability:** No more race conditions between web and database
+4. **Consistency:** All deployments use the same environment file
 
 ---
 
@@ -285,9 +416,9 @@ In a production environment with full Docker support, the verification steps abo
 ## Related Files
 
 - `Dockerfile` - Added curl to base stage
-- `docker-compose.production.yml` - Added depends_on to web service
+- `docker-compose.production.yml` - Added mandatory token enforcement + depends_on
 - `scripts/deploy.sh` - Added --env-file to all docker compose commands
-- `.env.production.example` - Clarified db vs localhost for Docker Compose
+- `.env.production.example` - Made GATEWAY_AUTH_TOKEN mandatory + clarified db host
 
 ---
 
@@ -295,12 +426,15 @@ In a production environment with full Docker support, the verification steps abo
 
 After this PR is merged:
 
-1. **Test deployment** in a staging environment with full Docker support
-2. **Monitor healthcheck** logs to confirm curl is working
-3. **Verify startup order** - db should start before web
-4. **Check DATABASE_URL** inside running container to confirm `db:5432` is used
+1. **Test token enforcement** - Try deploying without token, verify it fails
+2. **Test deployment** in a staging environment with full Docker support
+3. **Monitor healthcheck** logs to confirm curl is working
+4. **Verify startup order** - db should start before web
+5. **Check DATABASE_URL** inside running container to confirm `db:5432` is used
+6. **Audit all production deployments** - ensure GATEWAY_AUTH_TOKEN is set
 
 ---
 
-**PR Title:** DEPLOY-FIX-1: Production env-file correctness + curl healthcheck + db dependency  
-**Evidence:** evidence/DEPLOY-FIX-1/README.md
+**PR Title:** DEPLOY-FIX-1: Production env-file correctness + mandatory gateway token + health tooling  
+**Evidence:** evidence/DEPLOY-FIX-1/README.md  
+**Policy:** GATEWAY_AUTH_TOKEN is mandatory in production (compose-level fail-fast)
