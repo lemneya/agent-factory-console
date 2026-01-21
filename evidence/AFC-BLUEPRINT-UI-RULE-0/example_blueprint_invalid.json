@@ -1,0 +1,26 @@
+{
+  "name": "Backend-Only API (INVALID)",
+  "description": "This blueprint is INVALID because it has neither UI workstream nor opt-out",
+  "workstreams": {
+    "backend": [
+      {
+        "key": "api-users",
+        "title": "User Management API",
+        "domain": "backend",
+        "spec": "REST API for user authentication and profile management"
+      },
+      {
+        "key": "api-content",
+        "title": "Content Management API",
+        "domain": "backend",
+        "spec": "REST API for creating and managing content"
+      }
+    ]
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "author": "AFC System",
+    "created_at": "2026-01-20",
+    "note": "This blueprint will FAIL validation because it lacks both workstreams.ui and ui_opt_out"
+  }
+}

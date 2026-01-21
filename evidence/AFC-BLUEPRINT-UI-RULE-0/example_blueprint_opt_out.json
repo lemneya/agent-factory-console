@@ -1,0 +1,33 @@
+{
+  "name": "Data Processing Pipeline",
+  "description": "Headless data processing system with no user interface",
+  "workstreams": {
+    "backend": [
+      {
+        "key": "etl-ingestion",
+        "title": "Data Ingestion Service",
+        "domain": "backend",
+        "spec": "Service for ingesting data from multiple sources (S3, APIs, databases)"
+      },
+      {
+        "key": "etl-transform",
+        "title": "Data Transformation Engine",
+        "domain": "backend",
+        "spec": "Transform and normalize data according to business rules"
+      },
+      {
+        "key": "etl-export",
+        "title": "Data Export Service",
+        "domain": "backend",
+        "spec": "Export processed data to data warehouse and analytics platforms"
+      }
+    ]
+  },
+  "ui_opt_out": true,
+  "ui_opt_out_reason": "This is a headless data processing pipeline designed to run as a scheduled batch job. All configuration is done via infrastructure-as-code and environment variables. No user interface is required or desired.",
+  "metadata": {
+    "version": "1.0.0",
+    "author": "AFC System",
+    "created_at": "2026-01-20"
+  }
+}
