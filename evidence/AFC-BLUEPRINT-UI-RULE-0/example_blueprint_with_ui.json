@@ -1,0 +1,39 @@
+{
+  "name": "E-commerce Platform MVP",
+  "description": "Build a complete e-commerce platform with backend API and customer-facing UI",
+  "workstreams": {
+    "backend": [
+      {
+        "key": "api-products",
+        "title": "Product Catalog API",
+        "domain": "backend",
+        "spec": "REST API for managing products, categories, and inventory"
+      },
+      {
+        "key": "api-orders",
+        "title": "Order Management API",
+        "domain": "backend",
+        "spec": "REST API for order processing, payment integration, and fulfillment"
+      }
+    ],
+    "ui": [
+      {
+        "key": "ui-storefront",
+        "title": "Customer Storefront UI",
+        "domain": "frontend",
+        "spec": "React-based storefront with product browsing, cart, and checkout"
+      },
+      {
+        "key": "ui-admin",
+        "title": "Admin Dashboard UI",
+        "domain": "frontend",
+        "spec": "Admin panel for managing products, orders, and customers"
+      }
+    ]
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "author": "AFC System",
+    "created_at": "2026-01-20"
+  }
+}
