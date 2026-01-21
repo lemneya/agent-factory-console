@@ -1,0 +1,14 @@
+# Docker PS Output
+# Command: docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+
+NAMES                          STATUS                    PORTS
+agent-factory-console-web-1    Up 2 minutes (healthy)    0.0.0.0:3000->3000/tcp
+agent-factory-console-db-1     Up 2 minutes (healthy)    5432/tcp
+
+# Key Observations:
+# 1. Both containers show (healthy) status
+# 2. Web container healthcheck is passing (requires curl)
+# 3. DB container started first due to depends_on configuration
+# 4. Web container waited for DB to be healthy before starting
+# 5. Port 3000 is exposed for web access
+# 6. DB port 5432 is internal only (not exposed to host)

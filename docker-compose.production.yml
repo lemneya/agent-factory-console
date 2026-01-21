@@ -31,6 +31,10 @@ services:
       - NEXT_PUBLIC_PREVIEW_URL=${NEXT_PUBLIC_PREVIEW_URL}
       # SECURITY: Never set NEXT_PUBLIC_DEV_AUTH_BYPASS in production
     restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+        required: false
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost:3000/api/health']
       interval: 30s

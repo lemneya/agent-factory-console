@@ -94,7 +94,7 @@ log_info "Pre-flight checks passed"
 # ============================================================================
 log_info "Building production images..."
 
-docker compose -f docker-compose.production.yml build
+docker compose -f docker-compose.production.yml --env-file "$ENV_FILE" build
 
 log_info "Build complete"
 
@@ -104,7 +104,7 @@ log_info "Build complete"
 log_info "Running database migrations..."
 
 # Run migrations
-docker compose -f docker-compose.production.yml --profile migrate run --rm migrate
+docker compose -f docker-compose.production.yml --env-file "$ENV_FILE" --profile migrate run --rm migrate
 
 log_info "Migrations complete"
 
@@ -114,10 +114,10 @@ log_info "Migrations complete"
 log_info "Starting services..."
 
 # Stop existing services
-docker compose -f docker-compose.production.yml down || true
+docker compose -f docker-compose.production.yml --env-file "$ENV_FILE" down || true
 
 # Start new services
-docker compose -f docker-compose.production.yml up -d web
+docker compose -f docker-compose.production.yml --env-file "$ENV_FILE" up -d web
 
 # Wait for health check
 log_info "Waiting for health check..."
