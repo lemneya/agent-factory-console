@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import RalphModePanel from '@/components/ralph/RalphModePanel';
 import { MemoryPanel } from '@/components/memory';
+import { CreateTaskModal } from '@/components/tasks';
 
 interface Task {
   id: string;
@@ -76,8 +77,6 @@ export default function RunDetailPage({ params }: RunDetailPageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [creating, setCreating] = useState(false);
-  const [newTask, setNewTask] = useState({ title: '', assignee: '' });
 
   const fetchRun = useCallback(async () => {
     try {
@@ -105,38 +104,6 @@ export default function RunDetailPage({ params }: RunDetailPageProps) {
       setLoading(false);
     }
   }, [authStatus, fetchRun]);
-
-  async function handleCreateTask(e: React.FormEvent) {
-    e.preventDefault();
-    if (!newTask.title) return;
-
-    try {
-      setCreating(true);
-      setError(null);
-      const res = await fetch('/api/tasks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          runId: id,
-          title: newTask.title,
-          assignee: newTask.assignee || null,
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to create task');
-      }
-
-      setShowModal(false);
-      setNewTask({ title: '', assignee: '' });
-      await fetchRun();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
-      setCreating(false);
-    }
-  }
 
   async function handleMoveTask(taskId: string, newStatus: string) {
     try {
@@ -367,59 +334,13 @@ export default function RunDetailPage({ params }: RunDetailPageProps) {
         })}
       </div>
 
-      {/* Create Task Modal */}
+      {/* AFC-UX-1: Zenflow-style Create Task Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-gray-800">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Add New Task</h2>
-            <form onSubmit={handleCreateTask} className="mt-4 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Task Title
-                </label>
-                <input
-                  type="text"
-                  value={newTask.title}
-                  onChange={e => setNewTask({ ...newTask, title: e.target.value })}
-                  placeholder="e.g., Implement user authentication"
-                  className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Assignee (optional)
-                </label>
-                <input
-                  type="text"
-                  value={newTask.assignee}
-                  onChange={e => setNewTask({ ...newTask, assignee: e.target.value })}
-                  placeholder="e.g., @username"
-                  className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500"
-                />
-              </div>
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowModal(false);
-                    setNewTask({ title: '', assignee: '' });
-                  }}
-                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={creating || !newTask.title}
-                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {creating ? 'Creating...' : 'Add Task'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <CreateTaskModal
+          runId={id}
+          onClose={() => setShowModal(false)}
+          onSuccess={fetchRun}
+        />
       )}
     </div>
   );
