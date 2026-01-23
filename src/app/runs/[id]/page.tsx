@@ -6,6 +6,7 @@ import Link from 'next/link';
 import RalphModePanel from '@/components/ralph/RalphModePanel';
 import { MemoryPanel } from '@/components/memory';
 import { CreateTaskModal } from '@/components/tasks';
+import { CopilotHITLPanel } from '@/components/hitl';
 
 interface Task {
   id: string;
@@ -289,6 +290,13 @@ export default function RunDetailPage({ params }: RunDetailPageProps) {
             runStatus={run.status}
             onRefresh={fetchRun}
           />
+        </div>
+      )}
+
+      {/* AFC-COPILOT-UX-1: Human-in-the-Loop Panel */}
+      {run && (
+        <div className="mb-6">
+          <CopilotHITLPanel runId={run.id} onTaskUnblocked={fetchRun} />
         </div>
       )}
 
