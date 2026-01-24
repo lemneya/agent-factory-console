@@ -192,3 +192,35 @@ export {
   importTimeline,
   getTimelineStats,
 } from './time-machine';
+
+// Agent Gym (Killer Feature #6)
+export {
+  type TestCategory,
+  type TestStatus,
+  type TestScenario,
+  type TestAgent,
+  type Assertion,
+  type TestResult,
+  type TestError,
+  type GymSession,
+  type GymConfig,
+  type ConfidenceScore,
+  type CategoryScore,
+  type GymReport,
+  type CategoryReport,
+  type ProductionCertificate,
+  DEFAULT_GYM_CONFIG,
+  createGymSession,
+  getGymSession,
+  runGymSession,
+  generateGymReport,
+  issueProductionCertificate,
+  // Test generators
+  generateFunctionalTests,
+  generateUserJourneyTests,
+  generateEdgeCaseTests,
+  generatePerformanceTests,
+  generateSecurityTests,
+  generateAccessibilityTests,
+  generateChaosTests,
+} from './agent-gym';
