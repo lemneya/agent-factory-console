@@ -188,6 +188,7 @@ export const COMPETITORS: Competitor[] = [
  * FORGE COMPETITIVE ADVANTAGES
  */
 export const FORGE_ADVANTAGES: CompetitiveAdvantage[] = [
+  // CORE ADVANTAGES
   {
     feature: '3-Tier Build Strategy',
     forgeCapability: 'Clone starters (90%), Inventory templates (80%), From-scratch with AI',
@@ -208,7 +209,7 @@ export const FORGE_ADVANTAGES: CompetitiveAdvantage[] = [
   },
   {
     feature: 'Clonable Starters (90%+ Done)',
-    forgeCapability: '15 production-ready templates (SaaS, e-commerce, AI apps, etc.)',
+    forgeCapability: '27 production-ready templates (SaaS, e-commerce, AI, websites, etc.)',
     competitorComparison: 'Others: Basic scaffolding only',
     timeSavings: '8 hours → 30-45 minutes',
   },
@@ -218,6 +219,46 @@ export const FORGE_ADVANTAGES: CompetitiveAdvantage[] = [
     competitorComparison: 'Others: No learning/memory between sessions',
     timeSavings: 'Improves 10-20% per project',
   },
+  {
+    feature: 'Chat Agent (Refinement)',
+    forgeCapability: 'Natural language modifications: "change header color", "add contact page"',
+    competitorComparison: 'Others: Regenerate from scratch or manual code edits',
+    timeSavings: 'Instant refinements vs rebuilding',
+  },
+
+  // 5 KILLER FEATURES (UNTOUCHABLE MOAT)
+  {
+    feature: '⚡ KILLER #1: Live Preview',
+    forgeCapability: 'Real-time app preview updating as agents build - see your app come alive',
+    competitorComparison: 'Others: Show logs/terminal only, wait until complete',
+    timeSavings: 'Instant visual feedback, catch issues early',
+  },
+  {
+    feature: '🛡️ KILLER #2: AI Code Review',
+    forgeCapability: 'Automatic security scan (XSS, SQL injection), performance, accessibility checks',
+    competitorComparison: 'Others: No quality checks, deploy and hope',
+    timeSavings: 'Enterprise-ready code, no security audits needed',
+  },
+  {
+    feature: '🚀 KILLER #3: Multi-Platform Deploy',
+    forgeCapability: 'One-click to Vercel, Railway, Fly, AWS, Cloudflare, Expo (iOS/Android)',
+    competitorComparison: 'Others: Single platform (usually Vercel only)',
+    timeSavings: 'Deploy everywhere, no platform lock-in',
+  },
+  {
+    feature: '👥 KILLER #4: Collaborative Building',
+    forgeCapability: 'Team watches same build, real-time cursors, comments, shared decisions',
+    competitorComparison: 'Others: Solo building only',
+    timeSavings: 'Team alignment, PM + Dev + Designer together',
+  },
+  {
+    feature: '⏰ KILLER #5: Version Time Machine',
+    forgeCapability: 'Snapshot every step, fork anytime, compare versions, never lose work',
+    competitorComparison: 'Others: Linear builds, no versioning',
+    timeSavings: 'Zero-risk building, experiment freely',
+  },
+
+  // SUPPORTING FEATURES
   {
     feature: 'Wave-Based Execution',
     forgeCapability: 'Smart dependency resolution, parallel waves, automatic integration',
@@ -290,23 +331,39 @@ export function getCompetitiveSummary(): string {
 - **vs Boilerplates (ShipFast)**: 2-3x faster (AI customization)
 - **vs Agencies**: 100x+ faster (weeks → minutes)
 
-## Unique Capabilities
-1. ✅ 3-Tier Build Strategy (only Forge has this)
+## 🏆 5 KILLER FEATURES (UNTOUCHABLE)
+
+| # | Feature | What We Have | What They Have |
+|---|---------|--------------|----------------|
+| 1 | **Live Preview** | Real-time app updates as agents build | Logs/terminal only |
+| 2 | **AI Code Review** | Security + quality scan pre-deploy | No quality checks |
+| 3 | **Multi-Deploy** | 10 platforms inc. mobile | Single platform |
+| 4 | **Collaborative** | Team builds together | Solo only |
+| 5 | **Time Machine** | Snapshot, fork, revert | No versioning |
+
+## Core Capabilities (Already Unique)
+1. ✅ 3-Tier Build Strategy (only Forge)
 2. ✅ Parallel Multi-Agent Execution (6 agents)
 3. ✅ Feature Inventory (30+ templates)
-4. ✅ Clonable Starters (15 production apps)
+4. ✅ Clonable Starters (27 production apps)
 5. ✅ Forge Memory (learning system)
-6. ✅ Wave-Based Execution
-7. ✅ HITL Integration
+6. ✅ Chat Agent (refinement via conversation)
+7. ✅ Wave-Based Execution
+8. ✅ HITL Integration
 
-## Key Differentiator
-Forge is the only solution that combines:
-- Clone-first approach (use existing apps)
-- Template injection (80% patterns)
-- Parallel AI generation (6 agents)
-- Learning/memory (improves over time)
+## Why We're Untouchable
+Forge is the ONLY solution that has ALL of these:
+- Clone-first approach (27 production templates)
+- Template injection (30+ feature patterns)
+- Parallel AI generation (6 specialized agents)
+- Learning/memory (improves per project)
+- Live preview (see it build in real-time)
+- Built-in QA (security/perf/a11y scanning)
+- Multi-platform deploy (web + mobile)
+- Team collaboration (not just solo)
+- Version time machine (zero-risk building)
 
-No competitor has all four.
+**No competitor has even 3 of these. We have ALL 9.**
 `;
 }
 
