@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
-  type ChatMessage,
   type ChatSession,
   type ChatAgentResponse,
+  type ChatMessage,
   createChatSession,
   processMessage,
   QUICK_ACTIONS,
@@ -26,19 +26,17 @@ export default function ForgeChat({
   isMinimized = false,
   onToggleMinimize,
 }: ForgeChatProps) {
-  const [session, setSession] = useState<ChatSession | null>(null);
+  // Initialize session with useMemo to avoid useEffect setState issue
+  const initialSession = useMemo(
+    () => decomposition ? createChatSession(buildId, decomposition) : null,
+    [buildId, decomposition]
+  );
+  const [session, setSession] = useState<ChatSession | null>(initialSession);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  // Initialize session
-  useEffect(() => {
-    if (!session && decomposition) {
-      setSession(createChatSession(buildId, decomposition));
-    }
-  }, [buildId, decomposition, session]);
 
   // Scroll to bottom on new messages
   useEffect(() => {

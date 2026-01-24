@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 interface Particle {
   id: number;
@@ -36,6 +36,31 @@ const COLORS = [
 const PARTICLE_COUNT = 80;
 const DURATION = 4000;
 
+function createParticlesArray(): Particle[] {
+  const newParticles: Particle[] = [];
+  const shapes: Particle['shape'][] = ['square', 'circle', 'triangle'];
+
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    const angle = (Math.random() * Math.PI * 0.8) + Math.PI * 0.1;
+    const velocity = 8 + Math.random() * 12;
+
+    newParticles.push({
+      id: i,
+      x: 50 + (Math.random() - 0.5) * 20,
+      y: 60 + Math.random() * 10,
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      size: 6 + Math.random() * 8,
+      speedX: Math.cos(angle) * velocity * (Math.random() > 0.5 ? 1 : -1),
+      speedY: -Math.sin(angle) * velocity,
+      rotation: Math.random() * 360,
+      rotationSpeed: (Math.random() - 0.5) * 15,
+      shape: shapes[Math.floor(Math.random() * shapes.length)],
+    });
+  }
+
+  return newParticles;
+}
+
 export default function ForgeSuccessCelebration({
   show,
   onComplete,
@@ -43,63 +68,52 @@ export default function ForgeSuccessCelebration({
   buildTime,
 }: ForgeSuccessCelebrationProps) {
   const [particles, setParticles] = useState<Particle[]>([]);
-  const [visible, setVisible] = useState(false);
   const [showStats, setShowStats] = useState(false);
 
-  const createParticles = useCallback(() => {
-    const newParticles: Particle[] = [];
-    const shapes: Particle['shape'][] = ['square', 'circle', 'triangle'];
+  // Track the previous show value to detect changes
+  const prevShowRef = useRef(show);
 
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
-      // Burst from center-bottom
-      const angle = (Math.random() * Math.PI * 0.8) + Math.PI * 0.1; // Spread upward
-      const velocity = 8 + Math.random() * 12;
+  // Derive visible directly from show prop
+  const visible = show;
 
-      newParticles.push({
-        id: i,
-        x: 50 + (Math.random() - 0.5) * 20, // Center with slight spread
-        y: 60 + Math.random() * 10, // Start from bottom area
-        color: COLORS[Math.floor(Math.random() * COLORS.length)],
-        size: 6 + Math.random() * 8,
-        speedX: Math.cos(angle) * velocity * (Math.random() > 0.5 ? 1 : -1),
-        speedY: -Math.sin(angle) * velocity,
-        rotation: Math.random() * 360,
-        rotationSpeed: (Math.random() - 0.5) * 15,
-        shape: shapes[Math.floor(Math.random() * shapes.length)],
-      });
-    }
-
-    return newParticles;
-  }, []);
-
+  // Handle show prop changes - using deferred state updates for animation
   useEffect(() => {
-    if (!show) {
-      setVisible(false);
-      setShowStats(false);
-      setParticles([]);
-      return;
+    // Only run initialization logic when show transitions from false to true
+    if (show && !prevShowRef.current) {
+      // Initialize particles when show becomes true (deferred to avoid sync setState)
+      queueMicrotask(() => {
+        setParticles(createParticlesArray());
+      });
+
+      // Show stats after initial burst
+      const statsTimer = setTimeout(() => {
+        setShowStats(true);
+      }, 500);
+
+      // Cleanup after animation
+      const completeTimer = setTimeout(() => {
+        if (onComplete) {
+          onComplete();
+        }
+      }, DURATION);
+
+      prevShowRef.current = show;
+
+      return () => {
+        clearTimeout(statsTimer);
+        clearTimeout(completeTimer);
+      };
     }
 
-    setVisible(true);
-    setParticles(createParticles());
-
-    // Show stats after initial burst
-    const statsTimer = setTimeout(() => {
-      setShowStats(true);
-    }, 500);
-
-    // Cleanup after animation
-    const completeTimer = setTimeout(() => {
-      if (onComplete) {
-        onComplete();
-      }
-    }, DURATION);
-
-    return () => {
-      clearTimeout(statsTimer);
-      clearTimeout(completeTimer);
-    };
-  }, [show, createParticles, onComplete]);
+    // When show becomes false, reset state (deferred)
+    if (!show && prevShowRef.current) {
+      queueMicrotask(() => {
+        setShowStats(false);
+        setParticles([]);
+      });
+      prevShowRef.current = show;
+    }
+  }, [show, onComplete]);
 
   // Animate particles
   useEffect(() => {
