@@ -32,7 +32,8 @@ export type Domain =
   | 'media'
   | 'government'
   | 'nonprofit'
-  | 'logistics';
+  | 'logistics'
+  | 'arabic-dialect';
 
 export interface DomainProfile {
   id: Domain;
@@ -548,6 +549,53 @@ export const DOMAINS: Record<Domain, DomainProfile> = {
       { skill: 'tracking-systems', minScore: 95 },
       { skill: 'carrier-integration', minScore: 85 },
       { skill: 'compliance-logistics', minScore: 90 },
+    ],
+  },
+  'arabic-dialect': {
+    id: 'arabic-dialect',
+    name: 'Arabic Dialect & Linguistics',
+    description: 'Arabic language apps, RTL interfaces, dialect-aware content, MENA localization',
+    requiredKnowledge: [
+      'RTL (Right-to-Left) layout implementation',
+      'Arabic typography and font rendering',
+      'Dialect classification (Egyptian, Levantine, Gulf, Maghrebi, Iraqi)',
+      'Modern Standard Arabic (MSA) vs colloquial',
+      'Unicode Arabic handling and normalization',
+      'Bidirectional text mixing (Arabic + English)',
+      'Arabic morphology and root systems',
+      'Transliteration systems (Buckwalter, ALA-LC)',
+      'Arabic date/time/number formatting',
+      'Arabic keyboard input handling',
+      'Tashkeel (diacritics) processing',
+      'Arabic text search and indexing',
+    ],
+    regulations: ['Cultural sensitivity guidelines', 'Regional content laws', 'Data localization (UAE, KSA)'],
+    criticalPatterns: [
+      'RTL-first CSS architecture',
+      'Dialect detection and routing',
+      'Arabic text normalization (Alef, Yaa variants)',
+      'Bidirectional text isolation',
+      'Arabic-aware string truncation',
+      'Collation for Arabic sorting',
+      'Dialect-specific content switching',
+      'Arabic OCR preprocessing',
+    ],
+    commonPitfalls: [
+      'Broken RTL layouts with mixed content',
+      'Wrong font rendering (disconnected letters)',
+      'Treating all Arabic as same dialect',
+      'Ignoring Tashkeel in search',
+      'LTR number display in RTL context',
+      'Cultural insensitivity in translations',
+      'Breaking Arabic text at wrong positions',
+      'Missing Arabic keyboard support',
+    ],
+    certificationRequirements: [
+      { skill: 'rtl-implementation', minScore: 95 },
+      { skill: 'dialect-awareness', minScore: 90 },
+      { skill: 'arabic-typography', minScore: 90 },
+      { skill: 'unicode-handling', minScore: 95 },
+      { skill: 'cultural-localization', minScore: 85 },
     ],
   },
 };
