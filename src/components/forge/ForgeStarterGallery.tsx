@@ -19,6 +19,11 @@ const CATEGORY_CONFIG: Record<string, { icon: string; label: string; color: stri
   community: { icon: '👥', label: 'Community', color: 'from-fuchsia-500 to-pink-600' },
   api: { icon: '⚡', label: 'API', color: 'from-yellow-500 to-orange-600' },
   mobile: { icon: '📱', label: 'Mobile', color: 'from-cyan-500 to-blue-600' },
+  // Website categories
+  portfolio: { icon: '🎨', label: 'Portfolio', color: 'from-purple-500 to-indigo-600' },
+  agency: { icon: '🏢', label: 'Agency', color: 'from-slate-500 to-gray-600' },
+  docs: { icon: '📚', label: 'Docs', color: 'from-sky-500 to-blue-600' },
+  local: { icon: '📍', label: 'Local Biz', color: 'from-red-500 to-orange-600' },
 };
 
 export default function ForgeStarterGallery({ onSelectStarter, onCustomBuild }: ForgeStarterGalleryProps) {

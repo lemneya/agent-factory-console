@@ -46,7 +46,11 @@ export type StarterCategory =
   | 'mobile'         // Mobile app backends
   | 'ai'             // AI/ML apps
   | 'marketplace'    // Multi-vendor platforms
-  | 'community';     // Forums, social apps
+  | 'community'      // Forums, social apps
+  | 'portfolio'      // Personal/professional portfolios
+  | 'agency'         // Agency/business websites
+  | 'docs'           // Documentation sites
+  | 'local';         // Local business (restaurants, services)
 
 /**
  * CLONABLE STARTERS INVENTORY
@@ -691,6 +695,551 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
       'NEXTAUTH_SECRET',
     ],
   },
+
+  // ============================================
+  // PORTFOLIO WEBSITES
+  // ============================================
+  {
+    id: 'developer-portfolio',
+    name: 'Developer Portfolio',
+    description: 'Modern developer portfolio with projects showcase',
+    category: 'portfolio',
+    repoUrl: 'https://github.com/craftzdog/craftzdog-homepage',
+    stars: 3500,
+    techStack: {
+      framework: 'Next.js 14',
+      database: 'None',
+      auth: 'None',
+      styling: 'Chakra UI',
+    },
+    features: [
+      'Animated hero section',
+      'Projects gallery with filters',
+      'Skills/tech stack display',
+      '3D elements (Three.js)',
+      'Blog integration',
+      'Contact form',
+      'Dark/light mode',
+      'Responsive design',
+    ],
+    customizationPoints: [
+      {
+        area: 'Content',
+        description: 'Bio, projects, skills',
+        files: ['pages/index.tsx', 'pages/works/**'],
+        effort: 'trivial',
+      },
+      {
+        area: 'Styling',
+        description: 'Colors and theme',
+        files: ['lib/theme.ts', 'components/**'],
+        effort: 'trivial',
+      },
+    ],
+    estimatedCustomizationMinutes: 20,
+    envVarsRequired: [],
+    previewUrl: 'https://www.craftz.dog',
+  },
+  {
+    id: 'designer-portfolio',
+    name: 'Designer Portfolio',
+    description: 'Minimal portfolio for designers and creatives',
+    category: 'portfolio',
+    repoUrl: 'https://github.com/leerob/leerob.io',
+    stars: 7000,
+    techStack: {
+      framework: 'Next.js 14',
+      database: 'None',
+      auth: 'None',
+      styling: 'Tailwind CSS',
+    },
+    features: [
+      'Clean minimal design',
+      'Project case studies',
+      'Blog with MDX',
+      'Spotify now playing',
+      'View counter',
+      'Guestbook',
+      'RSS feed',
+      'SEO optimized',
+    ],
+    customizationPoints: [
+      {
+        area: 'Content',
+        description: 'About, projects, blog posts',
+        files: ['app/**', 'content/**'],
+        effort: 'trivial',
+      },
+      {
+        area: 'Branding',
+        description: 'Colors, fonts, images',
+        files: ['tailwind.config.ts', 'public/**'],
+        effort: 'trivial',
+      },
+    ],
+    estimatedCustomizationMinutes: 15,
+    envVarsRequired: [],
+    previewUrl: 'https://leerob.io',
+  },
+  {
+    id: 'photographer-portfolio',
+    name: 'Photography Portfolio',
+    description: 'Image-focused portfolio with gallery layouts',
+    category: 'portfolio',
+    repoUrl: 'https://github.com/vercel/next.js/tree/canary/examples/image-gallery',
+    techStack: {
+      framework: 'Next.js 14',
+      database: 'None',
+      auth: 'None',
+      styling: 'Tailwind CSS',
+    },
+    features: [
+      'Masonry image grid',
+      'Lightbox viewer',
+      'Image optimization',
+      'Lazy loading',
+      'Categories/albums',
+      'EXIF data display',
+      'Print ordering (optional)',
+    ],
+    customizationPoints: [
+      {
+        area: 'Images',
+        description: 'Add your photography',
+        files: ['public/images/**', 'data/photos.ts'],
+        effort: 'trivial',
+      },
+      {
+        area: 'Layout',
+        description: 'Gallery grid style',
+        files: ['components/Gallery.tsx'],
+        effort: 'easy',
+      },
+    ],
+    estimatedCustomizationMinutes: 15,
+    envVarsRequired: [],
+  },
+
+  // ============================================
+  // AGENCY / BUSINESS WEBSITES
+  // ============================================
+  {
+    id: 'agency-starter',
+    name: 'Agency Website',
+    description: 'Professional agency/studio website with case studies',
+    category: 'agency',
+    repoUrl: 'https://github.com/wevm/vocs',
+    stars: 1500,
+    techStack: {
+      framework: 'Next.js 14',
+      database: 'None',
+      auth: 'None',
+      styling: 'Tailwind CSS',
+    },
+    features: [
+      'Services showcase',
+      'Case studies/portfolio',
+      'Team members grid',
+      'Client logos',
+      'Testimonials carousel',
+      'Contact form with validation',
+      'Blog/insights section',
+      'Animated transitions',
+    ],
+    customizationPoints: [
+      {
+        area: 'Branding',
+        description: 'Logo, colors, fonts',
+        files: ['tailwind.config.ts', 'public/**'],
+        effort: 'trivial',
+      },
+      {
+        area: 'Content',
+        description: 'Services, case studies, team',
+        files: ['data/**', 'app/**'],
+        effort: 'easy',
+      },
+    ],
+    estimatedCustomizationMinutes: 25,
+    envVarsRequired: [],
+  },
+  {
+    id: 'startup-website',
+    name: 'Startup Website',
+    description: 'Modern startup website with product focus',
+    category: 'agency',
+    repoUrl: 'https://github.com/shadcn-ui/ui',
+    stars: 50000,
+    techStack: {
+      framework: 'Next.js 14',
+      database: 'None',
+      auth: 'None',
+      styling: 'Tailwind + shadcn/ui',
+    },
+    features: [
+      'Product hero with demo',
+      'Features grid',
+      'Pricing comparison',
+      'Integration logos',
+      'Changelog/updates',
+      'Careers page',
+      'Press kit',
+      'Legal pages (privacy, terms)',
+    ],
+    customizationPoints: [
+      {
+        area: 'Product info',
+        description: 'Hero, features, pricing',
+        files: ['app/(marketing)/**'],
+        effort: 'easy',
+      },
+      {
+        area: 'Branding',
+        description: 'Theme and assets',
+        files: ['tailwind.config.ts', 'components/ui/**'],
+        effort: 'trivial',
+      },
+    ],
+    estimatedCustomizationMinutes: 30,
+    envVarsRequired: [],
+  },
+  {
+    id: 'consulting-website',
+    name: 'Consulting Website',
+    description: 'Professional consulting/services firm website',
+    category: 'agency',
+    repoUrl: 'https://github.com/tailwindlabs/spotlight',
+    techStack: {
+      framework: 'Next.js 14',
+      database: 'None',
+      auth: 'None',
+      styling: 'Tailwind CSS',
+    },
+    features: [
+      'Professional hero',
+      'Services breakdown',
+      'Industry expertise',
+      'Thought leadership blog',
+      'Team bios',
+      'Client success stories',
+      'Contact/consultation form',
+      'Newsletter signup',
+    ],
+    customizationPoints: [
+      {
+        area: 'Services',
+        description: 'Define your offerings',
+        files: ['data/services.ts', 'app/services/**'],
+        effort: 'easy',
+      },
+      {
+        area: 'Content',
+        description: 'Team, clients, blog',
+        files: ['content/**', 'data/**'],
+        effort: 'easy',
+      },
+    ],
+    estimatedCustomizationMinutes: 25,
+    envVarsRequired: [],
+  },
+
+  // ============================================
+  // DOCUMENTATION SITES
+  // ============================================
+  {
+    id: 'docusaurus',
+    name: 'Docusaurus',
+    description: 'Facebook\'s documentation framework',
+    category: 'docs',
+    repoUrl: 'https://github.com/facebook/docusaurus',
+    stars: 50000,
+    techStack: {
+      framework: 'React (Docusaurus)',
+      database: 'None',
+      auth: 'None',
+      styling: 'CSS Modules + Infima',
+    },
+    features: [
+      'Versioned docs',
+      'Markdown/MDX support',
+      'Full-text search (Algolia)',
+      'i18n support',
+      'Plugin ecosystem',
+      'Blog integration',
+      'API reference generator',
+      'Dark mode',
+    ],
+    customizationPoints: [
+      {
+        area: 'Theme',
+        description: 'Colors and branding',
+        files: ['docusaurus.config.js', 'src/css/**'],
+        effort: 'trivial',
+      },
+      {
+        area: 'Content',
+        description: 'Documentation pages',
+        files: ['docs/**'],
+        effort: 'trivial',
+      },
+    ],
+    estimatedCustomizationMinutes: 20,
+    envVarsRequired: [],
+    previewUrl: 'https://docusaurus.io',
+  },
+  {
+    id: 'mintlify',
+    name: 'Mintlify Docs',
+    description: 'Beautiful API documentation like Stripe',
+    category: 'docs',
+    repoUrl: 'https://github.com/mintlify/starter',
+    stars: 500,
+    techStack: {
+      framework: 'Mintlify',
+      database: 'None',
+      auth: 'None',
+      styling: 'Tailwind-like',
+    },
+    features: [
+      'API reference with playground',
+      'OpenAPI/Swagger import',
+      'Code samples in multiple languages',
+      'Interactive examples',
+      'Changelog',
+      'Custom components',
+      'Analytics built-in',
+      'SEO optimized',
+    ],
+    customizationPoints: [
+      {
+        area: 'Config',
+        description: 'Branding and navigation',
+        files: ['mint.json'],
+        effort: 'trivial',
+      },
+      {
+        area: 'Content',
+        description: 'Documentation MDX files',
+        files: ['**/*.mdx'],
+        effort: 'trivial',
+      },
+    ],
+    estimatedCustomizationMinutes: 15,
+    envVarsRequired: [],
+    previewUrl: 'https://mintlify.com/docs',
+  },
+  {
+    id: 'gitbook-nextjs',
+    name: 'GitBook-style Docs',
+    description: 'Clean documentation with sidebar navigation',
+    category: 'docs',
+    repoUrl: 'https://github.com/shuding/nextra-docs-template',
+    stars: 1000,
+    techStack: {
+      framework: 'Next.js + Nextra',
+      database: 'None',
+      auth: 'None',
+      styling: 'Tailwind CSS',
+    },
+    features: [
+      'Sidebar navigation',
+      'Full-text search',
+      'MDX components',
+      'Code highlighting',
+      'Table of contents',
+      'Edit on GitHub links',
+      'Last updated timestamps',
+      'Dark mode',
+    ],
+    customizationPoints: [
+      {
+        area: 'Theme',
+        description: 'Colors and logo',
+        files: ['theme.config.tsx'],
+        effort: 'trivial',
+      },
+      {
+        area: 'Docs',
+        description: 'Documentation content',
+        files: ['pages/**/*.mdx'],
+        effort: 'trivial',
+      },
+    ],
+    estimatedCustomizationMinutes: 10,
+    envVarsRequired: [],
+  },
+
+  // ============================================
+  // LOCAL BUSINESS WEBSITES
+  // ============================================
+  {
+    id: 'restaurant-website',
+    name: 'Restaurant Website',
+    description: 'Restaurant/cafe website with menu and reservations',
+    category: 'local',
+    repoUrl: 'https://github.com/vercel/next.js/tree/canary/examples/with-stripe-typescript',
+    techStack: {
+      framework: 'Next.js 14',
+      database: 'None (or Supabase)',
+      auth: 'None',
+      styling: 'Tailwind CSS',
+    },
+    features: [
+      'Hero with ambiance images',
+      'Menu with categories',
+      'Online ordering (optional)',
+      'Table reservations',
+      'Location/hours info',
+      'Photo gallery',
+      'Reviews integration',
+      'Contact form',
+    ],
+    customizationPoints: [
+      {
+        area: 'Menu',
+        description: 'Add menu items and prices',
+        files: ['data/menu.ts', 'app/menu/**'],
+        effort: 'easy',
+      },
+      {
+        area: 'Branding',
+        description: 'Photos, colors, info',
+        files: ['public/**', 'data/restaurant.ts'],
+        effort: 'trivial',
+      },
+    ],
+    estimatedCustomizationMinutes: 25,
+    envVarsRequired: [],
+  },
+  {
+    id: 'salon-website',
+    name: 'Salon/Spa Website',
+    description: 'Beauty salon or spa with booking system',
+    category: 'local',
+    repoUrl: 'https://github.com/calcom/cal.com',
+    stars: 25000,
+    techStack: {
+      framework: 'Next.js 14',
+      database: 'Postgres',
+      auth: 'NextAuth.js',
+      styling: 'Tailwind CSS',
+    },
+    features: [
+      'Service menu with pricing',
+      'Online booking calendar',
+      'Staff profiles',
+      'Before/after gallery',
+      'Gift cards',
+      'Loyalty program',
+      'Reviews/testimonials',
+      'Google Maps integration',
+    ],
+    customizationPoints: [
+      {
+        area: 'Services',
+        description: 'Define services and pricing',
+        files: ['data/services.ts', 'prisma/schema.prisma'],
+        effort: 'easy',
+      },
+      {
+        area: 'Branding',
+        description: 'Photos, theme, info',
+        files: ['public/**', 'tailwind.config.ts'],
+        effort: 'trivial',
+      },
+    ],
+    estimatedCustomizationMinutes: 35,
+    envVarsRequired: [
+      'DATABASE_URL',
+      'NEXTAUTH_SECRET',
+    ],
+  },
+  {
+    id: 'gym-fitness',
+    name: 'Gym/Fitness Website',
+    description: 'Fitness center with class scheduling',
+    category: 'local',
+    repoUrl: 'https://github.com/vercel/nextjs-subscription-payments',
+    stars: 5000,
+    techStack: {
+      framework: 'Next.js 14',
+      database: 'Supabase',
+      auth: 'Supabase Auth',
+      styling: 'Tailwind CSS',
+      payments: 'Stripe',
+    },
+    features: [
+      'Membership plans',
+      'Class schedule calendar',
+      'Trainer profiles',
+      'Online membership signup',
+      'Facility gallery',
+      'Workout programs',
+      'Member portal',
+      'Mobile-friendly schedule',
+    ],
+    customizationPoints: [
+      {
+        area: 'Plans',
+        description: 'Membership tiers and pricing',
+        files: ['data/plans.ts', 'stripe-config.ts'],
+        effort: 'easy',
+      },
+      {
+        area: 'Classes',
+        description: 'Schedule and trainers',
+        files: ['data/classes.ts', 'app/schedule/**'],
+        effort: 'easy',
+      },
+    ],
+    estimatedCustomizationMinutes: 40,
+    envVarsRequired: [
+      'NEXT_PUBLIC_SUPABASE_URL',
+      'SUPABASE_SERVICE_ROLE_KEY',
+      'STRIPE_SECRET_KEY',
+    ],
+  },
+  {
+    id: 'real-estate',
+    name: 'Real Estate Website',
+    description: 'Property listings with search and filters',
+    category: 'local',
+    repoUrl: 'https://github.com/vercel/next.js/tree/canary/examples/with-algolia',
+    techStack: {
+      framework: 'Next.js 14',
+      database: 'Supabase or Sanity',
+      auth: 'Optional',
+      styling: 'Tailwind CSS',
+    },
+    features: [
+      'Property listings grid',
+      'Advanced search/filters',
+      'Map integration',
+      'Virtual tours',
+      'Agent profiles',
+      'Mortgage calculator',
+      'Favorites/saved searches',
+      'Contact forms per listing',
+    ],
+    customizationPoints: [
+      {
+        area: 'Listings',
+        description: 'Property data structure',
+        files: ['data/properties.ts', 'lib/schema.ts'],
+        effort: 'moderate',
+      },
+      {
+        area: 'Search',
+        description: 'Filter options',
+        files: ['components/Search.tsx'],
+        effort: 'easy',
+      },
+    ],
+    estimatedCustomizationMinutes: 45,
+    envVarsRequired: [
+      'NEXT_PUBLIC_MAPBOX_TOKEN',
+    ],
+  },
 ];
 
 /**
@@ -705,13 +1254,17 @@ export function matchStartersFromSpec(spec: string): StarterTemplate[] {
     saas: ['saas', 'subscription', 'billing', 'teams', 'multi-tenant', 'b2b'],
     ecommerce: ['ecommerce', 'e-commerce', 'store', 'shop', 'products', 'cart', 'checkout', 'shopify'],
     dashboard: ['dashboard', 'admin', 'analytics', 'metrics', 'backoffice', 'internal tool'],
-    blog: ['blog', 'content', 'articles', 'posts', 'documentation', 'docs', 'wiki'],
+    blog: ['blog', 'content', 'articles', 'posts'],
     landing: ['landing', 'marketing', 'launch', 'waitlist', 'coming soon'],
     api: ['api only', 'backend', 'headless', 'rest api', 'graphql'],
     mobile: ['mobile app', 'react native', 'expo', 'ios', 'android'],
     ai: ['ai', 'chatbot', 'gpt', 'llm', 'chat', 'assistant', 'copilot', 'claude', 'openai'],
     marketplace: ['marketplace', 'multi-vendor', 'platform', 'sellers'],
     community: ['forum', 'community', 'discussions', 'social', 'members'],
+    portfolio: ['portfolio', 'personal site', 'developer site', 'designer', 'photographer', 'resume', 'cv'],
+    agency: ['agency', 'studio', 'consulting', 'firm', 'startup', 'company website', 'business website', 'corporate'],
+    docs: ['documentation', 'docs', 'api docs', 'wiki', 'knowledge base', 'help center', 'reference'],
+    local: ['restaurant', 'cafe', 'salon', 'spa', 'gym', 'fitness', 'real estate', 'property', 'local business', 'booking', 'reservations'],
   };
 
   // Find matching categories
