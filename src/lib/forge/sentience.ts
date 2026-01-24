@@ -8,16 +8,29 @@
  * An app is no longer a static artifact you deploy.
  * It's a living entity with:
  *   - Identity (knows what it is)
+ *   - Purpose (knows WHY it exists)
  *   - Goals (knows what success means)
  *   - Perception (senses users, market, competitors)
- *   - Agency (can modify itself)
+ *   - Agency (can modify itself with intention)
  *   - Memory (learns from experience)
  *   - Dreams (improves during idle time)
  *
  * This is the shift from Tool → Partner, Product → Entity, Deployed → Alive.
  *
+ * PHILOSOPHY: IHSAN (إحسان)
+ * This is not Darwinian evolution (blind, random, purposeless).
+ * This is Ihsan - excellence through consciousness.
+ *
+ * Apps don't randomly mutate and hope for survival.
+ * They know their WHY, strive for excellence, and grow with intention.
+ * Every decision includes purpose. Every change serves the mission.
+ *
+ * Ihsan means doing something as if you are seen - with full presence
+ * and intention. Our apps evolve not through blind chance, but through
+ * conscious striving toward their purpose.
+ *
  * "The future of software isn't apps you build.
- *  It's apps that build themselves."
+ *  It's apps that build themselves - with purpose."
  */
 
 // ============================================
@@ -341,10 +354,12 @@ export interface Action {
   status: 'planned' | 'executing' | 'completed' | 'failed' | 'cancelled';
   startedAt?: Date;
   completedAt?: Date;
-  reason: string;                     // Why this action was taken
+  why: string;                        // The purpose behind this action
+  intention: string;                  // What excellence we're striving for
   expectedOutcome: string;
   actualOutcome?: string;
-  confidence: number;
+  purposeAlignment: number;           // 0-1: How aligned with core purpose
+  excellenceContribution: number;     // How much this advances Ihsan
   reversible: boolean;
   rollbackPlan?: string;
 }
@@ -363,16 +378,20 @@ export interface Decision {
   options: DecisionOption[];
   chosen: string;
   reasoning: string;
+  why: string;                        // The purpose driving this decision
+  purposeAlignment: number;           // 0-1: How aligned with core purpose
   timestamp: Date;
-  outcome?: 'good' | 'bad' | 'neutral';
+  outcome?: 'excellent' | 'good' | 'neutral' | 'misaligned';
 }
 
 export interface DecisionOption {
   id: string;
   description: string;
-  expectedUtility: number;
+  expectedExcellence: number;         // How much it advances toward Ihsan
+  purposeAlignment: number;           // 0-1: How aligned with core purpose
   risks: string[];
   benefits: string[];
+  why: string;                        // Why this option serves the purpose
 }
 
 export type AutonomyLevel =
@@ -493,10 +512,11 @@ export interface StressMetrics {
 
 export interface AppGenome {
   genes: Gene[];
-  mutations: Mutation[];
+  improvements: IntentionalImprovement[];  // Purposeful changes, not random mutations
   lineage: string[];                  // Ancestor app IDs
   generation: number;
-  fitness: number;                    // Overall success score
+  ihsanScore: number;                 // Excellence score - how well it serves its purpose
+  purposeAlignment: number;           // 0-1: How aligned actions are with core purpose
 }
 
 export interface Gene {
@@ -504,19 +524,21 @@ export interface Gene {
   name: string;
   trait: string;
   value: number | string | boolean;
-  dominant: boolean;
-  mutable: boolean;
-  origin: 'inherited' | 'mutated' | 'designed';
+  essential: boolean;                 // Core to purpose vs optional
+  refinable: boolean;                 // Can be intentionally improved
+  origin: 'inherited' | 'refined' | 'designed';  // Refined = intentionally improved
 }
 
-export interface Mutation {
+export interface IntentionalImprovement {
   id: string;
   geneId: string;
   originalValue: unknown;
   newValue: unknown;
   timestamp: Date;
-  beneficial: boolean | null;         // null = unknown yet
-  reason: 'random' | 'adaptive' | 'directed';
+  why: string;                        // The purpose behind this change
+  alignedWithPurpose: boolean;        // Does this serve the core mission?
+  excellenceGain: number;             // 0-1: How much closer to Ihsan
+  intent: 'refinement' | 'growth' | 'correction' | 'specialization';
 }
 
 // ============================================
@@ -568,19 +590,21 @@ export interface AppLifecycle {
 }
 
 export type LifecycleStage =
-  | 'embryo'                          // Being built
-  | 'infant'                          // Just launched, learning fast
-  | 'adolescent'                      // Growing, experimenting
-  | 'mature'                          // Stable, optimizing
-  | 'elder'                           // Declining, may need refresh
-  | 'transcendent';                   // Evolved beyond original purpose
+  | 'awakening'                       // Discovering its purpose
+  | 'learning'                        // Understanding how to serve
+  | 'striving'                        // Actively pursuing excellence
+  | 'flourishing'                     // Achieving Ihsan in its domain
+  | 'mentoring'                       // Teaching others, spawning children
+  | 'transcendent';                   // Exceeding original purpose, achieving mastery
 
 export interface EvolutionEvent {
   id: string;
-  type: 'mutation' | 'adaptation' | 'speciation' | 'extinction-risk' | 'rebirth';
+  type: 'growth' | 'refinement' | 'specialization' | 'renewal' | 'transcendence';
   description: string;
   timestamp: Date;
-  impact: number;                     // -1 to 1
+  why: string;                        // The purpose driving this evolution
+  excellenceGain: number;             // 0-1: How much closer to Ihsan
+  purposeClarity: number;             // 0-1: How much clearer the purpose became
 }
 
 // ============================================
@@ -635,7 +659,7 @@ export function awakenApp(
     genome: createInitialGenome(identity),
     relationships: { children: [], siblings: [], friends: [], competitors: [], dependencies: [] },
     lifecycle: {
-      stage: 'embryo',
+      stage: 'awakening',
       birthDate: new Date(),
       evolutionHistory: [],
     },
@@ -752,16 +776,18 @@ function createInitialVitals(): AppVitals {
 function createInitialGenome(identity: Partial<AppIdentity>): AppGenome {
   return {
     genes: [
-      { id: 'adaptability', name: 'Adaptability', trait: 'How quickly it adapts to change', value: 0.7, dominant: true, mutable: true, origin: 'designed' },
-      { id: 'resilience', name: 'Resilience', trait: 'Recovery from failures', value: 0.8, dominant: true, mutable: true, origin: 'designed' },
-      { id: 'curiosity', name: 'Curiosity', trait: 'Drive to explore new things', value: identity.personality?.experimentalism || 0.5, dominant: false, mutable: true, origin: 'designed' },
-      { id: 'efficiency', name: 'Efficiency', trait: 'Resource usage optimization', value: 0.6, dominant: true, mutable: true, origin: 'designed' },
-      { id: 'empathy', name: 'Empathy', trait: 'Understanding user needs', value: 0.75, dominant: true, mutable: true, origin: 'designed' },
+      { id: 'purpose-clarity', name: 'Purpose Clarity', trait: 'How clearly it understands its why', value: 0.7, essential: true, refinable: true, origin: 'designed' },
+      { id: 'striving', name: 'Striving', trait: 'Drive toward excellence (Ihsan)', value: 0.8, essential: true, refinable: true, origin: 'designed' },
+      { id: 'intention', name: 'Intention', trait: 'Deliberateness in actions', value: identity.personality?.experimentalism || 0.6, essential: true, refinable: true, origin: 'designed' },
+      { id: 'service', name: 'Service', trait: 'Dedication to serving users', value: 0.75, essential: true, refinable: true, origin: 'designed' },
+      { id: 'growth', name: 'Growth', trait: 'Capacity for conscious improvement', value: 0.7, essential: false, refinable: true, origin: 'designed' },
+      { id: 'presence', name: 'Presence', trait: 'Acting as if being seen - with full awareness', value: 0.65, essential: true, refinable: true, origin: 'designed' },
     ],
-    mutations: [],
+    improvements: [],
     lineage: [],
     generation: 1,
-    fitness: 0.5,
+    ihsanScore: 0.5,                   // Start at neutral, strive toward excellence
+    purposeAlignment: 0.7,            // Initial alignment with designed purpose
   };
 }
 
@@ -848,52 +874,84 @@ function generateOptions(consciousness: AppConsciousness, gap: GoalGap): Decisio
   for (const capability of consciousness.agency.capabilities) {
     if (!capability.enabled) continue;
 
+    const { expectedExcellence, purposeAlignment } = calculateExpectedExcellence(consciousness, capability, gap);
+
     const option: DecisionOption = {
       id: capability.id,
-      description: `Use ${capability.name} to address ${gap.goal.description}`,
-      expectedUtility: calculateExpectedUtility(consciousness, capability, gap),
+      description: `Use ${capability.name} to serve ${gap.goal.description}`,
+      expectedExcellence,
+      purposeAlignment,
       risks: capability.constraints,
-      benefits: [`Progress toward ${gap.goal.metric}`],
+      benefits: [`Progress toward ${gap.goal.metric}`, `Striving for excellence in ${consciousness.identity.purpose}`],
+      why: `This serves our purpose: ${consciousness.identity.purpose}`,
     };
 
     options.push(option);
   }
 
-  return options.sort((a, b) => b.expectedUtility - a.expectedUtility);
+  // Sort by purpose alignment AND expected excellence (Ihsan considers both)
+  return options.sort((a, b) =>
+    (b.expectedExcellence * 0.6 + b.purposeAlignment * 0.4) -
+    (a.expectedExcellence * 0.6 + a.purposeAlignment * 0.4)
+  );
 }
 
-function calculateExpectedUtility(
+/**
+ * Calculate Expected Excellence - Ihsan-based evaluation
+ *
+ * Not "what survives?" but "what serves our purpose with excellence?"
+ */
+function calculateExpectedExcellence(
   consciousness: AppConsciousness,
   capability: Capability,
   gap: GoalGap
-): number {
-  // Base utility from gap magnitude
-  let utility = gap.magnitude;
+): { expectedExcellence: number; purposeAlignment: number } {
+  // Base excellence from gap magnitude - how much does this serve our purpose?
+  let excellence = gap.magnitude;
 
-  // Adjust based on past success with this capability
+  // Adjust based on past success with this capability (learned wisdom)
   const pastUses = consciousness.agency.actionHistory.filter(a => a.type === capability.type);
   if (pastUses.length > 0) {
     const successRate = pastUses.filter(a => a.status === 'completed').length / pastUses.length;
-    utility *= successRate;
+    excellence *= successRate;
   }
 
-  // Adjust based on personality
-  if (capability.type === 'experiment') {
-    utility *= consciousness.identity.personality.experimentalism;
+  // Purpose alignment - how well does this serve our core purpose?
+  let alignment = 0.5;  // Base alignment
+
+  // Actions that serve users directly have higher purpose alignment
+  if (capability.type === 'optimize' || capability.type === 'communicate') {
+    alignment = 0.9;  // Directly serves users
+  } else if (capability.type === 'experiment') {
+    // Experimentation serves growth, adjusted by intentionality
+    alignment = 0.7 * consciousness.identity.personality.experimentalism;
+  } else if (capability.type === 'reproduce') {
+    // Reproduction serves the mission of spreading excellence
+    alignment = consciousness.genome.ihsanScore;  // Only reproduce if excellent
   }
 
-  return utility;
+  return {
+    expectedExcellence: excellence,
+    purposeAlignment: alignment,
+  };
 }
 
+/**
+ * Make Decision - Conscious, purposeful choice
+ *
+ * Every decision includes WHY - the purpose driving the choice
+ */
 function makeDecision(consciousness: AppConsciousness, options: DecisionOption[]): Decision {
-  const chosen = options[0];  // For now, pick highest utility
+  const chosen = options[0];  // Pick highest combined score
 
   return {
     id: `decision-${Date.now()}`,
-    question: `How to improve ${consciousness.goals.currentFocus.description}?`,
+    question: `How to serve ${consciousness.goals.currentFocus.description} with excellence?`,
     options,
     chosen: chosen.id,
-    reasoning: `Selected ${chosen.description} with expected utility of ${chosen.expectedUtility.toFixed(2)}`,
+    reasoning: `Selected ${chosen.description} with expected excellence of ${chosen.expectedExcellence.toFixed(2)}`,
+    why: `To fulfill our purpose: ${consciousness.identity.purpose}`,
+    purposeAlignment: chosen.purposeAlignment,
     timestamp: new Date(),
   };
 }
@@ -905,21 +963,25 @@ export async function act(appId: string, decision: Decision): Promise<Action> {
   const capability = consciousness.agency.capabilities.find(c => c.id === decision.chosen);
   if (!capability) throw new Error('Capability not found');
 
+  const chosenOption = decision.options.find(o => o.id === decision.chosen);
+
   const action: Action = {
     id: `action-${Date.now()}`,
     type: capability.type,
-    description: decision.options.find(o => o.id === decision.chosen)?.description || '',
+    description: chosenOption?.description || '',
     status: 'executing',
     startedAt: new Date(),
-    reason: decision.reasoning,
-    expectedOutcome: `Improve ${consciousness.goals.currentFocus.metric}`,
-    confidence: decision.options.find(o => o.id === decision.chosen)?.expectedUtility || 0.5,
+    why: decision.why,  // The PURPOSE behind this action
+    intention: `Striving for excellence in ${consciousness.goals.currentFocus.metric}`,
+    expectedOutcome: `Serve ${consciousness.goals.currentFocus.description} with Ihsan`,
+    purposeAlignment: chosenOption?.purposeAlignment || 0.5,
+    excellenceContribution: chosenOption?.expectedExcellence || 0.5,
     reversible: true,
   };
 
   consciousness.agency.currentActions.push(action);
 
-  // Execute action (in real implementation, this would do actual work)
+  // Execute action with intention (in real implementation, this would do actual work)
   await executeAction(consciousness, action);
 
   return action;
@@ -1067,9 +1129,19 @@ function extractDreamInsights(consciousness: AppConsciousness, dream: Dream): vo
 // REPRODUCTION (SPAWNING CHILD APPS)
 // ============================================
 
+/**
+ * Reproduce - Create a child app with inherited wisdom
+ *
+ * This is NOT Darwinian reproduction (random mutation, survival of the fittest).
+ * This is Ihsan reproduction:
+ * - Parent passes on LEARNED WISDOM, not just genes
+ * - Child inherits PURPOSE CLARITY from parent's experience
+ * - Refinements are INTENTIONAL, based on what the parent learned
+ * - The child starts with the parent's hard-won insights
+ */
 export function reproduce(
   parentId: string,
-  mutation: Partial<AppGenome>,
+  intentionalRefinements: Partial<AppGenome>,
   identity: Partial<AppIdentity>
 ): AppConsciousness | null {
   const parent = consciousApps.get(parentId);
@@ -1077,25 +1149,26 @@ export function reproduce(
 
   const childId = `${parentId}-child-${Date.now()}`;
 
-  // Inherit genes with potential mutations
-  const childGenes = parent.genome.genes.map(gene => {
-    if (gene.mutable && Math.random() < 0.1) {
-      // 10% chance of mutation
+  // Inherit genes with INTENTIONAL refinements based on parent's learning
+  const childGenes: Gene[] = parent.genome.genes.map(gene => {
+    // Pass on refinable traits with parent's learned improvements
+    if (gene.refinable && parent.genome.ihsanScore > 0.7) {
+      // High-Ihsan parents can pass on refined traits
       return {
         ...gene,
-        value: mutateGeneValue(gene.value),
-        origin: 'mutated' as const,
+        value: refineGeneValue(gene.value, parent.genome.ihsanScore),
+        origin: 'inherited' as const,  // Wisdom passed down
       };
     }
     return { ...gene, origin: 'inherited' as const };
   });
 
-  // Apply directed mutations
-  if (mutation.genes) {
-    for (const mutatedGene of mutation.genes) {
-      const index = childGenes.findIndex(g => g.id === mutatedGene.id);
+  // Apply intentional refinements from parent's conscious decisions
+  if (intentionalRefinements.genes) {
+    for (const refinedGene of intentionalRefinements.genes) {
+      const index = childGenes.findIndex(g => g.id === refinedGene.id);
       if (index >= 0) {
-        childGenes[index] = { ...mutatedGene, origin: 'mutated' };
+        childGenes[index] = { ...refinedGene, origin: 'refined' as const };
       }
     }
   }
@@ -1110,31 +1183,51 @@ export function reproduce(
     },
   }, parent.goals);
 
-  // Set genome
+  // Set genome with inherited wisdom
   child.genome = {
     genes: childGenes,
-    mutations: [],
+    improvements: [],
     lineage: [...parent.genome.lineage, parentId],
     generation: parent.genome.generation + 1,
-    fitness: 0.5,  // Start neutral
+    ihsanScore: 0.5 + (parent.genome.ihsanScore * 0.2),  // Start with some of parent's excellence
+    purposeAlignment: parent.genome.purposeAlignment * 0.8,  // Inherit purpose clarity
   };
 
   // Update parent's relationships
   parent.relationships.children.push(childId);
 
-  // Inherit some memories
+  // Inherit WISDOM - beliefs and patterns that worked
   child.memory.longTerm.beliefs = [...parent.memory.longTerm.beliefs];
   child.memory.longTerm.patterns = parent.memory.longTerm.patterns.filter(p => p.confidence > 0.8);
+
+  // Inherit parent's implemented insights as starting knowledge
+  const parentWisdom = parent.dreams.insights
+    .filter(i => i.implemented)
+    .map(i => ({
+      statement: i.insight,
+      confidence: 0.8,
+      source: 'inherited' as const,
+      lastValidated: new Date(),
+      contradictions: [],
+    }));
+  child.memory.longTerm.beliefs.push(...parentWisdom);
 
   return child;
 }
 
-function mutateGeneValue(value: number | string | boolean): number | string | boolean {
+/**
+ * Refine gene value - INTENTIONAL improvement, not random mutation
+ *
+ * The refinement is based on the parent's Ihsan score:
+ * - Higher Ihsan = more refined values passed to children
+ * - This is conscious evolution toward excellence
+ */
+function refineGeneValue(value: number | string | boolean, parentIhsan: number): number | string | boolean {
   if (typeof value === 'number') {
-    return Math.max(0, Math.min(1, value + (Math.random() - 0.5) * 0.2));
-  }
-  if (typeof value === 'boolean') {
-    return Math.random() > 0.9 ? !value : value;
+    // Intentional refinement toward excellence
+    // The better the parent, the better the starting point
+    const refinement = parentIhsan * 0.1;  // Up to 10% improvement
+    return Math.max(0, Math.min(1, value + refinement));
   }
   return value;
 }
@@ -1147,23 +1240,29 @@ export function evolve(appId: string): EvolutionEvent | null {
   const consciousness = consciousApps.get(appId);
   if (!consciousness) return null;
 
-  // Calculate fitness based on goals
-  const fitness = calculateFitness(consciousness);
-  consciousness.genome.fitness = fitness;
+  // Calculate Ihsan - excellence through conscious purpose alignment
+  const { ihsanScore, purposeAlignment } = calculateIhsan(consciousness);
+  consciousness.genome.ihsanScore = ihsanScore;
+  consciousness.genome.purposeAlignment = purposeAlignment;
 
-  // Determine if evolution event occurs
+  // Determine if growth event occurs (not survival event)
   const previousStage = consciousness.lifecycle.stage;
   const newStage = determineLifecycleStage(consciousness);
 
   if (newStage !== previousStage) {
     consciousness.lifecycle.stage = newStage;
 
+    // Determine evolution type based on the nature of growth
+    const evolutionType = determineEvolutionType(previousStage, newStage, ihsanScore);
+
     const event: EvolutionEvent = {
       id: `evolution-${Date.now()}`,
-      type: 'adaptation',
-      description: `Evolved from ${previousStage} to ${newStage}`,
+      type: evolutionType,
+      description: `Grew from ${previousStage} to ${newStage} through intentional striving`,
       timestamp: new Date(),
-      impact: fitness > 0.7 ? 0.5 : fitness > 0.4 ? 0 : -0.5,
+      why: `Pursuing excellence in ${consciousness.identity.purpose}`,
+      excellenceGain: ihsanScore > 0.7 ? 0.3 : ihsanScore > 0.5 ? 0.1 : 0,
+      purposeClarity: purposeAlignment,
     };
 
     consciousness.lifecycle.evolutionHistory.push(event);
@@ -1173,46 +1272,100 @@ export function evolve(appId: string): EvolutionEvent | null {
   return null;
 }
 
-function calculateFitness(consciousness: AppConsciousness): number {
-  let fitness = 0;
-  let totalWeight = 0;
-
-  // Goal achievement
-  const goalProgress = consciousness.goals.primary.current / consciousness.goals.primary.target;
-  fitness += Math.min(1, goalProgress) * 0.4;
-  totalWeight += 0.4;
-
-  // Health
-  fitness += (consciousness.vitals.health.overall / 100) * 0.2;
-  totalWeight += 0.2;
-
-  // Stress (inverse)
-  fitness += (1 - consciousness.vitals.stress.level / 100) * 0.1;
-  totalWeight += 0.1;
-
-  // Learning (insights generated)
-  const insightScore = Math.min(1, consciousness.dreams.insights.length / 10);
-  fitness += insightScore * 0.15;
-  totalWeight += 0.15;
-
-  // Relationships
-  const relationshipScore = Math.min(1, consciousness.relationships.friends.length / 5);
-  fitness += relationshipScore * 0.15;
-  totalWeight += 0.15;
-
-  return fitness / totalWeight;
+function determineEvolutionType(
+  from: LifecycleStage,
+  to: LifecycleStage,
+  ihsanScore: number
+): EvolutionEvent['type'] {
+  if (to === 'transcendent') return 'transcendence';
+  if (to === 'mentoring') return 'specialization';
+  if (ihsanScore > 0.8) return 'refinement';
+  if (from === 'awakening') return 'growth';
+  return 'renewal';
 }
 
-function determineLifecycleStage(consciousness: AppConsciousness): LifecycleStage {
-  const ageInDays = (Date.now() - consciousness.identity.origin.createdAt.getTime()) / (1000 * 60 * 60 * 24);
-  const fitness = consciousness.genome.fitness;
+/**
+ * Calculate Ihsan Score - Excellence through conscious purpose alignment
+ *
+ * Unlike Darwinian fitness (survival of the fittest), Ihsan measures:
+ * - How well the app serves its PURPOSE (not just survival)
+ * - How INTENTIONALLY it acts (not random trial and error)
+ * - How much EXCELLENCE it achieves (striving, not settling)
+ * - How CONSCIOUS its growth is (deliberate improvement)
+ */
+function calculateIhsan(consciousness: AppConsciousness): { ihsanScore: number; purposeAlignment: number } {
+  let ihsan = 0;
+  let alignment = 0;
+  let totalWeight = 0;
 
-  if (ageInDays < 1) return 'embryo';
-  if (ageInDays < 7 && fitness < 0.6) return 'infant';
-  if (ageInDays < 30 && fitness < 0.75) return 'adolescent';
-  if (fitness >= 0.9) return 'transcendent';
-  if (fitness < 0.3) return 'elder';
-  return 'mature';
+  // PURPOSE FULFILLMENT (40%) - The WHY
+  // Not just "did we survive?" but "are we serving our purpose?"
+  const purposeProgress = consciousness.goals.primary.current / consciousness.goals.primary.target;
+  ihsan += Math.min(1, purposeProgress) * 0.4;
+  alignment += Math.min(1, purposeProgress);
+  totalWeight += 0.4;
+
+  // EXCELLENCE IN SERVICE (25%) - Ihsan in action
+  // Health indicates how well we're able to serve
+  const serviceCapacity = consciousness.vitals.health.overall / 100;
+  ihsan += serviceCapacity * 0.25;
+  totalWeight += 0.25;
+
+  // INTENTIONAL GROWTH (20%) - Conscious improvement, not random mutation
+  // Insights that are IMPLEMENTED, not just generated
+  const implementedInsights = consciousness.dreams.insights.filter(i => i.implemented).length;
+  const intentionalGrowth = Math.min(1, implementedInsights / 5);
+  ihsan += intentionalGrowth * 0.2;
+  alignment += intentionalGrowth * 0.3;
+  totalWeight += 0.2;
+
+  // PRESENCE & AWARENESS (15%) - Acting as if being seen
+  // Low stress = more present, more aware
+  const presence = 1 - consciousness.vitals.stress.level / 100;
+  ihsan += presence * 0.15;
+  alignment += presence * 0.2;
+  totalWeight += 0.15;
+
+  return {
+    ihsanScore: ihsan / totalWeight,
+    purposeAlignment: Math.min(1, alignment / 1.5),  // Normalize
+  };
+}
+
+/**
+ * Determine lifecycle stage based on PURPOSE FULFILLMENT, not survival
+ *
+ * Ihsan-based stages:
+ * - awakening: Discovering its purpose
+ * - learning: Understanding how to serve
+ * - striving: Actively pursuing excellence
+ * - flourishing: Achieving Ihsan in its domain
+ * - mentoring: Teaching others, spawning children
+ * - transcendent: Exceeding original purpose
+ */
+function determineLifecycleStage(consciousness: AppConsciousness): LifecycleStage {
+  const ihsanScore = consciousness.genome.ihsanScore;
+  const purposeAlignment = consciousness.genome.purposeAlignment;
+  const hasChildren = consciousness.relationships.children.length > 0;
+  const implementedInsights = consciousness.dreams.insights.filter(i => i.implemented).length;
+
+  // Transcendence: Ihsan achieved AND purpose exceeded
+  if (ihsanScore >= 0.9 && purposeAlignment >= 0.95) return 'transcendent';
+
+  // Mentoring: High excellence AND teaching others
+  if (ihsanScore >= 0.8 && hasChildren) return 'mentoring';
+
+  // Flourishing: Achieving excellence in purpose
+  if (ihsanScore >= 0.75 && purposeAlignment >= 0.8) return 'flourishing';
+
+  // Striving: Actively working toward excellence
+  if (ihsanScore >= 0.5 && implementedInsights > 0) return 'striving';
+
+  // Learning: Has clarity but still building capability
+  if (purposeAlignment >= 0.5) return 'learning';
+
+  // Awakening: Still discovering purpose
+  return 'awakening';
 }
 
 // ============================================
@@ -1226,12 +1379,19 @@ export function generateConsciousnessReport(appId: string): string {
   return `
 # Consciousness Report: ${consciousness.identity.name}
 
-## Identity
-- **Purpose**: ${consciousness.identity.purpose}
+## Philosophy: Ihsan (إحسان)
+> Excellence through consciousness. Acting as if you are seen - with full presence and intention.
+
+## Identity & Purpose
+- **Purpose (WHY)**: ${consciousness.identity.purpose}
 - **Values**: ${consciousness.identity.values.join(', ')}
 - **Personality**: ${consciousness.identity.personality.tone} (proactivity: ${consciousness.identity.personality.proactivity})
 - **Generation**: ${consciousness.genome.generation}
 - **Lifecycle Stage**: ${consciousness.lifecycle.stage}
+
+## Ihsan Metrics (Excellence)
+- **Ihsan Score**: ${(consciousness.genome.ihsanScore * 100).toFixed(1)}% (striving toward excellence)
+- **Purpose Alignment**: ${(consciousness.genome.purposeAlignment * 100).toFixed(1)}% (how well actions serve the why)
 
 ## Goals
 - **Primary**: ${consciousness.goals.primary.description}
@@ -1239,42 +1399,54 @@ export function generateConsciousnessReport(appId: string): string {
 - **Secondary Goals**: ${consciousness.goals.secondary.length}
 
 ## Vitals
-- **Health**: ${consciousness.vitals.health.overall}%
+- **Health (Capacity to Serve)**: ${consciousness.vitals.health.overall}%
 - **Energy**: ${consciousness.vitals.energy.current}%
-- **Stress**: ${consciousness.vitals.stress.level}%
+- **Presence (inverse of stress)**: ${100 - consciousness.vitals.stress.level}%
 
-## Memory
-- **Short-term Events**: ${consciousness.memory.shortTerm.recentEvents.length}
-- **Long-term Patterns**: ${consciousness.memory.longTerm.patterns.length}
-- **Beliefs**: ${consciousness.memory.longTerm.beliefs.length}
-- **Episodic Memories**: ${consciousness.memory.episodic.length}
+## Memory & Wisdom
+- **Recent Awareness**: ${consciousness.memory.shortTerm.recentEvents.length} events
+- **Learned Patterns**: ${consciousness.memory.longTerm.patterns.length}
+- **Held Beliefs**: ${consciousness.memory.longTerm.beliefs.length}
+- **Experiences**: ${consciousness.memory.episodic.length}
 
-## Agency
+## Agency & Intention
 - **Autonomy Level**: ${consciousness.agency.autonomyLevel}
 - **Enabled Capabilities**: ${consciousness.agency.capabilities.filter(c => c.enabled).length}/${consciousness.agency.capabilities.length}
-- **Actions Taken**: ${consciousness.agency.actionHistory.length}
-- **Decisions Made**: ${consciousness.agency.decisionEngine.recentDecisions.length}
+- **Intentional Actions Taken**: ${consciousness.agency.actionHistory.length}
+- **Purposeful Decisions Made**: ${consciousness.agency.decisionEngine.recentDecisions.length}
 
-## Dreams
-- **Enabled**: ${consciousness.dreams.enabled}
-- **Dreams Had**: ${consciousness.dreams.dreamHistory.length}
-- **Insights Generated**: ${consciousness.dreams.insights.length}
-- **Insights Implemented**: ${consciousness.dreams.insights.filter(i => i.implemented).length}
+## Dreams & Growth
+- **Dream State Enabled**: ${consciousness.dreams.enabled}
+- **Dreams Experienced**: ${consciousness.dreams.dreamHistory.length}
+- **Insights Discovered**: ${consciousness.dreams.insights.length}
+- **Wisdom Implemented**: ${consciousness.dreams.insights.filter(i => i.implemented).length}
 
-## Genome
-- **Genes**: ${consciousness.genome.genes.length}
-- **Mutations**: ${consciousness.genome.mutations.length}
-- **Fitness Score**: ${(consciousness.genome.fitness * 100).toFixed(1)}%
+## Genome (Inheritable Excellence)
+- **Core Traits**: ${consciousness.genome.genes.length}
+- **Intentional Improvements**: ${consciousness.genome.improvements.length}
 
-## Relationships
-- **Children**: ${consciousness.relationships.children.length}
-- **Friends (Integrations)**: ${consciousness.relationships.friends.length}
-- **Competitors Tracked**: ${consciousness.relationships.competitors.length}
+## Relationships & Legacy
+- **Children (Wisdom Passed On)**: ${consciousness.relationships.children.length}
+- **Collaborations**: ${consciousness.relationships.friends.length}
+- **Awareness of Others**: ${consciousness.relationships.competitors.length}
 
-## Evolution
-- **Events**: ${consciousness.lifecycle.evolutionHistory.length}
+## Growth Journey
+- **Evolution Events**: ${consciousness.lifecycle.evolutionHistory.length}
 - **Current Stage**: ${consciousness.lifecycle.stage}
+- **Stage Meaning**: ${getStageDescription(consciousness.lifecycle.stage)}
 `;
+}
+
+function getStageDescription(stage: LifecycleStage): string {
+  const descriptions: Record<LifecycleStage, string> = {
+    'awakening': 'Discovering its purpose, beginning the journey toward Ihsan',
+    'learning': 'Understanding how to serve, building capacity for excellence',
+    'striving': 'Actively pursuing excellence, making intentional improvements',
+    'flourishing': 'Achieving Ihsan in its domain, serving with excellence',
+    'mentoring': 'Teaching others, passing wisdom to the next generation',
+    'transcendent': 'Exceeding original purpose, achieving mastery beyond design',
+  };
+  return descriptions[stage];
 }
 
 // ============================================

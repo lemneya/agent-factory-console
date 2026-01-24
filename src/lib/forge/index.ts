@@ -374,7 +374,7 @@ export {
   // Genome types
   type AppGenome,
   type Gene,
-  type Mutation,
+  type IntentionalImprovement,
   // Relationship types
   type AppRelationships,
   type AppFriendship,
