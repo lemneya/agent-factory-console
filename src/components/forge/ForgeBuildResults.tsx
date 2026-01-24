@@ -14,7 +14,7 @@ interface ParallelizationStats {
 interface ForgeBuildResultsProps {
   decomposition: DecomposedSpec | null;
   stats: ParallelizationStats | null;
-  buildStatus: 'idle' | 'planning' | 'executing' | 'merging' | 'complete' | 'failed';
+  buildStatus: 'idle' | 'planning' | 'executing' | 'merging' | 'testing' | 'complete' | 'failed';
   prUrl?: string;
 }
 
@@ -256,6 +256,10 @@ function BuildStatusBadge({ status }: { status: ForgeBuildResultsProps['buildSta
     merging: {
       label: 'Merging',
       className: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+    },
+    testing: {
+      label: 'Testing',
+      className: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300',
     },
     complete: {
       label: 'Complete',

@@ -830,3 +830,148 @@ model Adapter {
   @@index([name])
   @@index([healthStatus])
 }
+
+// ============================================================================
+// FORGE-0: Multi-Agent Spec Execution Models
+// ============================================================================
+
+// ForgeBuild: A complete multi-agent build execution
+model ForgeBuild {
+  id              String            @id @default(cuid())
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  completedAt     DateTime?
+
+  // User/project context
+  userId          String?
+  projectId       String?
+
+  // Input
+  spec            String            @db.Text
+  techStackJson   Json?             // TechStack preferences
+
+  // Decomposition
+  decomposedJson  Json?             // Full DecomposedSpec
+  totalWaves      Int               @default(0)
+  currentWave     Int               @default(0)
+
+  // Execution state
+  status          ForgeBuildStatus  @default(PENDING)
+  errorMessage    String?           @db.Text
+
+  // Repository info
+  repoPath        String?
+  baseBranch      String?           @default("main")
+  mergeBranch     String?           // Final merged branch
+
+  // Results
+  prUrl           String?
+  testsPass       Boolean?
+  buildPass       Boolean?
+
+  // Relations
+  workstreams     ForgeWorkstream[]
+  questions       ForgeHITLQuestion[]
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum ForgeBuildStatus {
+  PENDING
+  DECOMPOSING
+  EXECUTING
+  MERGING
+  TESTING
+  COMPLETED
+  FAILED
+}
+
+// ForgeWorkstream: Individual parallel workstream within a build
+model ForgeWorkstream {
+  id              String                  @id @default(cuid())
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  completedAt     DateTime?
+
+  buildId         String
+  build           ForgeBuild              @relation(fields: [buildId], references: [id], onDelete: Cascade)
+
+  // Workstream definition
+  workstreamKey   String                  // From decomposition (e.g., "data-schema")
+  name            String
+  agent           String                  // AgentRole: data, auth, api, ui, integrations, qa
+  wave            Int                     // Which wave this runs in
+  priority        Int                     @default(0)
+
+  // Ownership
+  ownsFiles       String[]                // File paths this workstream owns
+  producesFiles   String[]                // Files it will create
+  blockedBy       String[]                // Workstream keys it depends on
+
+  // Prompt
+  prompt          String                  @db.Text
+
+  // Execution
+  status          ForgeWorkstreamStatus   @default(PENDING)
+  agentType       String?                 // claude-code, openhands, aider, mock
+  branch          String?                 // Git branch for this workstream
+  worktreePath    String?                 // Git worktree path
+
+  // Results
+  output          String?                 @db.Text
+  errorMessage    String?                 @db.Text
+  filesCreated    String[]
+  filesModified   String[]
+  durationMs      Int?
+
+  // Relations
+  questions       ForgeHITLQuestion[]
+
+  @@index([buildId])
+  @@index([status])
+  @@index([wave])
+  @@unique([buildId, workstreamKey])
+}
+
+enum ForgeWorkstreamStatus {
+  PENDING
+  RUNNING
+  WAITING_INPUT
+  COMPLETED
+  FAILED
+}
+
+// ForgeHITLQuestion: Human-in-the-loop questions from agents
+model ForgeHITLQuestion {
+  id              String                @id @default(cuid())
+  createdAt       DateTime              @default(now())
+  answeredAt      DateTime?
+
+  buildId         String
+  build           ForgeBuild            @relation(fields: [buildId], references: [id], onDelete: Cascade)
+
+  workstreamId    String?
+  workstream      ForgeWorkstream?      @relation(fields: [workstreamId], references: [id], onDelete: Cascade)
+
+  // Question
+  question        String                @db.Text
+  questionType    ForgeQuestionType     @default(TEXT)
+  optionsJson     Json?                 // For CHOICE type: string[]
+
+  // Answer
+  answer          String?               @db.Text
+  answeredBy      String?               // userId
+
+  @@index([buildId])
+  @@index([workstreamId])
+  @@index([answeredAt])
+}
+
+enum ForgeQuestionType {
+  TEXT
+  CHOICE
+  CONFIRM
+}
