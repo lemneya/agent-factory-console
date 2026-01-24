@@ -36,7 +36,7 @@ export default function CopilotHITLPanel({ runId, onTaskUnblocked }: CopilotHITL
 
       const run = await res.json();
       const blocked = run.tasks?.filter(
-        (task: { status: string }) => task.status === 'BLOCKED'
+        (task: { status: string }) => task.status === 'BLOCKED_HITL'
       ) || [];
 
       // Fetch HITL data for each blocked task

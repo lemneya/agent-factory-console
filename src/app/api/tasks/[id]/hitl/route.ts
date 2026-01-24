@@ -1,6 +1,13 @@
+/**
+ * GET/PUT /api/tasks/[id]/hitl
+ *
+ * SECURITY-0: All operations require authentication and ownership verification.
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
+import { requireAuth, requireTaskOwnership } from '@/lib/auth-helpers';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -13,6 +20,15 @@ interface RouteParams {
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
+
+    // SECURITY-0: Require authentication
+    const authResult = await requireAuth();
+    if (authResult.error) return authResult.error;
+    const { userId } = authResult;
+
+    // SECURITY-0: Verify ownership (via run -> project chain)
+    const ownershipResult = await requireTaskOwnership(id, userId);
+    if (ownershipResult.error) return ownershipResult.error;
 
     const task = await prisma.task.findUnique({
       where: { id },
@@ -35,7 +51,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       status: task.status,
       hitl: task.hitlJson,
       blockedReason: task.blockedReason,
-      isBlocked: task.status === 'BLOCKED',
+      isBlocked: task.status === 'BLOCKED_HITL',
     });
   } catch (error) {
     console.error('Error fetching task HITL state:', error);
@@ -53,17 +69,18 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
+
+    // SECURITY-0: Require authentication
+    const authResult = await requireAuth();
+    if (authResult.error) return authResult.error;
+    const { userId } = authResult;
+
+    // SECURITY-0: Verify ownership (via run -> project chain)
+    const ownershipResult = await requireTaskOwnership(id, userId);
+    if (ownershipResult.error) return ownershipResult.error;
+
     const body = await request.json();
     const { hitl, blockedReason, status } = body;
-
-    // Validate task exists
-    const existingTask = await prisma.task.findUnique({
-      where: { id },
-    });
-
-    if (!existingTask) {
-      return NextResponse.json({ error: 'Task not found' }, { status: 404 });
-    }
 
     // Build update data
     const updateData: Prisma.TaskUpdateInput = {};
@@ -76,11 +93,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       updateData.blockedReason = blockedReason;
     }
 
-    // If setting HITL data with a reason, also set status to BLOCKED
+    // If setting HITL data with a reason, also set status to BLOCKED_HITL
     if (status) {
       updateData.status = status;
     } else if (blockedReason && !status) {
-      updateData.status = 'BLOCKED';
+      updateData.status = 'BLOCKED_HITL';
     }
 
     const updatedTask = await prisma.task.update({
@@ -101,7 +118,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       status: updatedTask.status,
       hitl: updatedTask.hitlJson,
       blockedReason: updatedTask.blockedReason,
-      isBlocked: updatedTask.status === 'BLOCKED',
+      isBlocked: updatedTask.status === 'BLOCKED_HITL',
     });
   } catch (error) {
     console.error('Error updating task HITL state:', error);

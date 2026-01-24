@@ -1,6 +1,13 @@
+/**
+ * POST /api/tasks/[id]/hitl/unblock
+ *
+ * SECURITY-0: Requires authentication and ownership verification.
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
+import { requireAuth, requireTaskOwnership } from '@/lib/auth-helpers';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -14,6 +21,16 @@ interface RouteParams {
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
+
+    // SECURITY-0: Require authentication
+    const authResult = await requireAuth();
+    if (authResult.error) return authResult.error;
+    const { userId } = authResult;
+
+    // SECURITY-0: Verify ownership (via run -> project chain)
+    const ownershipResult = await requireTaskOwnership(id, userId);
+    if (ownershipResult.error) return ownershipResult.error;
+
     const body = await request.json().catch(() => ({}));
     const { clearHitl = false, newStatus = 'DOING' } = body;
 
@@ -41,9 +58,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Task not found' }, { status: 404 });
     }
 
-    if (task.status !== 'BLOCKED') {
+    if (task.status !== 'BLOCKED_HITL') {
       return NextResponse.json(
-        { error: 'Task is not blocked' },
+        { error: 'Task is not blocked for HITL' },
         { status: 400 }
       );
     }
