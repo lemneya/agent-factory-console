@@ -56,3 +56,19 @@ export {
   LEARNED_ERROR_FIXES,
   LEARNED_COMBOS,
 } from './memory';
+export {
+  // Chat types
+  type ChatMessage,
+  type ChatIntent,
+  type ChatContext,
+  type ChatSession,
+  type ChatAgentResponse,
+  type ChatAction,
+  // Chat functions
+  detectIntent,
+  generateResponse,
+  resolveTarget,
+  createChatSession,
+  processMessage,
+  QUICK_ACTIONS,
+} from './chat-agent';
