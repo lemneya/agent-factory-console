@@ -40,6 +40,10 @@ export interface DecomposedSpec {
   integrationPoints: IntegrationPoint[];
   executionWaves: string[][]; // Groups of workstream IDs to run in parallel
   estimatedTotalMinutes: number;
+  // Inventory metadata (when templates are used)
+  inventoryUsed?: string[]; // Feature IDs from inventory
+  requiredPackages?: string[]; // npm packages needed
+  requiredEnvVars?: string[]; // Environment variables needed
 }
 
 // Agent execution status

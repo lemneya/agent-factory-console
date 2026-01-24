@@ -1,9 +1,92 @@
 /**
  * ForgeAI - Spec Decomposer
  * Breaks down a spec into parallel workstreams using Claude
+ * Now enhanced with Feature Inventory for 80% common patterns
  */
 
 import type { DecomposedSpec, TechStack, Workstream, IntegrationPoint, AgentRole } from './types';
+import {
+  matchFeaturesFromSpec,
+  getFeatureById,
+  getRequiredPackages,
+  getRequiredEnvVars,
+  type FeatureTemplate,
+} from './inventory';
+
+/**
+ * Build context from matched inventory templates
+ */
+function buildInventoryContext(features: FeatureTemplate[]): string {
+  if (features.length === 0) return '';
+
+  const grouped = features.reduce((acc, f) => {
+    acc[f.category] = acc[f.category] || [];
+    acc[f.category].push(f);
+    return acc;
+  }, {} as Record<string, FeatureTemplate[]>);
+
+  let context = '\n\n## Available Templates from Inventory\n';
+  context += 'Use these pre-built templates instead of generating from scratch:\n\n';
+
+  for (const [category, categoryFeatures] of Object.entries(grouped)) {
+    context += `### ${category.toUpperCase()}\n`;
+    for (const f of categoryFeatures) {
+      context += `- **${f.name}** (${f.id}): ${f.description}\n`;
+      if (f.files.length > 0) {
+        context += `  Files: ${f.files.map(file => file.path).join(', ')}\n`;
+      }
+    }
+    context += '\n';
+  }
+
+  return context;
+}
+
+/**
+ * Inject template code into workstream prompts
+ */
+function injectTemplates(workstream: Workstream, features: FeatureTemplate[]): Workstream {
+  // Find relevant templates for this workstream's agent role
+  const relevantFeatures = features.filter(f => {
+    const categoryToRole: Record<string, AgentRole> = {
+      auth: 'auth',
+      users: 'auth',
+      crud: 'api',
+      api: 'api',
+      forms: 'ui',
+      tables: 'ui',
+      ui: 'ui',
+      dashboard: 'ui',
+      uploads: 'api',
+      payments: 'integrations',
+      notifications: 'integrations',
+      realtime: 'api',
+      search: 'api',
+    };
+    return categoryToRole[f.category] === workstream.agent;
+  });
+
+  if (relevantFeatures.length === 0) return workstream;
+
+  // Build template injection
+  let templateCode = '\n\n---\n## Pre-built Templates (USE THESE):\n\n';
+
+  for (const feature of relevantFeatures) {
+    if (feature.files.length === 0) continue;
+
+    templateCode += `### ${feature.name}\n`;
+    for (const file of feature.files) {
+      templateCode += `\`${file.path}\`:\n\`\`\`typescript\n${file.template}\n\`\`\`\n\n`;
+    }
+  }
+
+  templateCode += '---\nAdapt these templates to match the spec. Replace {{placeholders}} with actual values.\n';
+
+  return {
+    ...workstream,
+    prompt: workstream.prompt + templateCode,
+  };
+}
 
 const DECOMPOSITION_PROMPT = `You are a software architect. Analyze the following application specification and break it down into parallel workstreams for a multi-agent build system.
 
@@ -21,6 +104,7 @@ Rules:
 3. Each workstream should own specific file paths (no overlap)
 4. Estimate realistic completion times (5-30 minutes typically)
 5. Create integration points where workstreams must coordinate
+6. IMPORTANT: Use templates from the Feature Inventory when available (listed below)
 
 Respond with a JSON object matching this schema:
 {
@@ -34,7 +118,8 @@ Respond with a JSON object matching this schema:
       "produces": ["User", "Project", "Task"],
       "blockedBy": [],
       "estimatedMinutes": 10,
-      "prompt": "Create the Prisma schema with User, Project, and Task models..."
+      "prompt": "Create the Prisma schema with User, Project, and Task models...",
+      "useTemplates": ["users-model"]
     }
   ],
   "integrationPoints": [
@@ -49,6 +134,7 @@ Respond with a JSON object matching this schema:
 
 Tech Stack:
 {{TECH_STACK}}
+{{INVENTORY_CONTEXT}}
 
 Specification:
 {{SPEC}}`;
@@ -57,16 +143,27 @@ export async function decomposeSpec(
   spec: string,
   techStack?: Partial<TechStack>
 ): Promise<DecomposedSpec> {
+  // Match features from inventory based on spec keywords
+  const matchedFeatures = matchFeaturesFromSpec(spec);
+  const requiredPackages = getRequiredPackages(matchedFeatures.map(f => f.id));
+  const requiredEnvVars = getRequiredEnvVars(matchedFeatures.map(f => f.id));
+
+  console.log(`[Forge] Matched ${matchedFeatures.length} features from inventory`);
+  console.log(`[Forge] Required packages: ${requiredPackages.join(', ')}`);
+  console.log(`[Forge] Required env vars: ${requiredEnvVars.join(', ')}`);
+
   // Use Claude API if available, otherwise use mock decomposition
   const useMock = !process.env.ANTHROPIC_API_KEY;
 
   if (useMock) {
-    return mockDecomposition(spec, techStack);
+    return mockDecomposition(spec, techStack, matchedFeatures);
   }
 
   try {
+    const inventoryContext = buildInventoryContext(matchedFeatures);
     const prompt = DECOMPOSITION_PROMPT
       .replace('{{TECH_STACK}}', JSON.stringify(techStack || {}, null, 2))
+      .replace('{{INVENTORY_CONTEXT}}', inventoryContext)
       .replace('{{SPEC}}', spec);
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -110,30 +207,41 @@ export async function decomposeSpec(
       integrationPoints: IntegrationPoint[];
     };
 
-    // Build execution waves from dependencies
-    const executionWaves = buildExecutionWaves(parsed.workstreams);
+    // Inject inventory templates into workstream prompts
+    const enhancedWorkstreams = parsed.workstreams.map(ws =>
+      injectTemplates(ws, matchedFeatures)
+    );
 
-    // Calculate total time
-    const estimatedTotalMinutes = Math.max(
+    // Build execution waves from dependencies
+    const executionWaves = buildExecutionWaves(enhancedWorkstreams);
+
+    // Calculate total time (reduced by ~30% due to template reuse)
+    const baseTime = Math.max(
       ...executionWaves.map((wave) =>
         wave.reduce((sum, wsId) => {
-          const ws = parsed.workstreams.find((w) => w.id === wsId);
+          const ws = enhancedWorkstreams.find((w) => w.id === wsId);
           return sum + (ws?.estimatedMinutes || 0);
         }, 0)
       )
     );
+    const templateBonus = matchedFeatures.length > 0 ? 0.7 : 1.0; // 30% faster with templates
+    const estimatedTotalMinutes = Math.round(baseTime * templateBonus);
 
     return {
       originalSpec: spec,
-      workstreams: parsed.workstreams,
+      workstreams: enhancedWorkstreams,
       integrationPoints: parsed.integrationPoints,
       executionWaves,
       estimatedTotalMinutes,
+      // Include inventory metadata
+      inventoryUsed: matchedFeatures.map(f => f.id),
+      requiredPackages,
+      requiredEnvVars,
     };
   } catch (error) {
     console.error('Decomposition error:', error);
     // Fall back to mock
-    return mockDecomposition(spec, techStack);
+    return mockDecomposition(spec, techStack, matchedFeatures);
   }
 }
 
@@ -171,7 +279,8 @@ function buildExecutionWaves(workstreams: Workstream[]): string[][] {
 
 function mockDecomposition(
   spec: string,
-  techStack?: Partial<TechStack>
+  techStack?: Partial<TechStack>,
+  matchedFeatures: FeatureTemplate[] = []
 ): DecomposedSpec {
   // Analyze spec for keywords to determine workstreams
   const hasAuth = /auth|login|user|account|session/i.test(spec);
@@ -337,25 +446,36 @@ Include:
 - E2E tests for critical user flows`,
   });
 
-  // Build execution waves
-  const executionWaves = buildExecutionWaves(workstreams);
+  // Inject inventory templates into workstream prompts
+  const enhancedWorkstreams = workstreams.map(ws =>
+    injectTemplates(ws, matchedFeatures)
+  );
 
-  // Calculate parallel execution time
-  const estimatedTotalMinutes = executionWaves.reduce((total, wave) => {
+  // Build execution waves
+  const executionWaves = buildExecutionWaves(enhancedWorkstreams);
+
+  // Calculate parallel execution time (reduced by 30% when using templates)
+  const baseTime = executionWaves.reduce((total, wave) => {
     const waveTime = Math.max(
       ...wave.map((wsId) => {
-        const ws = workstreams.find((w) => w.id === wsId);
+        const ws = enhancedWorkstreams.find((w) => w.id === wsId);
         return ws?.estimatedMinutes || 0;
       })
     );
     return total + waveTime;
   }, 0);
+  const templateBonus = matchedFeatures.length > 0 ? 0.7 : 1.0;
+  const estimatedTotalMinutes = Math.round(baseTime * templateBonus);
 
   return {
     originalSpec: spec,
-    workstreams,
+    workstreams: enhancedWorkstreams,
     integrationPoints,
     executionWaves,
     estimatedTotalMinutes,
+    // Include inventory metadata
+    inventoryUsed: matchedFeatures.map(f => f.id),
+    requiredPackages: getRequiredPackages(matchedFeatures.map(f => f.id)),
+    requiredEnvVars: getRequiredEnvVars(matchedFeatures.map(f => f.id)),
   };
 }
