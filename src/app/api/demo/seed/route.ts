@@ -186,12 +186,9 @@ export async function POST() {
     ]);
 
     return NextResponse.json({
-      success: true,
-      runId: run.id,
       projectId: project.id,
-      taskCount: tasks.length,
-      blockedTaskId: tasks[0].id,
-      message: 'Demo data seeded successfully',
+      runId: run.id,
+      taskIds: tasks.map((t) => t.id),
     });
   } catch (error) {
     console.error('Error seeding demo data:', error);
