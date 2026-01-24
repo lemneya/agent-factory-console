@@ -87,15 +87,16 @@ services:
 
   # ==========================================================================
   # MIGRATION SERVICE (One-shot)
+  # Uses 'migrator' target which has prisma CLI available
   # ==========================================================================
   migrate:
     build:
       context: .
       dockerfile: Dockerfile
-      target: production
+      target: migrator
     environment:
       - DATABASE_URL=${DATABASE_URL}
-    command: npx prisma migrate deploy
+    # Command is set in Dockerfile: npx prisma migrate deploy
     profiles:
       - migrate
     networks:

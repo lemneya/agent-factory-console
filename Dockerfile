@@ -27,6 +27,14 @@ COPY . .
 RUN npx prisma generate
 RUN npm run build
 
+# Migrator stage - for running prisma migrate deploy
+FROM base AS migrator
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY prisma ./prisma
+# Default command: run migrations
+CMD ["npx", "prisma", "migrate", "deploy"]
+
 # Production stage
 FROM base AS production
 WORKDIR /app
