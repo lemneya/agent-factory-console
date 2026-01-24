@@ -265,3 +265,59 @@ export {
   getAcademyStats,
   generateAcademyReport,
 } from './agent-academy';
+
+// Figma Integration (Killer Feature #8) - Design → Production in One Click
+export {
+  // Figma API types
+  type FigmaFile,
+  type FigmaDocument,
+  type FigmaNode,
+  type FigmaNodeType,
+  type FigmaComponent,
+  type FigmaStyle,
+  type BoundingBox,
+  type Paint,
+  type RGBAColor,
+  type Effect,
+  type TextStyle,
+  // Design token types
+  type DesignTokens,
+  type ColorTokens,
+  type TypographyTokens,
+  type SpacingTokens,
+  type BorderRadiusTokens,
+  type ShadowTokens,
+  // Generated component types
+  type GeneratedComponent,
+  type ComponentProp,
+  type ComponentVariant,
+  // Import types
+  type FigmaImportConfig,
+  type FigmaImportResult,
+  type ExtractedAsset,
+  type PageStructure,
+  type DesignSystemOutput,
+  type ImportStats,
+  type ImportError,
+  type ImportWarning,
+  // Sync types
+  type FigmaWebhook,
+  type SyncStatus,
+  // Config
+  DEFAULT_IMPORT_CONFIG,
+  // Client
+  FigmaClient,
+  // Core functions
+  importFromFigma,
+  extractDesignTokens,
+  generateComponent,
+  extractAssets,
+  detectPageStructure,
+  generateDesignSystem,
+  // Sync functions
+  getSyncStatus,
+  updateSyncStatus,
+  checkForUpdates,
+  // Reporting
+  generateImportReport,
+} from './figma-integration';
