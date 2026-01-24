@@ -8,6 +8,20 @@ import { CreateTaskModal } from '@/components/tasks';
 import { RunTabs, SpecTab, DecisionsTab, CopilotTab, ExecutionTab } from '@/components/runs';
 import { useRunTabs } from '@/hooks/useRunTabs';
 
+// Check if demo mode is enabled
+async function checkDemoMode(): Promise<boolean> {
+  try {
+    const res = await fetch('/api/demo/status');
+    if (res.ok) {
+      const data = await res.json();
+      return data.demoMode === true;
+    }
+  } catch {
+    // Ignore errors, assume not demo mode
+  }
+  return false;
+}
+
 interface Task {
   id: string;
   title: string;
@@ -44,6 +58,7 @@ function RunDetailPageContent({ id }: { id: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(false);
 
   // Determine if spec is present (check hitlJson for spec_md or similar)
   const specPresent = run?.tasks.some((t) => {
@@ -87,12 +102,22 @@ function RunDetailPageContent({ id }: { id: string }) {
   }, [id]);
 
   useEffect(() => {
+    // Check demo mode on mount
+    checkDemoMode().then(setIsDemoMode);
+  }, []);
+
+  useEffect(() => {
     if (authStatus === 'authenticated') {
       fetchRun();
     } else if (authStatus === 'unauthenticated') {
-      setLoading(false);
+      // In demo mode, fetch run even without auth
+      if (isDemoMode) {
+        fetchRun();
+      } else {
+        setLoading(false);
+      }
     }
-  }, [authStatus, fetchRun]);
+  }, [authStatus, fetchRun, isDemoMode]);
 
   async function handleMoveTask(taskId: string, newStatus: string) {
     try {
@@ -152,7 +177,8 @@ function RunDetailPageContent({ id }: { id: string }) {
     );
   }
 
-  if (authStatus === 'unauthenticated') {
+  // In demo mode, skip auth check and allow viewing
+  if (authStatus === 'unauthenticated' && !isDemoMode) {
     return (
       <div>
         <div className="mb-8">

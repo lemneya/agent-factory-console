@@ -18,6 +18,14 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 /**
+ * Check if running in demo mode (read-only public access).
+ * DEMO_MODE allows unauthenticated GET requests but blocks all writes.
+ */
+export function isDemoMode(): boolean {
+  return process.env.DEMO_MODE === '1';
+}
+
+/**
  * Check if running in a test/dev bypass context.
  *
  * SECURITY: This should ONLY be enabled in test environments.

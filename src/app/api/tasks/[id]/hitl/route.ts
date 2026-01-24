@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import { requireAuth, requireTaskOwnership } from '@/lib/auth-helpers';
+import { requireAuth, requireTaskOwnership, isDemoMode } from '@/lib/auth-helpers';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -21,14 +21,17 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
 
-    // SECURITY-0: Require authentication
-    const authResult = await requireAuth();
-    if (authResult.error) return authResult.error;
-    const { userId } = authResult;
+    // DEMO_MODE: Allow read access without auth
+    if (!isDemoMode()) {
+      // SECURITY-0: Require authentication
+      const authResult = await requireAuth();
+      if (authResult.error) return authResult.error;
+      const { userId } = authResult;
 
-    // SECURITY-0: Verify ownership (via run -> project chain)
-    const ownershipResult = await requireTaskOwnership(id, userId);
-    if (ownershipResult.error) return ownershipResult.error;
+      // SECURITY-0: Verify ownership (via run -> project chain)
+      const ownershipResult = await requireTaskOwnership(id, userId);
+      if (ownershipResult.error) return ownershipResult.error;
+    }
 
     const task = await prisma.task.findUnique({
       where: { id },
