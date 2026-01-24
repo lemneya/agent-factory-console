@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { ForgeMemory } from '@/lib/forge';
 import { createInitialMemory, getMemoryStats } from '@/lib/forge';
 
@@ -9,17 +9,10 @@ interface ForgeMemoryPanelProps {
 }
 
 export default function ForgeMemoryPanel({ userId = 'demo' }: ForgeMemoryPanelProps) {
-  const [memory, setMemory] = useState<ForgeMemory | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  useEffect(() => {
-    // In a real app, this would fetch from the database
-    // For now, create initial memory
-    const initialMemory = createInitialMemory(userId);
-    setMemory(initialMemory);
-  }, [userId]);
-
-  if (!memory) return null;
+  // Create initial memory (in a real app, this would fetch from database)
+  const memory = useMemo<ForgeMemory>(() => createInitialMemory(userId), [userId]);
 
   const stats = getMemoryStats(memory);
 
