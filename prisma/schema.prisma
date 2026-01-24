@@ -211,6 +211,9 @@ model Task {
   kind             String            @default("BUILD_CUSTOM") // INTEGRATE_ASSET | BUILD_CUSTOM | RESEARCH | QA
   // AFC-1.3: Council decision link
   councilDecisions CouncilDecision[]
+  // AFC-COPILOT-UX-1: Human-in-the-Loop fields
+  hitlJson         Json?             // Questions, patches, decisions requiring human input
+  blockedReason    String?           @db.Text // Reason task is blocked (HITL prompt)
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 
