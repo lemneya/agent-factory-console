@@ -44,6 +44,16 @@ export interface DecomposedSpec {
   inventoryUsed?: string[]; // Feature IDs from inventory
   requiredPackages?: string[]; // npm packages needed
   requiredEnvVars?: string[]; // Environment variables needed
+  // Starter template (when clone-first approach is used)
+  starterTemplate?: {
+    id: string;
+    name: string;
+    repoUrl: string;
+    customizationMinutes: number;
+    timeSavedPercent: number;
+  };
+  // Build strategy
+  strategy: 'from-scratch' | 'with-inventory' | 'clone-and-customize';
 }
 
 // Agent execution status

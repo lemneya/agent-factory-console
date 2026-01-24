@@ -12,3 +12,14 @@ export {
   type FeatureTemplate,
   type FeatureCategory,
 } from './inventory';
+export {
+  STARTER_TEMPLATES,
+  matchStartersFromSpec,
+  getBestStarter,
+  getStartersByCategory,
+  getStarterById,
+  calculateTimeSavings,
+  type StarterTemplate,
+  type StarterCategory,
+  type CustomizationPoint,
+} from './starters';

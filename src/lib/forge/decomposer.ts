@@ -7,11 +7,15 @@
 import type { DecomposedSpec, TechStack, Workstream, IntegrationPoint, AgentRole } from './types';
 import {
   matchFeaturesFromSpec,
-  getFeatureById,
   getRequiredPackages,
   getRequiredEnvVars,
   type FeatureTemplate,
 } from './inventory';
+import {
+  matchStartersFromSpec,
+  calculateTimeSavings,
+  type StarterTemplate,
+} from './starters';
 
 /**
  * Build context from matched inventory templates
@@ -88,6 +92,154 @@ function injectTemplates(workstream: Workstream, features: FeatureTemplate[]): W
   };
 }
 
+/**
+ * Create a clone-based execution plan for starter templates
+ * This is the fastest path - clone and customize
+ */
+function createCloneBasedPlan(
+  spec: string,
+  starter: StarterTemplate,
+  timeSavedPercent: number
+): DecomposedSpec {
+  const workstreams: Workstream[] = [];
+  const integrationPoints: IntegrationPoint[] = [];
+
+  // Wave 1: Clone the repository
+  workstreams.push({
+    id: 'clone-starter',
+    name: `Clone ${starter.name}`,
+    agent: 'data' as AgentRole,
+    priority: 1,
+    owns: ['*'],
+    produces: ['Cloned repository'],
+    blockedBy: [],
+    estimatedMinutes: 2,
+    prompt: `Clone the starter template from: ${starter.repoUrl}
+
+This is a ${starter.category} template with the following features already built:
+${starter.features.map(f => `- ${f}`).join('\n')}
+
+Tech stack:
+- Framework: ${starter.techStack.framework}
+- Database: ${starter.techStack.database || 'N/A'}
+- Auth: ${starter.techStack.auth || 'N/A'}
+- Styling: ${starter.techStack.styling}
+${starter.techStack.payments ? `- Payments: ${starter.techStack.payments}` : ''}
+
+Run: git clone ${starter.repoUrl} . && npm install`,
+  });
+
+  // Wave 2: Customization workstreams based on customization points
+  let priority = 2;
+  for (const point of starter.customizationPoints) {
+    const agent = getAgentForCustomization(point.area);
+    workstreams.push({
+      id: `customize-${point.area.toLowerCase().replace(/\s+/g, '-')}`,
+      name: `Customize ${point.area}`,
+      agent,
+      priority,
+      owns: point.files,
+      produces: [`Customized ${point.area}`],
+      blockedBy: ['clone-starter'],
+      estimatedMinutes: point.effort === 'trivial' ? 5 : point.effort === 'easy' ? 10 : 20,
+      prompt: `Customize the ${point.area} for this specific app:
+
+${point.description}
+
+Files to modify:
+${point.files.map(f => `- ${f}`).join('\n')}
+
+Original spec requirements:
+${spec}
+
+Keep the existing structure but adapt to match the spec.`,
+    });
+    priority++;
+  }
+
+  // Wave 3: Environment setup
+  workstreams.push({
+    id: 'env-setup',
+    name: 'Environment Setup',
+    agent: 'integrations' as AgentRole,
+    priority: priority,
+    owns: ['.env.example', '.env.local'],
+    produces: ['Environment configuration'],
+    blockedBy: ['clone-starter'],
+    estimatedMinutes: 5,
+    prompt: `Set up environment variables for the app.
+
+Required variables:
+${starter.envVarsRequired.map(v => `- ${v}`).join('\n')}
+
+Create .env.example with placeholder values and document each variable.`,
+  });
+
+  // Wave 4: Final verification
+  workstreams.push({
+    id: 'verify-build',
+    name: 'Verify & Test',
+    agent: 'qa' as AgentRole,
+    priority: priority + 1,
+    owns: [],
+    produces: ['Verified build'],
+    blockedBy: workstreams.filter(w => w.id !== 'verify-build').map(w => w.id),
+    estimatedMinutes: 5,
+    prompt: `Verify the customized app works:
+
+1. Run npm run build
+2. Run npm run lint
+3. Run npm test (if tests exist)
+4. Verify all customizations are applied
+5. Check for any TypeScript errors`,
+  });
+
+  // Build execution waves
+  const executionWaves = buildExecutionWaves(workstreams);
+
+  return {
+    originalSpec: spec,
+    workstreams,
+    integrationPoints,
+    executionWaves,
+    estimatedTotalMinutes: starter.estimatedCustomizationMinutes,
+    requiredEnvVars: starter.envVarsRequired,
+    requiredPackages: [],
+    inventoryUsed: [],
+    starterTemplate: {
+      id: starter.id,
+      name: starter.name,
+      repoUrl: starter.repoUrl,
+      customizationMinutes: starter.estimatedCustomizationMinutes,
+      timeSavedPercent,
+    },
+    strategy: 'clone-and-customize',
+  };
+}
+
+/**
+ * Map customization area to agent role
+ */
+function getAgentForCustomization(area: string): AgentRole {
+  const areaLower = area.toLowerCase();
+  if (areaLower.includes('brand') || areaLower.includes('ui') || areaLower.includes('design')) {
+    return 'ui';
+  }
+  if (areaLower.includes('data') || areaLower.includes('model') || areaLower.includes('schema')) {
+    return 'data';
+  }
+  if (areaLower.includes('api') || areaLower.includes('backend') || areaLower.includes('route')) {
+    return 'api';
+  }
+  if (areaLower.includes('auth')) {
+    return 'auth';
+  }
+  if (areaLower.includes('payment') || areaLower.includes('email') || areaLower.includes('integration')) {
+    return 'integrations';
+  }
+  return 'ui'; // Default to UI for content/branding changes
+}
+
 const DECOMPOSITION_PROMPT = `You are a software architect. Analyze the following application specification and break it down into parallel workstreams for a multi-agent build system.
 
 The workstreams should be assigned to these agent roles:
@@ -143,7 +295,20 @@ export async function decomposeSpec(
   spec: string,
   techStack?: Partial<TechStack>
 ): Promise<DecomposedSpec> {
-  // Match features from inventory based on spec keywords
+  // TIER 1: Check for clonable starter templates (90-100% done)
+  const matchedStarters = matchStartersFromSpec(spec);
+  const bestStarter = matchedStarters.length > 0 ? matchedStarters[0] : null;
+
+  if (bestStarter) {
+    console.log(`[Forge] 🚀 Found starter template: ${bestStarter.name}`);
+    console.log(`[Forge] Clone from: ${bestStarter.repoUrl}`);
+    console.log(`[Forge] Customization time: ${bestStarter.estimatedCustomizationMinutes} min`);
+
+    const { savedPercent } = calculateTimeSavings(bestStarter.estimatedCustomizationMinutes);
+    return createCloneBasedPlan(spec, bestStarter, savedPercent);
+  }
+
+  // TIER 2: Use feature inventory (80% patterns)
   const matchedFeatures = matchFeaturesFromSpec(spec);
   const requiredPackages = getRequiredPackages(matchedFeatures.map(f => f.id));
   const requiredEnvVars = getRequiredEnvVars(matchedFeatures.map(f => f.id));
@@ -237,6 +402,7 @@ export async function decomposeSpec(
       inventoryUsed: matchedFeatures.map(f => f.id),
       requiredPackages,
       requiredEnvVars,
+      strategy: matchedFeatures.length > 0 ? 'with-inventory' : 'from-scratch',
     };
   } catch (error) {
     console.error('Decomposition error:', error);
@@ -477,5 +643,6 @@ Include:
     inventoryUsed: matchedFeatures.map(f => f.id),
     requiredPackages: getRequiredPackages(matchedFeatures.map(f => f.id)),
     requiredEnvVars: getRequiredEnvVars(matchedFeatures.map(f => f.id)),
+    strategy: matchedFeatures.length > 0 ? 'with-inventory' : 'from-scratch',
   };
 }
