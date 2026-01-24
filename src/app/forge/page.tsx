@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { SignedOutCTA, useDemoMode } from '@/components/auth';
 import {
@@ -33,7 +33,7 @@ interface BuildHistoryItem {
   completedAt?: string;
 }
 
-export default function ForgePage() {
+function ForgeContent() {
   const { status } = useSession();
   const { isDemoMode: demoMode } = useDemoMode();
 
@@ -122,6 +122,25 @@ export default function ForgePage() {
   const displayQuestions = stream.buildId ? stream.questions : [];
   const displayPrUrl = stream.prUrl;
   const displayError = stream.error || localError;
+
+  // Show loading state
+  if (status === 'loading') {
+    return (
+      <div data-testid="page-root">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white" data-testid="page-title">
+            Forge
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Multi-agent spec execution with parallel workstreams
+          </p>
+        </div>
+        <div className="animate-pulse">
+          <div className="h-64 rounded-xl bg-gray-200 dark:bg-gray-700" />
+        </div>
+      </div>
+    );
+  }
 
   if (isSignedOut) {
     return (
@@ -296,5 +315,32 @@ export default function ForgePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ForgePage() {
+  return (
+    <Suspense
+      fallback={
+        <div data-testid="page-root">
+          <div className="mb-6">
+            <h1
+              className="text-2xl font-bold text-gray-900 dark:text-white"
+              data-testid="page-title"
+            >
+              Forge
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Multi-agent spec execution with parallel workstreams
+            </p>
+          </div>
+          <div className="animate-pulse">
+            <div className="h-64 rounded-xl bg-gray-200 dark:bg-gray-700" />
+          </div>
+        </div>
+      }
+    >
+      <ForgeContent />
+    </Suspense>
   );
 }
