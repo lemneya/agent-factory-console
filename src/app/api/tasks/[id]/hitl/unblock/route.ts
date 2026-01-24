@@ -19,6 +19,11 @@ interface RouteParams {
  * This moves the task back to DOING status and signals to the worker to continue
  */
 export async function POST(request: NextRequest, { params }: RouteParams) {
+  // DEMO_MODE: Block writes in demo environment
+  if (process.env.DEMO_MODE === '1') {
+    return NextResponse.json({ error: 'Demo mode: writes disabled' }, { status: 403 });
+  }
+
   try {
     const { id } = await params;
 

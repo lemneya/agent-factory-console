@@ -32,6 +32,11 @@ interface HITLData {
  * Approve or reject a patch for application
  */
 export async function POST(request: NextRequest, { params }: RouteParams) {
+  // DEMO_MODE: Block writes in demo environment
+  if (process.env.DEMO_MODE === '1') {
+    return NextResponse.json({ error: 'Demo mode: writes disabled' }, { status: 403 });
+  }
+
   try {
     const { id } = await params;
 
