@@ -224,3 +224,44 @@ export {
   generateAccessibilityTests,
   generateChaosTests,
 } from './agent-gym';
+
+// Agent Academy (Killer Feature #7) - Agent Training & Certification
+export {
+  // Domain types
+  type Domain,
+  type DomainProfile,
+  // Certification types
+  type CertificationRequirement,
+  type CertificationLevel,
+  type AgentCertification,
+  type SkillAssessment,
+  type CertificationBadge,
+  // Training types
+  type TrainingCurriculum,
+  type TrainingModule,
+  type TrainingChallenge,
+  type ChallengeScenario,
+  type HiddenTest,
+  type GradingRubric,
+  type TrainingSession,
+  type TrainingFeedback,
+  // Agent profile types
+  type AgentProfile,
+  type LearningPath,
+  type PerformanceMetrics,
+  type AcademyStats,
+  // Domain data
+  DOMAINS,
+  // Academy functions
+  enrollAgent,
+  getAgentProfile,
+  getCurriculum,
+  startTrainingSession,
+  completeTrainingSession,
+  issueCertification,
+  getAgentCertifications,
+  getCertifiedAgents,
+  recommendAgentForBuild,
+  getAcademyStats,
+  generateAcademyReport,
+} from './agent-academy';
