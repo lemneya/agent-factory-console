@@ -176,8 +176,11 @@ function mockDecomposition(
   // Analyze spec for keywords to determine workstreams
   const hasAuth = /auth|login|user|account|session/i.test(spec);
   const hasPayments = /stripe|payment|billing|subscription/i.test(spec);
-  const hasDashboard = /dashboard|analytics|chart|report/i.test(spec);
-  const hasCrud = /crud|list|create|update|delete|manage/i.test(spec);
+  // Reserved for future workstream expansion
+  const _hasDashboard = /dashboard|analytics|chart|report/i.test(spec);
+  const _hasCrud = /crud|list|create|update|delete|manage/i.test(spec);
+  void _hasDashboard;
+  void _hasCrud;
   const hasNotifications = /notification|email|alert/i.test(spec);
 
   const workstreams: Workstream[] = [];

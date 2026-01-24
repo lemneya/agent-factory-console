@@ -307,6 +307,7 @@ export function useForgeStream() {
         }
       }, 3000);
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: connectToStream is stable
   }, []);
 
   const answerQuestion = useCallback(async (questionId: string, answer: string) => {
