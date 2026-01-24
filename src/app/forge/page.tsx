@@ -8,6 +8,7 @@ import {
   ForgeAgentPanel,
   ForgeHITLPanel,
   ForgeBuildResults,
+  ForgeMemoryPanel,
 } from '@/components/forge';
 import { useForgeStream } from '@/hooks/useForgeStream';
 import type { DecomposedSpec, TechStack } from '@/lib/forge';
@@ -282,13 +283,14 @@ function ForgeContent() {
           />
         </div>
 
-        {/* Right column - Agent Panel */}
-        <div className="col-span-4 overflow-y-auto">
+        {/* Right column - Agent Panel + Memory */}
+        <div className="col-span-4 overflow-y-auto space-y-4">
           <ForgeAgentPanel
             agents={displayAgents}
             currentWave={displayWave}
             totalWaves={displayTotalWaves}
           />
+          <ForgeMemoryPanel />
         </div>
       </div>
 

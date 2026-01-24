@@ -18,6 +18,27 @@ interface ForgeBuildResultsProps {
   prUrl?: string;
 }
 
+const STRATEGY_CONFIG = {
+  'clone-and-customize': {
+    label: 'Clone & Customize',
+    icon: '🚀',
+    color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+    description: 'Using pre-built starter template',
+  },
+  'with-inventory': {
+    label: 'With Inventory',
+    icon: '📦',
+    color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+    description: 'Using 80% common patterns',
+  },
+  'from-scratch': {
+    label: 'From Scratch',
+    icon: '🔨',
+    color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+    description: 'Building custom solution',
+  },
+};
+
 export default function ForgeBuildResults({
   decomposition,
   stats,
@@ -38,6 +59,9 @@ export default function ForgeBuildResults({
     );
   }
 
+  const strategy = decomposition.strategy || 'from-scratch';
+  const strategyConfig = STRATEGY_CONFIG[strategy];
+
   return (
     <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
       {/* Header */}
@@ -47,6 +71,111 @@ export default function ForgeBuildResults({
         </h3>
         <BuildStatusBadge status={buildStatus} />
       </div>
+
+      {/* Strategy Badge */}
+      <div className="mb-4">
+        <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg ${strategyConfig.color}`}>
+          <span className="text-lg">{strategyConfig.icon}</span>
+          <div>
+            <p className="text-sm font-medium">{strategyConfig.label}</p>
+            <p className="text-xs opacity-75">{strategyConfig.description}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Starter Template Info (when cloning) */}
+      {decomposition.starterTemplate && (
+        <div className="mb-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm font-medium text-green-800 dark:text-green-200">
+                {decomposition.starterTemplate.name}
+              </p>
+              <a
+                href={decomposition.starterTemplate.repoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-green-600 dark:text-green-400 hover:underline"
+              >
+                {decomposition.starterTemplate.repoUrl}
+              </a>
+            </div>
+            <div className="text-right">
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                {decomposition.starterTemplate.timeSavedPercent}%
+              </p>
+              <p className="text-xs text-green-700 dark:text-green-300">time saved</p>
+            </div>
+          </div>
+          <div className="mt-2 flex items-center gap-2 text-xs text-green-700 dark:text-green-300">
+            <span>⏱️ {decomposition.starterTemplate.customizationMinutes} min to customize</span>
+            <span>•</span>
+            <span>vs ~480 min from scratch</span>
+          </div>
+        </div>
+      )}
+
+      {/* Inventory Used (when using templates) */}
+      {decomposition.inventoryUsed && decomposition.inventoryUsed.length > 0 && (
+        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+          <p className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-2">
+            📦 Templates Used ({decomposition.inventoryUsed.length})
+          </p>
+          <div className="flex flex-wrap gap-1">
+            {decomposition.inventoryUsed.slice(0, 8).map((templateId) => (
+              <span
+                key={templateId}
+                className="px-2 py-0.5 text-xs rounded-full bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-300"
+              >
+                {templateId}
+              </span>
+            ))}
+            {decomposition.inventoryUsed.length > 8 && (
+              <span className="px-2 py-0.5 text-xs text-blue-500">
+                +{decomposition.inventoryUsed.length - 8} more
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Required Packages */}
+      {decomposition.requiredPackages && decomposition.requiredPackages.length > 0 && (
+        <div className="mb-4 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+          <p className="text-xs font-medium text-purple-700 dark:text-purple-300 mb-2">
+            📦 Required Packages
+          </p>
+          <div className="flex flex-wrap gap-1">
+            {decomposition.requiredPackages.map((pkg) => (
+              <code
+                key={pkg}
+                className="px-2 py-0.5 text-xs rounded bg-purple-100 dark:bg-purple-800 text-purple-700 dark:text-purple-300"
+              >
+                {pkg}
+              </code>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Required Env Vars */}
+      {decomposition.requiredEnvVars && decomposition.requiredEnvVars.length > 0 && (
+        <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+          <p className="text-xs font-medium text-amber-700 dark:text-amber-300 mb-2">
+            🔐 Environment Variables Needed
+          </p>
+          <div className="flex flex-wrap gap-1">
+            {decomposition.requiredEnvVars.map((envVar) => (
+              <code
+                key={envVar}
+                className="px-2 py-0.5 text-xs rounded bg-amber-100 dark:bg-amber-800 text-amber-700 dark:text-amber-300"
+              >
+                {envVar}
+              </code>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Stats */}
       {stats && (
