@@ -1,0 +1,23 @@
+{
+  "name": "@pic/core",
+  "version": "1.0.0",
+  "description": "Proactive Intelligent Code - Code that serves by questioning itself",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest"
+  },
+  "keywords": [
+    "proactive",
+    "intelligent",
+    "code",
+    "consciousness",
+    "self-improving",
+    "AI"
+  ],
+  "author": "PIC Collective",
+  "license": "MIT"
+}
