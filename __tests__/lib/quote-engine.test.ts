@@ -213,7 +213,9 @@ describe('Quote Engine', () => {
       };
       const estimate = generateEstimate(scope);
 
-      expect(estimate.assumptions).toContain('High complexity requires senior developer involvement');
+      expect(estimate.assumptions).toContain(
+        'High complexity requires senior developer involvement'
+      );
     });
 
     it('adds rush timeline assumption', () => {

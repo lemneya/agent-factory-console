@@ -11,11 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { requireAuth } from '@/lib/auth-helpers';
-import {
-  validateScope,
-  generateEstimate,
-  formatEstimateEvidence,
-} from '@/lib/quote-engine';
+import { validateScope, generateEstimate, formatEstimateEvidence } from '@/lib/quote-engine';
 
 /**
  * POST /api/quotes/estimate
@@ -30,19 +26,13 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json(
-      { error: 'Invalid JSON body' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
   // Validate scope (strict, no extra fields)
   const validation = validateScope(body);
   if (!validation.valid) {
-    return NextResponse.json(
-      { error: validation.error },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: validation.error }, { status: 400 });
   }
 
   const { scope } = validation;
@@ -65,9 +55,10 @@ export async function POST(request: NextRequest) {
 
   try {
     // Load rate card from database (fail-fast if missing)
-    const rateCard = await prisma.rateCard.findUnique({
-      where: { id: 'default-rate-card' },
-    }) ?? await prisma.rateCard.findFirst();
+    const rateCard =
+      (await prisma.rateCard.findUnique({
+        where: { id: 'default-rate-card' },
+      })) ?? (await prisma.rateCard.findFirst());
 
     if (!rateCard) {
       console.error('[Quotes] No rate card configured');
@@ -116,31 +107,31 @@ export async function POST(request: NextRequest) {
     // Build response with evidence trail
     const evidence = formatEstimateEvidence(estimate, scope);
 
-    return NextResponse.json({
-      id: savedEstimate.id,
-      estimate: {
-        effortHours: estimate.effortHours,
-        minCost: estimate.minCost,
-        maxCost: estimate.maxCost,
-        currency: estimate.currency,
-        assumptions: estimate.assumptions,
-        risks: estimate.risks,
-        breakdown: estimate.breakdown,
+    return NextResponse.json(
+      {
+        id: savedEstimate.id,
+        estimate: {
+          effortHours: estimate.effortHours,
+          minCost: estimate.minCost,
+          maxCost: estimate.maxCost,
+          currency: estimate.currency,
+          assumptions: estimate.assumptions,
+          risks: estimate.risks,
+          breakdown: estimate.breakdown,
+        },
+        rateCard: {
+          id: rateCard.id,
+          name: rateCard.name,
+          currency: rateCard.currency,
+          baseRate: rateCard.baseRate,
+        },
+        evidence,
+        createdAt: savedEstimate.createdAt,
       },
-      rateCard: {
-        id: rateCard.id,
-        name: rateCard.name,
-        currency: rateCard.currency,
-        baseRate: rateCard.baseRate,
-      },
-      evidence,
-      createdAt: savedEstimate.createdAt,
-    }, { status: 201 });
+      { status: 201 }
+    );
   } catch (error) {
     console.error('[Quotes] POST /estimate error:', error);
-    return NextResponse.json(
-      { error: 'Failed to generate estimate' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to generate estimate' }, { status: 500 });
   }
 }

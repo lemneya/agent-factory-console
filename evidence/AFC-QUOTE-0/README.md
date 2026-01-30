@@ -9,6 +9,7 @@ Provides professional, market-standard quotes as if an application were built fr
 ### Library (`src/lib/quote-engine.ts`)
 
 Deterministic estimation engine with:
+
 - **Types**: `AppType`, `Complexity`, `Timeline`, `EstimateScope`, `EstimateResult`
 - **Constants**: Base hours by app type, feature hours, complexity/rush multipliers
 - **Functions**:
@@ -133,6 +134,7 @@ Cost Range = Hours * Rate * (0.9 to 1.1)
 ## Tests
 
 Unit tests in `__tests__/lib/quote-engine.test.ts` covering:
+
 - Base hour calculations by app type
 - Feature hour additions
 - Integration hour calculations

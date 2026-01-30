@@ -167,10 +167,7 @@ export function calculateEffortHours(scope: EstimateScope): {
 /**
  * Generate a complete estimate from scope
  */
-export function generateEstimate(
-  scope: EstimateScope,
-  rateOverride?: number
-): EstimateResult {
+export function generateEstimate(scope: EstimateScope, rateOverride?: number): EstimateResult {
   const rate = rateOverride ?? DEFAULT_RATE;
   const { hours, breakdown } = calculateEffortHours(scope);
 
@@ -236,7 +233,8 @@ export function formatEstimateEvidence(
     breakdown: estimate.breakdown,
     assumptions: estimate.assumptions,
     risks: estimate.risks,
-    disclaimer: 'Estimate based on standard build-from-scratch methodology. Internal efficiencies are not reflected in pricing.',
+    disclaimer:
+      'Estimate based on standard build-from-scratch methodology. Internal efficiencies are not reflected in pricing.',
   };
 }
 
@@ -269,7 +267,7 @@ export function validateScope(body: unknown): ValidationResult {
 
   // Check for extra top-level fields
   const allowedTopLevel = ['scope', 'sessionId'];
-  const extraTopLevel = Object.keys(obj).filter((k) => !allowedTopLevel.includes(k));
+  const extraTopLevel = Object.keys(obj).filter(k => !allowedTopLevel.includes(k));
   if (extraTopLevel.length > 0) {
     return { valid: false, error: `Extra fields not allowed: ${extraTopLevel.join(', ')}` };
   }
@@ -278,9 +276,12 @@ export function validateScope(body: unknown): ValidationResult {
 
   // Check for extra scope fields
   const allowedScopeFields = ['appType', 'features', 'integrations', 'complexity', 'timeline'];
-  const extraScopeFields = Object.keys(scope).filter((k) => !allowedScopeFields.includes(k));
+  const extraScopeFields = Object.keys(scope).filter(k => !allowedScopeFields.includes(k));
   if (extraScopeFields.length > 0) {
-    return { valid: false, error: `Extra fields in scope not allowed: ${extraScopeFields.join(', ')}` };
+    return {
+      valid: false,
+      error: `Extra fields in scope not allowed: ${extraScopeFields.join(', ')}`,
+    };
   }
 
   // Validate appType
@@ -288,7 +289,10 @@ export function validateScope(body: unknown): ValidationResult {
     return { valid: false, error: 'scope.appType must be a string' };
   }
   if (!VALID_APP_TYPES.includes(scope.appType as AppType)) {
-    return { valid: false, error: `Invalid scope.appType. Must be one of: ${VALID_APP_TYPES.join(', ')}` };
+    return {
+      valid: false,
+      error: `Invalid scope.appType. Must be one of: ${VALID_APP_TYPES.join(', ')}`,
+    };
   }
 
   // Validate features
@@ -316,7 +320,10 @@ export function validateScope(body: unknown): ValidationResult {
     return { valid: false, error: 'scope.complexity must be a string' };
   }
   if (!VALID_COMPLEXITIES.includes(scope.complexity as Complexity)) {
-    return { valid: false, error: `Invalid scope.complexity. Must be one of: ${VALID_COMPLEXITIES.join(', ')}` };
+    return {
+      valid: false,
+      error: `Invalid scope.complexity. Must be one of: ${VALID_COMPLEXITIES.join(', ')}`,
+    };
   }
 
   // Validate timeline
@@ -324,7 +331,10 @@ export function validateScope(body: unknown): ValidationResult {
     return { valid: false, error: 'scope.timeline must be a string' };
   }
   if (!VALID_TIMELINES.includes(scope.timeline as Timeline)) {
-    return { valid: false, error: `Invalid scope.timeline. Must be one of: ${VALID_TIMELINES.join(', ')}` };
+    return {
+      valid: false,
+      error: `Invalid scope.timeline. Must be one of: ${VALID_TIMELINES.join(', ')}`,
+    };
   }
 
   return {
