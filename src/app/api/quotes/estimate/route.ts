@@ -64,8 +64,21 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // Generate estimate using deterministic engine
-    const estimate = generateEstimate(scope);
+    // Load rate card from database (fail-fast if missing)
+    const rateCard = await prisma.rateCard.findUnique({
+      where: { id: 'default-rate-card' },
+    }) ?? await prisma.rateCard.findFirst();
+
+    if (!rateCard) {
+      console.error('[Quotes] No rate card configured');
+      return NextResponse.json(
+        { error: 'No rate card configured. Please seed the database.' },
+        { status: 500 }
+      );
+    }
+
+    // Generate estimate using rate card from database
+    const estimate = generateEstimate(scope, rateCard.baseRate);
 
     // Persist estimate to database
     const savedEstimate = await prisma.estimate.create({
@@ -113,6 +126,12 @@ export async function POST(request: NextRequest) {
         assumptions: estimate.assumptions,
         risks: estimate.risks,
         breakdown: estimate.breakdown,
+      },
+      rateCard: {
+        id: rateCard.id,
+        name: rateCard.name,
+        currency: rateCard.currency,
+        baseRate: rateCard.baseRate,
       },
       evidence,
       createdAt: savedEstimate.createdAt,

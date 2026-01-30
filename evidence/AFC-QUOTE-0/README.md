@@ -19,11 +19,12 @@ Deterministic estimation engine with:
 
 ### API Endpoint (`POST /api/quotes/estimate`)
 
-- **Auth**: Requires authentication via `requireAuth()`
+- **Auth**: Requires NextAuth session (cookie-based)
+- **Rate Card**: Loads from database (`default-rate-card` or first available)
 - **Validation**: Strict schema, no extra fields allowed
 - **Persistence**: Saves estimate to `Estimate` table
 - **C2 Integration**: Logs event if `sessionId` provided
-- **Response**: Estimate + evidence trail
+- **Response**: Estimate + rate card metadata + evidence trail
 
 ### Database (`prisma/schema.prisma`)
 
@@ -114,6 +115,12 @@ Cost Range = Hours * Rate * (0.9 to 1.1)
       "rate": 90
     }
   },
+  "rateCard": {
+    "id": "default-rate-card",
+    "name": "US Standard Web Dev",
+    "currency": "USD",
+    "baseRate": 90
+  },
   "evidence": {
     "basis": "build-from-scratch",
     "methodology": "standard-effort-estimation",
@@ -135,10 +142,21 @@ Unit tests in `__tests__/lib/quote-engine.test.ts` covering:
 
 ## Security
 
-- Authentication required
+- Authentication required (NextAuth session)
 - User ownership enforced for session linking
 - Strict input validation (no extra fields)
 - All estimates tied to userId
+- Rate card loaded from database (configurable pricing)
+
+## Manual Testing
+
+This endpoint requires a NextAuth session (cookie-based auth). To test manually:
+
+1. **Browser**: Sign in to the app, then use browser devtools to POST to `/api/quotes/estimate`
+2. **Dev mode**: If auth bypass is configured for local development, use that
+3. **Automated tests**: Unit tests in `__tests__/lib/quote-engine.test.ts` cover the estimation logic
+
+Note: `Authorization: Bearer <token>` headers are not supported; this uses session cookies.
 
 ## Files Changed
 
