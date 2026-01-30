@@ -946,3 +946,37 @@ model Adapter {
   @@index([name])
   @@index([healthStatus])
 }
+
+// ============================================================================
+// AFC-QUOTE-0: Baseline Estimation Engine
+// ============================================================================
+
+// RateCard: Defines pricing rates for estimation
+model RateCard {
+  id        String   @id @default(cuid())
+  name      String   // e.g. "US Standard Web Dev"
+  currency  String   @default("USD")
+  baseRate  Float    // hourly rate (e.g. 90)
+  roles     Json     // { frontend: 1.0, backend: 1.1, devops: 1.2 }
+  createdAt DateTime @default(now())
+
+  @@index([name])
+}
+
+// Estimate: Generated cost estimate for a project scope
+model Estimate {
+  id          String   @id @default(cuid())
+  userId      String
+  sessionId   String?  // optional link to C2 session
+  scopeJson   Json     // structured requirements
+  effortHours Int
+  minCost     Float
+  maxCost     Float
+  currency    String
+  assumptions Json
+  risks       Json
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
