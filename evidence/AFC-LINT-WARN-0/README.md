@@ -6,12 +6,12 @@ Fixed 4 pre-existing ESLint warnings to make `npm run lint` completely clean.
 
 ## Warnings Fixed
 
-| File | Warning | Fix |
-|------|---------|-----|
-| `src/app/api/council/decisions/route.ts:10` | `_maintenanceRisk` unused | Removed variable, kept explanatory comment |
-| `src/app/copilot/page.tsx:135` | `searchParams` unused | Removed unused import and declaration |
-| `src/components/c2/C2Dashboard.tsx:70` | Missing `session` dependency in useEffect | Changed `[session?.id, session?.agentCount]` to `[session]` |
-| `src/lib/c2-simulation.ts:11` | `C2EventType` unused | Removed from import |
+| File                                        | Warning                                   | Fix                                                         |
+| ------------------------------------------- | ----------------------------------------- | ----------------------------------------------------------- |
+| `src/app/api/council/decisions/route.ts:10` | `_maintenanceRisk` unused                 | Removed variable, kept explanatory comment                  |
+| `src/app/copilot/page.tsx:135`              | `searchParams` unused                     | Removed unused import and declaration                       |
+| `src/components/c2/C2Dashboard.tsx:70`      | Missing `session` dependency in useEffect | Changed `[session?.id, session?.agentCount]` to `[session]` |
+| `src/lib/c2-simulation.ts:11`               | `C2EventType` unused                      | Removed from import                                         |
 
 ## Verification
 
