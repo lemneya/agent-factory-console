@@ -115,7 +115,27 @@ export async function runExecution(
     };
   }
 
-  // 3) Create ExecutionEnvelope (PENDING)
+  // 3) Validate sessionId ownership if provided
+  let validatedSessionId: string | null = null;
+  if (sessionId) {
+    // User explicitly provided sessionId - must verify ownership
+    const session = await prisma.c2Session.findFirst({
+      where: { id: sessionId, userId },
+    });
+    if (!session) {
+      return {
+        success: false,
+        error: 'Session not found or not owned by user',
+        status: 403,
+      };
+    }
+    validatedSessionId = session.id;
+  } else if (buildPlan.sessionId) {
+    // Use buildPlan's session (already owned because buildPlan is owned)
+    validatedSessionId = buildPlan.sessionId;
+  }
+
+  // 4) Create ExecutionEnvelope (PENDING)
   const envelope = await prisma.executionEnvelope.create({
     data: {
       userId,
@@ -129,22 +149,21 @@ export async function runExecution(
     },
   });
 
-  // Log C2 event if session exists
-  const resolvedSessionId = sessionId || buildPlan.sessionId;
-  if (resolvedSessionId) {
+  // Log C2 event if validated session exists
+  if (validatedSessionId) {
     await logC2Event(
-      resolvedSessionId,
+      validatedSessionId,
       `Kimi execution started (budget $${DEFAULT_MAX_COST_USD}, agents ${DEFAULT_MAX_AGENTS})`
     );
   }
 
-  // 4) Transition envelope → RUNNING
+  // 5) Transition envelope → RUNNING
   await prisma.executionEnvelope.update({
     where: { id: envelope.id },
     data: { status: 'RUNNING' },
   });
 
-  // 5) Create ExecutionRun
+  // 6) Create KimiExecutionRun
   const run = await prisma.kimiExecutionRun.create({
     data: {
       envelopeId: envelope.id,
@@ -154,7 +173,7 @@ export async function runExecution(
     },
   });
 
-  // 6) Validate and execute
+  // 7) Validate and execute
   const execParams = {
     maxCostUSD: DEFAULT_MAX_COST_USD,
     maxAgents: DEFAULT_MAX_AGENTS,
@@ -184,10 +203,10 @@ export async function runExecution(
     };
   }
 
-  // 7) Execute Kimi (stub)
+  // 8) Execute Kimi (stub)
   const result = await executeKimi(execParams);
 
-  // 8) Update ExecutionRun
+  // 9) Update KimiExecutionRun
   await prisma.kimiExecutionRun.update({
     where: { id: run.id },
     data: {
@@ -206,16 +225,16 @@ export async function runExecution(
     data: { status: envelopeStatus },
   });
 
-  // Log C2 completion event
-  if (resolvedSessionId) {
+  // Log C2 completion event (using validated session)
+  if (validatedSessionId) {
     if (result.status === 'COMPLETED') {
       await logC2Event(
-        resolvedSessionId,
+        validatedSessionId,
         `Kimi execution completed (cost $${result.costUSD.toFixed(2)})`
       );
     } else {
       await logC2Event(
-        resolvedSessionId,
+        validatedSessionId,
         `Kimi execution aborted (${result.failureReason || 'unknown'})`
       );
     }
