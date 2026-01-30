@@ -1001,3 +1001,42 @@ model BuildPlan {
   @@index([userId])
   @@index([sessionId])
 }
+
+// ============================================================================
+// AFC-KIMI-ROUTER-0: Controlled Kimi Execution
+// ============================================================================
+
+// ExecutionEnvelope: Defines constraints for a Kimi execution run
+// NOTE: This does NOT allow autonomous execution - strict budgets enforced
+model ExecutionEnvelope {
+  id            String   @id @default(cuid())
+  userId        String
+  buildPlanId   String
+  provider      String // "kimi"
+  maxCostUSD    Float
+  maxAgents     Int
+  maxRuntimeSec Int
+  allowedScopes Json // e.g. ["custom_logic","integration_glue"]
+  status        String // PENDING | RUNNING | COMPLETED | FAILED | CANCELLED
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+  @@index([buildPlanId])
+  @@index([status])
+}
+
+// KimiExecutionRun: Tracks a single Kimi execution run within an envelope
+model KimiExecutionRun {
+  id         String    @id @default(cuid())
+  envelopeId String
+  provider   String // "kimi"
+  startedAt  DateTime
+  finishedAt DateTime?
+  tokensUsed Int?
+  costUSD    Float?
+  status     String // RUNNING | COMPLETED | FAILED
+  summary    String?
+
+  @@index([envelopeId])
+  @@index([status])
+}
