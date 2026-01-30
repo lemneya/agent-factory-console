@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const projectId = searchParams.get('projectId');
     const decision = searchParams.get('decision');
-    const _maintenanceRisk = searchParams.get('maintenanceRisk');
+    // maintenanceRisk param accepted but not used (field doesn't exist in schema)
     const limit = parseInt(searchParams.get('limit') || '50', 10);
     const offset = parseInt(searchParams.get('offset') || '0', 10);
 

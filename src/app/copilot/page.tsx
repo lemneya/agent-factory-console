@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { SignedOutCTA, useDemoMode } from '@/components/auth';
-import { useSearchParams } from 'next/navigation';
 
 interface Source {
   type: 'DOC' | 'DB';
@@ -132,7 +131,6 @@ const FACTORY_QUICKSTART_TEMPLATES = [
 
 function CopilotContent() {
   const { status } = useSession();
-  const searchParams = useSearchParams();
   const { isDemoMode: demoMode } = useDemoMode();
 
   const [messages, setMessages] = useState<Message[]>([]);
