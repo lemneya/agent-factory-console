@@ -980,3 +980,24 @@ model Estimate {
   @@index([userId])
   @@index([createdAt])
 }
+
+// ============================================================================
+// AFC-ROUTER-INVENTORY-OSS-0: Internal Build Routing
+// ============================================================================
+
+// BuildPlan: Internal routing decision for how to build an application
+// NOTE: This does NOT affect client pricing - it's internal optimization only
+model BuildPlan {
+  id         String   @id @default(cuid())
+  userId     String
+  sessionId  String?
+  estimateId String?
+  strategy   String // INVENTORY | INVENTORY_PLUS_OSS | OSS | CUSTOM
+  coverage   Float // 0.0–1.0 estimated reuse coverage
+  summary    String
+  details    Json // breakdown of decisions
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([sessionId])
+}
