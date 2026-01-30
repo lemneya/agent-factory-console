@@ -67,7 +67,7 @@ export function C2Dashboard() {
       }));
       setAgents(initialAgents);
     }
-  }, [session?.id, session?.agentCount]);
+  }, [session]);
 
   // Connect to SSE stream when session is active
   useEffect(() => {

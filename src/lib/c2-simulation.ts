@@ -8,7 +8,7 @@
  * - Stop/abort supported
  */
 
-import { C2EventType, C2AgentState, C2ArtifactType } from '@prisma/client';
+import { C2AgentState, C2ArtifactType } from '@prisma/client';
 import { publishToSession, createC2Event } from './c2-pubsub';
 import prisma from './prisma';
 
