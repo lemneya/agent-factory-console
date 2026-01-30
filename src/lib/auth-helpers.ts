@@ -338,8 +338,7 @@ export async function requireBlueprintOwnership(
 
 /**
  * AFC-C2-STREAM-0: Check if a user owns a C2 session.
- * Sessions without a userId are considered demo/shared sessions
- * and require authentication but not ownership.
+ * Enforces strict ownership - every session must have an owner.
  */
 export async function requireC2SessionOwnership(
   sessionId: string,
@@ -363,8 +362,8 @@ export async function requireC2SessionOwnership(
     };
   }
 
-  // Allow if session has no owner (demo mode) or if user matches
-  if (session.userId && session.userId !== userId) {
+  // Strict ownership check - session must have owner and must match
+  if (!session.userId || session.userId !== userId) {
     return {
       error: NextResponse.json(
         { error: 'Forbidden: You do not have permission to access this C2 session' },

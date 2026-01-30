@@ -54,7 +54,21 @@ This gate implements the Command & Control (C2) dashboard for real-time multi-ag
 
 All endpoints enforce auth + ownership via existing auth helpers:
 - `requireAuth()` for authentication
-- `requireC2SessionOwnership()` for session access control
+- `requireC2SessionOwnership()` for strict session access control (no shared/demo sessions)
+
+### Persistence vs Streaming
+
+**MVP Design Decision:** Not all events are persisted to the database.
+
+| Event Type | Persisted | Streamed via SSE |
+|------------|-----------|------------------|
+| `AGENT_STATE` | No | Yes |
+| `PROGRESS` | Yes | Yes |
+| `LOG` | Yes | Yes |
+| `ARTIFACT_CREATED` | Yes (via C2Artifact) | Yes |
+| `SESSION_START/STOP/ABORT` | Yes (via C2Session status) | Yes |
+
+Agent state updates occur every 500ms (60 updates over 30s simulation). Persisting these would generate excessive database writes. For this MVP, agent states are streamed only. If historical agent state replay is needed in the future, a time-series store or event log compaction strategy should be implemented.
 
 ## Verification Checklist
 

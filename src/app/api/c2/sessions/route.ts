@@ -11,7 +11,7 @@ import { requireAuth } from '@/lib/auth-helpers';
 
 /**
  * GET /api/c2/sessions
- * List C2 sessions for the authenticated user
+ * List C2 sessions for the authenticated user (strict ownership)
  */
 export async function GET() {
   const authResult = await requireAuth();
@@ -19,13 +19,9 @@ export async function GET() {
   const { userId } = authResult;
 
   try {
+    // Strict ownership: only return sessions owned by this user
     const sessions = await prisma.c2Session.findMany({
-      where: {
-        OR: [
-          { userId },
-          { userId: null }, // Include demo sessions
-        ],
-      },
+      where: { userId },
       include: {
         _count: {
           select: {
