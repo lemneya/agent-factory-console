@@ -14,10 +14,7 @@ import { C2EventType, C2AgentState } from '@prisma/client';
  * POST /api/c2/sessions/:id/events
  * Add an event to a C2 session (and publish to SSE subscribers)
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const authResult = await requireAuth();
   if (authResult.error) return authResult.error;
   const { userId } = authResult;
@@ -64,18 +61,13 @@ export async function POST(
     // Publish to SSE subscribers
     publishToSession(
       sessionId,
-      createC2Event(
-        sessionId,
-        type as C2EventType,
-        payload || {},
-        {
-          agentIndex,
-          agentState: agentState as C2AgentState | undefined,
-          progress,
-          level,
-          message,
-        }
-      )
+      createC2Event(sessionId, type as C2EventType, payload || {}, {
+        agentIndex,
+        agentState: agentState as C2AgentState | undefined,
+        progress,
+        level,
+        message,
+      })
     );
 
     return NextResponse.json(event, { status: 201 });

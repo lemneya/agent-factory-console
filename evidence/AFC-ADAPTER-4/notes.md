@@ -16,6 +16,7 @@ Expose Adapter registry + health status in a read-only operator UI.
 ## Implementation Details
 
 ### UI Location
+
 - **Route:** `/adapters`
 - **File:** `src/app/adapters/page.tsx`
 - **Type:** Client-side React component
@@ -23,11 +24,13 @@ Expose Adapter registry + health status in a read-only operator UI.
 ### Endpoints Used
 
 #### 1. GET /api/adapters/status (default)
+
 - **Purpose:** Fetch cached adapter status
 - **Response:** Array of adapter objects with health status
 - **Used for:** Initial load and normal viewing
 
 #### 2. GET /api/adapters/status?refresh=1 (optional)
+
 - **Purpose:** Force health probes before returning
 - **Response:** Array of adapter objects with fresh health status
 - **Used for:** Manual refresh via UI button
@@ -96,6 +99,7 @@ Expose Adapter registry + health status in a read-only operator UI.
 ## Security Notes
 
 ### lastHealthError Handling
+
 - **Threat:** Untrusted text from external adapters could contain malicious content
 - **Mitigation:** Rendered as plain text using React's default text rendering
 - **No HTML:** Error messages are never parsed as HTML
@@ -107,27 +111,33 @@ Expose Adapter registry + health status in a read-only operator UI.
 ## Refresh Behavior
 
 ### Default Load (No Refresh)
+
 ```typescript
-GET /api/adapters/status
+GET / api / adapters / status;
 ```
+
 - Returns cached health status from database
 - Fast response time
 - No external API calls
 
 ### Manual Refresh
+
 ```typescript
 GET /api/adapters/status?refresh=1
 ```
+
 - Probes all enabled adapters
 - Updates database with fresh health status
 - Returns updated data
 - **Cooldown:** 5 seconds to prevent abuse
 
 ### Cooldown Logic
+
 ```typescript
 const REFRESH_COOLDOWN = 5000; // 5 seconds
 const canRefresh = Date.now() - lastRefresh >= REFRESH_COOLDOWN;
 ```
+
 - Tracks last refresh timestamp in component state
 - Disables button during cooldown
 - Shows countdown timer
@@ -213,6 +223,7 @@ src/app/adapters/
 ## API Contract
 
 ### Adapter Object Shape
+
 ```typescript
 interface Adapter {
   id: string;
@@ -227,6 +238,7 @@ interface Adapter {
 ```
 
 ### Response Format
+
 ```json
 [
   {
@@ -259,6 +271,7 @@ interface Adapter {
 See: `evidence/AFC-ADAPTER-4/status_ui.png`
 
 **Expected screenshot content:**
+
 - Table showing 3 adapters with different statuses:
   1. ✅ OK - Green status, recent "Last Seen"
   2. ❌ UNREACHABLE - Red status, error message visible

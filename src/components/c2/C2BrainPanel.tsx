@@ -45,9 +45,7 @@ export function C2BrainPanel({
 
   return (
     <div className="h-full flex flex-col">
-      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
-        Brain
-      </h3>
+      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Brain</h3>
 
       {!sessionId ? (
         <div className="flex-1 flex flex-col items-center justify-center">
@@ -82,9 +80,7 @@ export function C2BrainPanel({
 
             <div>
               <span className="text-xs text-gray-500">Agents</span>
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {agentCount}
-              </p>
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{agentCount}</p>
             </div>
           </div>
 

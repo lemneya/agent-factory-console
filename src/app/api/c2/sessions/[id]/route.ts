@@ -12,10 +12,7 @@ import { requireAuth, requireC2SessionOwnership } from '@/lib/auth-helpers';
  * GET /api/c2/sessions/:id
  * Get a specific C2 session with events and artifacts
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const authResult = await requireAuth();
   if (authResult.error) return authResult.error;
   const { userId } = authResult;

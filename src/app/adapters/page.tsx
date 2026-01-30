@@ -3,7 +3,7 @@
 /**
  * AFC-ADAPTER-4: Adapter Status UI (read-only)
  * Route: /adapters
- * 
+ *
  * Displays adapter registry + health status in a read-only operator UI
  */
 
@@ -40,19 +40,17 @@ export default function AdaptersPage() {
       }
       setError(null);
 
-      const url = refresh 
-        ? '/api/adapters/status?refresh=1' 
-        : '/api/adapters/status';
-      
+      const url = refresh ? '/api/adapters/status?refresh=1' : '/api/adapters/status';
+
       const response = await fetch(url);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch adapters');
       }
 
       const data = await response.json();
       setAdapters(data);
-      
+
       if (refresh) {
         setLastRefresh(Date.now());
       }
@@ -108,7 +106,7 @@ export default function AdaptersPage() {
 
   const formatRelativeTime = (dateString: string | null) => {
     if (!dateString) return 'Never';
-    
+
     const date = new Date(dateString);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
@@ -140,16 +138,21 @@ export default function AdaptersPage() {
   };
 
   const canRefresh = Date.now() - lastRefresh >= REFRESH_COOLDOWN;
-  const cooldownRemaining = Math.max(0, Math.ceil((REFRESH_COOLDOWN - (Date.now() - lastRefresh)) / 1000));
+  const cooldownRemaining = Math.max(
+    0,
+    Math.ceil((REFRESH_COOLDOWN - (Date.now() - lastRefresh)) / 1000)
+  );
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Adapter Status</h1>
-          <p className="text-gray-600 mt-1">Read-only view of registered adapters and their health status</p>
+          <p className="text-gray-600 mt-1">
+            Read-only view of registered adapters and their health status
+          </p>
         </div>
-        
+
         <button
           onClick={handleRefresh}
           disabled={!canRefresh || refreshing}
@@ -231,7 +234,7 @@ export default function AdaptersPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {adapters.map((adapter) => (
+                {adapters.map(adapter => (
                   <tr key={adapter.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
@@ -272,7 +275,10 @@ export default function AdaptersPage() {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900" title={formatExactTime(adapter.lastSeenAt)}>
+                      <div
+                        className="text-sm text-gray-900"
+                        title={formatExactTime(adapter.lastSeenAt)}
+                      >
                         {formatRelativeTime(adapter.lastSeenAt)}
                       </div>
                     </td>
@@ -298,8 +304,8 @@ export default function AdaptersPage() {
 
       <div className="mt-6 text-sm text-gray-500">
         <p>
-          <strong>Note:</strong> This is a read-only view. Use the Refresh button to force health probes.
-          Refresh has a 5-second cooldown to prevent excessive API calls.
+          <strong>Note:</strong> This is a read-only view. Use the Refresh button to force health
+          probes. Refresh has a 5-second cooldown to prevent excessive API calls.
         </p>
       </div>
     </div>

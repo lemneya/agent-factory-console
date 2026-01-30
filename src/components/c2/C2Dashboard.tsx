@@ -81,16 +81,16 @@ export function C2Dashboard() {
     const eventSource = new EventSource(`/api/c2/stream?sessionId=${session.id}`);
     eventSourceRef.current = eventSource;
 
-    eventSource.addEventListener('connected', (e) => {
+    eventSource.addEventListener('connected', e => {
       const data = JSON.parse(e.data);
       console.log('[C2] SSE connected:', data);
     });
 
-    eventSource.addEventListener('agent_state', (e) => {
+    eventSource.addEventListener('agent_state', e => {
       const data = JSON.parse(e.data);
-      setAgents((prev) => {
+      setAgents(prev => {
         const updated = [...prev];
-        const idx = updated.findIndex((a) => a.index === data.agentIndex);
+        const idx = updated.findIndex(a => a.index === data.agentIndex);
         if (idx !== -1) {
           updated[idx] = { index: data.agentIndex, state: data.agentState };
         }
@@ -98,27 +98,29 @@ export function C2Dashboard() {
       });
     });
 
-    eventSource.addEventListener('progress', (e) => {
+    eventSource.addEventListener('progress', e => {
       const data = JSON.parse(e.data);
       setProgress(data.progress ?? 0);
     });
 
-    eventSource.addEventListener('log', (e) => {
+    eventSource.addEventListener('log', e => {
       const data = JSON.parse(e.data);
-      setLogs((prev) => [
-        ...prev,
-        {
-          id: data.id,
-          timestamp: data.timestamp,
-          level: data.level || 'INFO',
-          message: data.message || '',
-        },
-      ].slice(-100)); // Keep last 100 logs
+      setLogs(prev =>
+        [
+          ...prev,
+          {
+            id: data.id,
+            timestamp: data.timestamp,
+            level: data.level || 'INFO',
+            message: data.message || '',
+          },
+        ].slice(-100)
+      ); // Keep last 100 logs
     });
 
-    eventSource.addEventListener('artifact_created', (e) => {
+    eventSource.addEventListener('artifact_created', e => {
       const data = JSON.parse(e.data);
-      setArtifacts((prev) => [
+      setArtifacts(prev => [
         {
           id: data.artifactId,
           name: data.artifactName || data.payload?.name || 'Unknown',
@@ -130,16 +132,16 @@ export function C2Dashboard() {
     });
 
     eventSource.addEventListener('session_start', () => {
-      setSession((prev) => prev ? { ...prev, status: 'RUNNING' } : null);
+      setSession(prev => (prev ? { ...prev, status: 'RUNNING' } : null));
       setProgress(0);
     });
 
     eventSource.addEventListener('session_stop', () => {
-      setSession((prev) => prev ? { ...prev, status: 'COMPLETED' } : null);
+      setSession(prev => (prev ? { ...prev, status: 'COMPLETED' } : null));
     });
 
     eventSource.addEventListener('session_abort', () => {
-      setSession((prev) => prev ? { ...prev, status: 'ABORTED' } : null);
+      setSession(prev => (prev ? { ...prev, status: 'ABORTED' } : null));
     });
 
     eventSource.onerror = () => {
