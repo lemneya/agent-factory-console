@@ -806,6 +806,122 @@ enum ExecutionStatus {
 }
 
 // ============================================================================
+// AFC-C2-STREAM-0: Command & Control Dashboard
+// ============================================================================
+
+// C2Session: Active command & control session for multi-agent orchestration
+model C2Session {
+  id          String        @id @default(cuid())
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  userId      String?       // nullable for demo mode
+  projectId   String?       // optional project context
+
+  name        String        @default("Unnamed Session")
+  status      C2SessionStatus @default(IDLE)
+
+  // Simulation config
+  agentCount  Int           @default(20)
+  gridRows    Int           @default(4)
+  gridCols    Int           @default(5)
+
+  // Timing
+  startedAt   DateTime?
+  stoppedAt   DateTime?
+
+  // Relations
+  events      C2Event[]
+  artifacts   C2Artifact[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// C2Event: Real-time event emitted during C2 session
+model C2Event {
+  id          String        @id @default(cuid())
+  createdAt   DateTime      @default(now())
+
+  sessionId   String
+  session     C2Session     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  type        C2EventType
+  payload     Json          // Event-specific data
+
+  // For agent state updates
+  agentIndex  Int?          // 0-19 for 20 agents
+  agentState  C2AgentState?
+
+  // For progress updates
+  progress    Float?        // 0-100
+
+  // For log entries
+  level       String?       // INFO, WARN, ERROR, DEBUG
+  message     String?       @db.Text
+
+  @@index([sessionId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+// C2Artifact: Generated artifact during C2 session
+model C2Artifact {
+  id          String        @id @default(cuid())
+  createdAt   DateTime      @default(now())
+
+  sessionId   String
+  session     C2Session     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  name        String
+  type        C2ArtifactType
+  contentJson Json?         // Artifact content/metadata
+  filePath    String?       // Optional file path reference
+  sizeBytes   Int?
+
+  @@index([sessionId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+enum C2SessionStatus {
+  IDLE
+  RUNNING
+  PAUSED
+  COMPLETED
+  ABORTED
+}
+
+enum C2EventType {
+  SESSION_START
+  SESSION_STOP
+  SESSION_ABORT
+  AGENT_STATE
+  PROGRESS
+  LOG
+  ARTIFACT_CREATED
+  PING
+}
+
+enum C2AgentState {
+  IDLE
+  THINKING
+  WORKING
+  DONE
+  ERROR
+}
+
+enum C2ArtifactType {
+  CODE
+  DOCUMENT
+  CONFIG
+  LOG
+  REPORT
+  OTHER
+}
+
+// ============================================================================
 // AFC-ADAPTER-2: Adapter Registry
 // ============================================================================
 

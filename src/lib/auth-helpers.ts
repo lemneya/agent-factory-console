@@ -335,3 +335,42 @@ export async function requireBlueprintOwnership(
   // Blueprint without project association - auth is sufficient
   return { success: true };
 }
+
+/**
+ * AFC-C2-STREAM-0: Check if a user owns a C2 session.
+ * Enforces strict ownership - every session must have an owner.
+ */
+export async function requireC2SessionOwnership(
+  sessionId: string,
+  userId: string
+): Promise<{ success: true; error?: never } | { success?: never; error: NextResponse }> {
+  const devAuthBypass = isDevAuthBypass();
+
+  // In dev bypass mode, skip ownership check
+  if (devAuthBypass && userId === 'dev-bypass-user') {
+    return { success: true };
+  }
+
+  const session = await prisma.c2Session.findUnique({
+    where: { id: sessionId },
+    select: { userId: true },
+  });
+
+  if (!session) {
+    return {
+      error: NextResponse.json({ error: 'C2 session not found' }, { status: 404 }),
+    };
+  }
+
+  // Strict ownership check - session must have owner and must match
+  if (!session.userId || session.userId !== userId) {
+    return {
+      error: NextResponse.json(
+        { error: 'Forbidden: You do not have permission to access this C2 session' },
+        { status: 403 }
+      ),
+    };
+  }
+
+  return { success: true };
+}
