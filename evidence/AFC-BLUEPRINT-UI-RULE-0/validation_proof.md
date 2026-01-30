@@ -20,11 +20,13 @@ Guarantee that apps built by AFC include UI/UX workorders in parallel with backe
 A blueprint must include EITHER:
 
 ### Option A: UI workstream present
+
 - `workstreams.ui` exists
 - `workstreams.ui` is an array
 - `workstreams.ui` contains ≥ 1 UI workorder
 
 ### Option B: Explicit opt-out
+
 - `ui_opt_out` is `true`
 - `ui_opt_out_reason` is a non-empty string
 
@@ -39,12 +41,10 @@ A blueprint must include EITHER:
 **File:** `src/lib/blueprint-validation.ts`
 
 ```typescript
-export function validateBlueprintUIRequirement(
-  payload: BlueprintPayload
-): ValidationResult {
+export function validateBlueprintUIRequirement(payload: BlueprintPayload): ValidationResult {
   // Check Option A: UI workstream present
-  const hasUIWorkstream = 
-    payload.workstreams?.ui && 
+  const hasUIWorkstream =
+    payload.workstreams?.ui &&
     Array.isArray(payload.workstreams.ui) &&
     payload.workstreams.ui.length > 0;
 
@@ -54,9 +54,8 @@ export function validateBlueprintUIRequirement(
 
   // Check Option B: explicit opt-out with reason
   const hasOptOut = payload.ui_opt_out === true;
-  const hasOptOutReason = 
-    typeof payload.ui_opt_out_reason === 'string' &&
-    payload.ui_opt_out_reason.trim().length > 0;
+  const hasOptOutReason =
+    typeof payload.ui_opt_out_reason === 'string' && payload.ui_opt_out_reason.trim().length > 0;
 
   if (hasOptOut && hasOptOutReason) {
     return { valid: true };
@@ -66,7 +65,8 @@ export function validateBlueprintUIRequirement(
   if (hasOptOut && !hasOptOutReason) {
     return {
       valid: false,
-      error: 'Blueprint has ui_opt_out=true but ui_opt_out_reason is empty. Please provide a reason for opting out of UI workstream.',
+      error:
+        'Blueprint has ui_opt_out=true but ui_opt_out_reason is empty. Please provide a reason for opting out of UI workstream.',
     };
   }
 
@@ -86,6 +86,7 @@ export function validateBlueprintUIRequirement(
 **File:** `evidence/AFC-BLUEPRINT-UI-RULE-0/example_blueprint_with_ui.json`
 
 **Blueprint:**
+
 ```json
 {
   "name": "E-commerce Platform MVP",
@@ -106,9 +107,10 @@ export function validateBlueprintUIRequirement(
 ```
 
 **Validation Result:**
+
 ```typescript
 {
-  valid: true
+  valid: true;
 }
 ```
 
@@ -121,6 +123,7 @@ export function validateBlueprintUIRequirement(
 **File:** `evidence/AFC-BLUEPRINT-UI-RULE-0/example_blueprint_opt_out.json`
 
 **Blueprint:**
+
 ```json
 {
   "name": "Data Processing Pipeline",
@@ -133,9 +136,10 @@ export function validateBlueprintUIRequirement(
 ```
 
 **Validation Result:**
+
 ```typescript
 {
-  valid: true
+  valid: true;
 }
 ```
 
@@ -148,6 +152,7 @@ export function validateBlueprintUIRequirement(
 **File:** `evidence/AFC-BLUEPRINT-UI-RULE-0/example_blueprint_invalid.json`
 
 **Blueprint:**
+
 ```json
 {
   "name": "Backend-Only API (INVALID)",
@@ -158,6 +163,7 @@ export function validateBlueprintUIRequirement(
 ```
 
 **Validation Result:**
+
 ```typescript
 {
   valid: false,
@@ -172,6 +178,7 @@ export function validateBlueprintUIRequirement(
 ### ❌ Test Case 4: Invalid Blueprint (Opt-Out Without Reason)
 
 **Blueprint:**
+
 ```json
 {
   "name": "Backend API",
@@ -184,6 +191,7 @@ export function validateBlueprintUIRequirement(
 ```
 
 **Validation Result:**
+
 ```typescript
 {
   valid: false,
@@ -198,6 +206,7 @@ export function validateBlueprintUIRequirement(
 ### ❌ Test Case 5: Invalid Blueprint (Empty UI Array)
 
 **Blueprint:**
+
 ```json
 {
   "name": "Backend API",
@@ -209,6 +218,7 @@ export function validateBlueprintUIRequirement(
 ```
 
 **Validation Result:**
+
 ```typescript
 {
   valid: false,
@@ -253,12 +263,9 @@ export async function POST(request: NextRequest) {
 
   // Validate UI requirement
   const validation = validateBlueprintUIRequirement(payloadJson);
-  
+
   if (!validation.valid) {
-    return NextResponse.json(
-      { error: validation.error },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: validation.error }, { status: 400 });
   }
 
   // Proceed with blueprint creation...
@@ -274,6 +281,7 @@ export async function POST(request: NextRequest) {
 All error messages are explicit and tell users exactly what's wrong:
 
 1. **Missing both:**
+
    > "Blueprint must include workstreams.ui or set ui_opt_out=true with reason."
 
 2. **Opt-out without reason:**
@@ -284,6 +292,7 @@ All error messages are explicit and tell users exactly what's wrong:
 ## Scope
 
 ### ✅ Included
+
 - Blueprint schema/template validation
 - Example blueprints (valid and invalid)
 - Validation utility function
@@ -291,6 +300,7 @@ All error messages are explicit and tell users exactly what's wrong:
 - Documentation
 
 ### ❌ Not Included (Non-scope)
+
 - UI rendering changes
 - New workorder types beyond "ui" track enforcement
 - Agent behavior changes besides validation failure messaging
@@ -320,6 +330,7 @@ All error messages are explicit and tell users exactly what's wrong:
 ## Example Validation Logs
 
 ### Valid Blueprint (Pass)
+
 ```
 [INFO] Validating blueprint: E-commerce Platform MVP
 [INFO] ✅ Blueprint validation passed (UI workstream present)
@@ -327,6 +338,7 @@ All error messages are explicit and tell users exactly what's wrong:
 ```
 
 ### Invalid Blueprint (Fail)
+
 ```
 [INFO] Validating blueprint: Backend-Only API
 [ERROR] ❌ Blueprint validation failed: Blueprint must include workstreams.ui or set ui_opt_out=true with reason.
@@ -334,6 +346,7 @@ All error messages are explicit and tell users exactly what's wrong:
 ```
 
 ### Valid Opt-Out (Pass)
+
 ```
 [INFO] Validating blueprint: Data Processing Pipeline
 [INFO] ✅ Blueprint validation passed (UI opt-out with reason: "This is a headless data processing pipeline...")
@@ -345,16 +358,19 @@ All error messages are explicit and tell users exactly what's wrong:
 ## Benefits
 
 ### 1. Prevents "Backend-Only" Builds
+
 - Forces teams to think about UI from the start
 - Ensures parallel development of frontend and backend
 - Reduces technical debt from "we'll add UI later"
 
 ### 2. Explicit Opt-Out
+
 - Teams can still build headless services
 - Requires justification (prevents accidental omission)
 - Creates documentation trail for architectural decisions
 
 ### 3. Clear Error Messages
+
 - Users know exactly what's wrong
 - Actionable guidance on how to fix
 - Reduces support burden

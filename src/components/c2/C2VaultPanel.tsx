@@ -22,7 +22,7 @@ interface C2VaultPanelProps {
 }
 
 const TYPE_ICONS: Record<C2ArtifactType, string> = {
-  CODE: '</>' ,
+  CODE: '</>',
   DOCUMENT: '📄',
   CONFIG: '⚙️',
   LOG: '📋',
@@ -53,19 +53,15 @@ export function C2VaultPanel({ artifacts, selectedId, onSelect }: C2VaultPanelPr
   return (
     <div className="h-full flex flex-col">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-          Vault
-        </h3>
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Vault</h3>
         <span className="text-xs text-gray-500">{artifacts.length} artifacts</span>
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-2">
         {artifacts.length === 0 ? (
-          <div className="text-sm text-gray-500 italic text-center py-8">
-            No artifacts yet...
-          </div>
+          <div className="text-sm text-gray-500 italic text-center py-8">No artifacts yet...</div>
         ) : (
-          artifacts.map((artifact) => (
+          artifacts.map(artifact => (
             <div
               key={artifact.id}
               onClick={() => onSelect?.(artifact.id)}
@@ -88,9 +84,7 @@ export function C2VaultPanel({ artifacts, selectedId, onSelect }: C2VaultPanelPr
                   <div className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                     {artifact.name}
                   </div>
-                  <div className="text-xs text-gray-500">
-                    {formatTime(artifact.createdAt)}
-                  </div>
+                  <div className="text-xs text-gray-500">{formatTime(artifact.createdAt)}</div>
                 </div>
               </div>
             </div>

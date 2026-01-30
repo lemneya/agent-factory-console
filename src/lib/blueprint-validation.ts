@@ -1,6 +1,6 @@
 /**
  * AFC-BLUEPRINT-UI-RULE-0: Blueprint Validation
- * 
+ *
  * Enforces that blueprints include UI workstream or explicit opt-out
  */
 
@@ -27,16 +27,14 @@ export interface ValidationResult {
  * Validates that a blueprint includes either:
  * - Option A: workstreams.ui exists and contains ≥ 1 UI workorder
  * - Option B: ui_opt_out=true AND ui_opt_out_reason is non-empty
- * 
+ *
  * @param payload - The blueprint payload JSON
  * @returns ValidationResult with valid flag and optional error message
  */
-export function validateBlueprintUIRequirement(
-  payload: BlueprintPayload
-): ValidationResult {
+export function validateBlueprintUIRequirement(payload: BlueprintPayload): ValidationResult {
   // Check Option A: UI workstream present
-  const hasUIWorkstream = 
-    payload.workstreams?.ui && 
+  const hasUIWorkstream =
+    payload.workstreams?.ui &&
     Array.isArray(payload.workstreams.ui) &&
     payload.workstreams.ui.length > 0;
 
@@ -46,9 +44,8 @@ export function validateBlueprintUIRequirement(
 
   // Check Option B: explicit opt-out with reason
   const hasOptOut = payload.ui_opt_out === true;
-  const hasOptOutReason = 
-    typeof payload.ui_opt_out_reason === 'string' &&
-    payload.ui_opt_out_reason.trim().length > 0;
+  const hasOptOutReason =
+    typeof payload.ui_opt_out_reason === 'string' && payload.ui_opt_out_reason.trim().length > 0;
 
   if (hasOptOut && hasOptOutReason) {
     return { valid: true };
@@ -58,7 +55,8 @@ export function validateBlueprintUIRequirement(
   if (hasOptOut && !hasOptOutReason) {
     return {
       valid: false,
-      error: 'Blueprint has ui_opt_out=true but ui_opt_out_reason is empty. Please provide a reason for opting out of UI workstream.',
+      error:
+        'Blueprint has ui_opt_out=true but ui_opt_out_reason is empty. Please provide a reason for opting out of UI workstream.',
     };
   }
 

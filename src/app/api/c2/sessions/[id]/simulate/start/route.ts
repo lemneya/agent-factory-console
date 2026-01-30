@@ -13,10 +13,7 @@ import { startSimulation, isSimulationRunning } from '@/lib/c2-simulation';
  * POST /api/c2/sessions/:id/simulate/start
  * Start a deterministic swarm simulation for the session
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const authResult = await requireAuth();
   if (authResult.error) return authResult.error;
   const { userId } = authResult;
@@ -39,18 +36,12 @@ export async function POST(
 
     // Check if already running
     if (isSimulationRunning(sessionId)) {
-      return NextResponse.json(
-        { error: 'Simulation already running' },
-        { status: 409 }
-      );
+      return NextResponse.json({ error: 'Simulation already running' }, { status: 409 });
     }
 
     // Check if session is in a valid state to start
     if (session.status === 'RUNNING') {
-      return NextResponse.json(
-        { error: 'Session is already running' },
-        { status: 409 }
-      );
+      return NextResponse.json({ error: 'Session is already running' }, { status: 409 });
     }
 
     // Start the simulation

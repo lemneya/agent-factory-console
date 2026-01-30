@@ -12,10 +12,7 @@ import { stopSimulation, isSimulationRunning } from '@/lib/c2-simulation';
  * POST /api/c2/sessions/:id/simulate/stop
  * Stop a running swarm simulation
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const authResult = await requireAuth();
   if (authResult.error) return authResult.error;
   const { userId } = authResult;

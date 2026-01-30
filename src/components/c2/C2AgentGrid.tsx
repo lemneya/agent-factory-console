@@ -37,7 +37,7 @@ const STATE_ICONS: Record<C2AgentState, string> = {
 
 export function C2AgentGrid({ agents, rows = 4, cols = 5 }: C2AgentGridProps) {
   // Create a map for quick lookups
-  const agentMap = new Map(agents.map((a) => [a.index, a.state]));
+  const agentMap = new Map(agents.map(a => [a.index, a.state]));
 
   const getAgentState = (index: number): C2AgentState => {
     return agentMap.get(index) || 'IDLE';

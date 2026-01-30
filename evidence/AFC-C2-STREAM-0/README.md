@@ -27,15 +27,15 @@ This gate implements the Command & Control (C2) dashboard for real-time multi-ag
 
 ### API Routes
 
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/api/c2/sessions` | Create a new C2 session |
-| GET | `/api/c2/sessions` | List C2 sessions |
-| GET | `/api/c2/sessions/[id]` | Get session details |
-| POST | `/api/c2/sessions/[id]/events` | Add event to session |
-| GET | `/api/c2/stream?sessionId=...` | SSE event stream |
-| POST | `/api/c2/sessions/[id]/simulate/start` | Start simulation |
-| POST | `/api/c2/sessions/[id]/simulate/stop` | Stop simulation |
+| Method | Path                                   | Description             |
+| ------ | -------------------------------------- | ----------------------- |
+| POST   | `/api/c2/sessions`                     | Create a new C2 session |
+| GET    | `/api/c2/sessions`                     | List C2 sessions        |
+| GET    | `/api/c2/sessions/[id]`                | Get session details     |
+| POST   | `/api/c2/sessions/[id]/events`         | Add event to session    |
+| GET    | `/api/c2/stream?sessionId=...`         | SSE event stream        |
+| POST   | `/api/c2/sessions/[id]/simulate/start` | Start simulation        |
+| POST   | `/api/c2/sessions/[id]/simulate/stop`  | Stop simulation         |
 
 ### Prisma Models
 
@@ -53,6 +53,7 @@ This gate implements the Command & Control (C2) dashboard for real-time multi-ag
 ### Security
 
 All endpoints enforce auth + ownership via existing auth helpers:
+
 - `requireAuth()` for authentication
 - `requireC2SessionOwnership()` for strict session access control (no shared/demo sessions)
 
@@ -60,13 +61,13 @@ All endpoints enforce auth + ownership via existing auth helpers:
 
 **MVP Design Decision:** Not all events are persisted to the database.
 
-| Event Type | Persisted | Streamed via SSE |
-|------------|-----------|------------------|
-| `AGENT_STATE` | No | Yes |
-| `PROGRESS` | Yes | Yes |
-| `LOG` | Yes | Yes |
-| `ARTIFACT_CREATED` | Yes (via C2Artifact) | Yes |
-| `SESSION_START/STOP/ABORT` | Yes (via C2Session status) | Yes |
+| Event Type                 | Persisted                  | Streamed via SSE |
+| -------------------------- | -------------------------- | ---------------- |
+| `AGENT_STATE`              | No                         | Yes              |
+| `PROGRESS`                 | Yes                        | Yes              |
+| `LOG`                      | Yes                        | Yes              |
+| `ARTIFACT_CREATED`         | Yes (via C2Artifact)       | Yes              |
+| `SESSION_START/STOP/ABORT` | Yes (via C2Session status) | Yes              |
 
 Agent state updates occur every 500ms (60 updates over 30s simulation). Persisting these would generate excessive database writes. For this MVP, agent states are streamed only. If historical agent state replay is needed in the future, a time-series store or event log compaction strategy should be implemented.
 

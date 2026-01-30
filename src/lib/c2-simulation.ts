@@ -43,10 +43,7 @@ function getAgentState(elapsedMs: number, agentIndex: number): C2AgentState {
   const adjustedElapsed = Math.max(0, elapsedMs - agentDelay);
 
   // Each state lasts ~5 seconds (30s / 6 states)
-  const stateIndex = Math.min(
-    Math.floor(adjustedElapsed / 5000),
-    STATE_SEQUENCE.length - 1
-  );
+  const stateIndex = Math.min(Math.floor(adjustedElapsed / 5000), STATE_SEQUENCE.length - 1);
 
   return STATE_SEQUENCE[stateIndex];
 }
@@ -113,12 +110,7 @@ export async function startSimulation(sessionId: string): Promise<void> {
         const progress = Math.min(100, (elapsed / SIM_DURATION_MS) * 100);
         publishToSession(
           sessionId,
-          createC2Event(
-            sessionId,
-            'PROGRESS',
-            { progress },
-            { progress }
-          )
+          createC2Event(sessionId, 'PROGRESS', { progress }, { progress })
         );
 
         // Persist progress event
@@ -135,10 +127,7 @@ export async function startSimulation(sessionId: string): Promise<void> {
       }
 
       // Generate artifacts at specified times
-      while (
-        artifactIndex < ARTIFACT_TIMES.length &&
-        elapsed >= ARTIFACT_TIMES[artifactIndex]
-      ) {
+      while (artifactIndex < ARTIFACT_TIMES.length && elapsed >= ARTIFACT_TIMES[artifactIndex]) {
         await generateArtifact(sessionId, artifactIndex);
         artifactIndex++;
       }
@@ -154,7 +143,7 @@ export async function startSimulation(sessionId: string): Promise<void> {
   };
 
   // Run the simulation loop (non-blocking)
-  runLoop().catch(async (error) => {
+  runLoop().catch(async error => {
     console.error('[C2 Simulation] Error:', error);
     await emitLog(sessionId, 'ERROR', `Simulation error: ${error.message}`);
     activeSimulations.delete(sessionId);
@@ -206,10 +195,7 @@ async function completeSimulation(sessionId: string): Promise<void> {
   );
 
   // Emit session stop event
-  publishToSession(
-    sessionId,
-    createC2Event(sessionId, 'SESSION_STOP', { reason: 'completed' })
-  );
+  publishToSession(sessionId, createC2Event(sessionId, 'SESSION_STOP', { reason: 'completed' }));
 
   await emitLog(sessionId, 'INFO', 'Swarm simulation completed successfully');
 
@@ -304,12 +290,7 @@ async function generateArtifact(sessionId: string, index: number): Promise<void>
 async function emitLog(sessionId: string, level: string, message: string): Promise<void> {
   publishToSession(
     sessionId,
-    createC2Event(
-      sessionId,
-      'LOG',
-      { level, message },
-      { level, message }
-    )
+    createC2Event(sessionId, 'LOG', { level, message }, { level, message })
   );
 
   // Persist log event
@@ -328,5 +309,5 @@ async function emitLog(sessionId: string, level: string, message: string): Promi
  * Sleep helper
  */
 function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise(resolve => setTimeout(resolve, ms));
 }

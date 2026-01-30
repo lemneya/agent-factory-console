@@ -61,7 +61,7 @@ export function C2OpsConsole({ logs, maxHeight = '200px' }: C2OpsConsoleProps) {
         {logs.length === 0 ? (
           <div className="text-gray-500 italic">No logs yet...</div>
         ) : (
-          logs.map((log) => (
+          logs.map(log => (
             <div key={log.id} className="flex gap-2 py-0.5 hover:bg-gray-800">
               <span className="text-gray-500 shrink-0">[{formatTime(log.timestamp)}]</span>
               <span className={`shrink-0 w-12 ${LEVEL_COLORS[log.level] || 'text-gray-400'}`}>
