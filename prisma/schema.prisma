@@ -806,6 +806,24 @@ enum ExecutionStatus {
 }
 
 // ============================================================================
+// AFC-C2-MOLTBOT-INGEST-1: External Agent Identity Mapping
+// ============================================================================
+
+// ExternalAgentIdentity: Maps external agent identifiers to AFC users
+model ExternalAgentIdentity {
+  id          String   @id @default(cuid())
+  provider    String   // e.g., "moltbot", "slack", "discord"
+  externalId  String   // e.g., phone number, chat ID
+  userId      String   // AFC user ID this maps to
+  displayName String?  // Optional display name
+  metadata    Json?    // Additional provider-specific metadata
+  createdAt   DateTime @default(now())
+
+  @@unique([provider, externalId])
+  @@index([userId])
+}
+
+// ============================================================================
 // AFC-C2-STREAM-0: Command & Control Dashboard
 // ============================================================================
 
