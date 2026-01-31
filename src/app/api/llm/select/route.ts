@@ -3,10 +3,12 @@ import { requireAuth } from '@/lib/auth-helpers';
 import { LLMSelectRequestSchema } from '@/lib/llm/registry/types';
 import { getRegistryForTenant } from '@/lib/llm/registry/registry';
 import { selectModel } from '@/lib/llm/selection/policy';
+import { buildProofPack, randomId } from '@/lib/proofpack';
 
 /**
- * AFC-LLM-REGISTRY-0
- * Selection-only endpoint. Must be strict. No silent defaults.
+ * AFC-LLM-REGISTRY-0 + AFC-PROOFPACK-EMIT-1
+ * Selection endpoint with proof pack emission.
+ * Must be strict. No silent defaults.
  */
 
 async function requireTenantAccess(tenantId: string, userId: string) {
@@ -50,22 +52,79 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: tenantCheck.error }, { status: tenantCheck.status });
   }
 
+  // Generate IDs for this request
+  const runId = randomId('run');
+  const proofPackId = randomId('pp');
+
   try {
     const registry = await getRegistryForTenant(input.tenantId);
     const selection = selectModel(input, registry);
+
+    // Build proof pack for this selection
+    const proofPackInput = {
+      taskType: input.taskType,
+      riskTier: input.riskTier,
+      dataResidency: input.dataResidency,
+      dataClassification: input.dataClassification,
+      budgetProfile: input.budgetProfile,
+      moltbotSuggestion: input.moltbotSuggestion ?? null,
+    };
+
+    let proofPack;
+    try {
+      proofPack = buildProofPack({
+        proofPackId,
+        tenantId: input.tenantId,
+        runId,
+        type: 'LLM_SELECTION',
+        policyVersion: selection.rationale.policyVersion,
+        registryVersion: selection.rationale.registryVersion,
+        input: proofPackInput,
+        decisions: selection,
+        approvals: [],
+        output: selection,
+      });
+
+      // Enforce decision-hash preservation:
+      // - selection.decisionHash is the deterministic decision identifier produced by selectModel().
+      // - proofPack.hashes.decisionHash is the integrity hash of the full decisions payload.
+      // We must ensure the selection decisionHash is preserved inside the proofPack.decisions blob.
+      if (!selection.decisionHash || !selection.decisionHash.startsWith('sha256:')) {
+        throw new Error('PROOFPACK_DECISION_HASH_MISSING');
+      }
+      if (
+        !proofPack ||
+        !('decisions' in proofPack) ||
+        // @ts-expect-error: decisions is unknown at type level; runtime guard here
+        proofPack.decisions?.decisionHash !== selection.decisionHash
+      ) {
+        throw new Error('PROOFPACK_DECISION_HASH_MISMATCH');
+      }
+    } catch (proofErr: unknown) {
+      const proofMsg = proofErr instanceof Error ? proofErr.message : 'UNKNOWN_ERROR';
+
+      await writeAuditEvent(input.tenantId, {
+        type: 'LLM_PROOFPACK_EMIT_FAILED',
+        at: new Date().toISOString(),
+        tenantId: input.tenantId,
+        runId,
+        proofPackId,
+        error: proofMsg,
+      });
+
+      return NextResponse.json(
+        { error: 'PROOFPACK_EMIT_FAILED', details: proofMsg },
+        { status: 500 }
+      );
+    }
 
     await writeAuditEvent(input.tenantId, {
       type: 'LLM_MODEL_SELECTED',
       at: new Date().toISOString(),
       tenantId: input.tenantId,
-      input: {
-        taskType: input.taskType,
-        riskTier: input.riskTier,
-        dataResidency: input.dataResidency,
-        dataClassification: input.dataClassification,
-        budgetProfile: input.budgetProfile,
-        moltbotSuggestion: input.moltbotSuggestion ?? null,
-      },
+      runId,
+      proofPackId,
+      input: proofPackInput,
       output: {
         selected: selection.selected,
         fallback: selection.fallback,
@@ -76,7 +135,7 @@ export async function POST(req: Request) {
       exclusionsCount: selection.rationale.exclusions.length,
     });
 
-    return NextResponse.json(selection, { status: 200 });
+    return NextResponse.json({ ...selection, proofPack, runId }, { status: 200 });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'UNKNOWN_ERROR';
 
@@ -84,6 +143,8 @@ export async function POST(req: Request) {
       type: 'LLM_MODEL_SELECTION_FAILED',
       at: new Date().toISOString(),
       tenantId: input.tenantId,
+      runId,
+      proofPackId,
       error: msg,
     });
 
