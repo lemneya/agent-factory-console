@@ -70,13 +70,20 @@ Wires proof pack emission into `POST /api/llm/select`. Every successful model se
 
 ## Hash Consistency Rule
 
-The proof pack's `decisions` field contains the full selection response (including `decisionHash`). This ensures:
+There are **two different hashes** and they serve different purposes:
 
-1. The selection's `decisionHash` is computed by `selectModel()` based on input parameters
-2. The proof pack hashes the entire selection object as `decisions`
-3. Both hashes are independently verifiable
+1. `selection.decisionHash`
+   - Deterministic decision identifier produced by `selectModel()`
+   - Must be stable for the same input + registry version
+   - Must be **preserved inside** `proofPack.decisions.decisionHash`
 
-**Verification**: `response.decisionHash` must be a valid SHA256 hash (`sha256:<64 hex chars>`)
+2. `proofPack.hashes.decisionHash`
+   - Integrity hash of the **entire** `decisions` payload (tamper detection)
+   - This will **not** equal `selection.decisionHash` and should not be compared for equality
+
+**Required invariant:**
+
+- `proofPack.decisions.decisionHash === selection.decisionHash`
 
 ## Error Handling
 

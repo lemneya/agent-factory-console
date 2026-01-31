@@ -145,6 +145,29 @@ describe('AFC-PROOFPACK-EMIT-1: Proof Pack Emission', () => {
 
       expect(proofPack.approvals).toEqual([]);
     });
+
+    it('preserves selection.decisionHash inside proofPack.decisions.decisionHash', () => {
+      const input = createTestInput();
+      const selection = selectModel(input, testRegistry);
+
+      const proofPack = buildProofPack({
+        proofPackId: randomId('pp'),
+        tenantId: input.tenantId,
+        runId: randomId('run'),
+        type: 'LLM_SELECTION',
+        policyVersion: selection.rationale.policyVersion,
+        registryVersion: selection.rationale.registryVersion,
+        input: { taskType: input.taskType },
+        decisions: selection,
+        approvals: [],
+        output: selection,
+      });
+
+      // The deterministic decision identity must be preserved inside the emitted proof pack.
+      // (This is NOT the same as proofPack.hashes.decisionHash, which hashes the full decisions blob.)
+      // @ts-expect-error decisions is unknown at type level in some builds; runtime still validates
+      expect(proofPack.decisions.decisionHash).toBe(selection.decisionHash);
+    });
   });
 
   describe('Decision Hash Consistency', () => {

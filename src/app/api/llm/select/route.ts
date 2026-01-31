@@ -85,10 +85,19 @@ export async function POST(req: Request) {
         output: selection,
       });
 
-      // Enforce hash consistency: proof pack decision hash must match selection decision hash
-      // Note: The proof pack hashes the entire selection object (including decisionHash),
-      // so we verify the selection's internal decisionHash is present and valid
+      // Enforce decision-hash preservation:
+      // - selection.decisionHash is the deterministic decision identifier produced by selectModel().
+      // - proofPack.hashes.decisionHash is the integrity hash of the full decisions payload.
+      // We must ensure the selection decisionHash is preserved inside the proofPack.decisions blob.
       if (!selection.decisionHash || !selection.decisionHash.startsWith('sha256:')) {
+        throw new Error('PROOFPACK_DECISION_HASH_MISSING');
+      }
+      if (
+        !proofPack ||
+        !('decisions' in proofPack) ||
+        // @ts-expect-error: decisions is unknown at type level; runtime guard here
+        proofPack.decisions?.decisionHash !== selection.decisionHash
+      ) {
         throw new Error('PROOFPACK_DECISION_HASH_MISMATCH');
       }
     } catch (proofErr: unknown) {
