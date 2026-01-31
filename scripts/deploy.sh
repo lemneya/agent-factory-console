@@ -2,12 +2,20 @@
 # ============================================================================
 # DEPLOY-0: Production Deployment Script
 # ============================================================================
-# Usage: ./scripts/deploy.sh [staging|production]
+# Usage: ./scripts/deploy.sh [staging|production] [--with-db]
+#
+# Arguments:
+#   staging|production  - Environment to deploy (default: production)
+#   --with-db           - Use local PostgreSQL container instead of external DB
 #
 # Prerequisites:
 #   - Docker and Docker Compose installed
 #   - .env.production (or .env.staging) file configured
-#   - Database accessible (external or local)
+#   - Database accessible (external or use --with-db for local)
+#
+# Examples:
+#   ./scripts/deploy.sh production           # External database
+#   ./scripts/deploy.sh production --with-db # Local PostgreSQL container
 # ============================================================================
 
 set -e
@@ -33,7 +41,24 @@ log_error() {
 
 # Parse arguments
 ENVIRONMENT="${1:-production}"
+USE_LOCAL_DB=false
+
+# Check for --with-db flag
+for arg in "$@"; do
+    case $arg in
+        --with-db)
+            USE_LOCAL_DB=true
+            shift
+            ;;
+    esac
+done
+
 ENV_FILE=".env.${ENVIRONMENT}"
+DB_PROFILES=""
+if [ "$USE_LOCAL_DB" = true ]; then
+    DB_PROFILES="--profile with-db"
+    log_info "Local database mode enabled (--with-db)"
+fi
 
 log_info "Starting deployment for: ${ENVIRONMENT}"
 
@@ -94,17 +119,44 @@ log_info "Pre-flight checks passed"
 # ============================================================================
 log_info "Building production images..."
 
-docker compose -f docker-compose.production.yml --env-file "$ENV_FILE" build
+docker compose -f docker-compose.production.yml --env-file "$ENV_FILE" $DB_PROFILES build
 
 log_info "Build complete"
+
+# ============================================================================
+# DATABASE (if using local db)
+# ============================================================================
+if [ "$USE_LOCAL_DB" = true ]; then
+    log_info "Starting local database..."
+    docker compose -f docker-compose.production.yml --env-file "$ENV_FILE" $DB_PROFILES up -d db
+
+    # Wait for database to be healthy
+    log_info "Waiting for database to be ready..."
+    RETRY_COUNT=0
+    MAX_DB_RETRIES=30
+    while [ $RETRY_COUNT -lt $MAX_DB_RETRIES ]; do
+        if docker compose -f docker-compose.production.yml --env-file "$ENV_FILE" $DB_PROFILES exec -T db pg_isready -U postgres > /dev/null 2>&1; then
+            log_info "Database is ready!"
+            break
+        fi
+        RETRY_COUNT=$((RETRY_COUNT + 1))
+        log_warn "Waiting for database... attempt $RETRY_COUNT/$MAX_DB_RETRIES"
+        sleep 2
+    done
+
+    if [ $RETRY_COUNT -eq $MAX_DB_RETRIES ]; then
+        log_error "Database failed to start"
+        exit 1
+    fi
+fi
 
 # ============================================================================
 # DATABASE MIGRATION
 # ============================================================================
 log_info "Running database migrations..."
 
-# Run migrations
-docker compose -f docker-compose.production.yml --env-file "$ENV_FILE" --profile migrate run --rm migrate
+# Run migrations (uses migrator target with prisma CLI)
+docker compose -f docker-compose.production.yml --env-file "$ENV_FILE" $DB_PROFILES --profile migrate run --rm migrate
 
 log_info "Migrations complete"
 
@@ -113,11 +165,15 @@ log_info "Migrations complete"
 # ============================================================================
 log_info "Starting services..."
 
-# Stop existing services
-docker compose -f docker-compose.production.yml --env-file "$ENV_FILE" down || true
+# Stop existing services (except db if using local)
+docker compose -f docker-compose.production.yml --env-file "$ENV_FILE" down --remove-orphans 2>/dev/null || true
 
-# Start new services
-docker compose -f docker-compose.production.yml --env-file "$ENV_FILE" up -d web
+# Start services
+if [ "$USE_LOCAL_DB" = true ]; then
+    docker compose -f docker-compose.production.yml --env-file "$ENV_FILE" $DB_PROFILES up -d db web
+else
+    docker compose -f docker-compose.production.yml --env-file "$ENV_FILE" up -d web
+fi
 
 # Wait for health check
 log_info "Waiting for health check..."

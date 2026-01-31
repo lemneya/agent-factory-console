@@ -67,7 +67,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (ownershipResult.error) return ownershipResult.error;
 
     const body = await request.json();
-    const { title, description, status, priority, assignee } = body;
+    const { title, description, status, priority, assignee, kind } = body;
+
+    // Validate kind if provided
+    const VALID_KINDS = ['INTEGRATE_ASSET', 'BUILD_CUSTOM', 'RESEARCH', 'QA', 'QUICK_CHANGE', 'FIX_BUG', 'SPEC_BUILD', 'FULL_SDD'];
+    if (kind && !VALID_KINDS.includes(kind)) {
+      return NextResponse.json({ error: `Invalid kind. Must be one of: ${VALID_KINDS.join(', ')}` }, { status: 400 });
+    }
 
     const task = await prisma.task.update({
       where: { id },
@@ -77,6 +83,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         ...(status && { status }),
         ...(priority !== undefined && { priority }),
         ...(assignee !== undefined && { assignee }),
+        ...(kind && { kind }),
       },
       include: {
         run: {
