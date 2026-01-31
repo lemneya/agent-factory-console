@@ -1,0 +1,11 @@
+# Non-runtime artifacts
+evidence/
+__tests__/
+playwright/
+docs/
+.github/
+
+# Optional: keep repo clean for deploy uploads
+*.md
+*.pem
+*.log
