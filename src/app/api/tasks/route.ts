@@ -51,13 +51,21 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// Valid task kinds - maps to Zenflow mode picker
+const VALID_KINDS = ['INTEGRATE_ASSET', 'BUILD_CUSTOM', 'RESEARCH', 'QA', 'QUICK_CHANGE', 'FIX_BUG', 'SPEC_BUILD', 'FULL_SDD'];
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { runId, title, description, status, priority, assignee } = body;
+    const { runId, title, description, status, priority, assignee, kind } = body;
 
     if (!runId || !title) {
       return NextResponse.json({ error: 'Missing required fields: runId, title' }, { status: 400 });
+    }
+
+    // Validate kind if provided
+    if (kind && !VALID_KINDS.includes(kind)) {
+      return NextResponse.json({ error: `Invalid kind. Must be one of: ${VALID_KINDS.join(', ')}` }, { status: 400 });
     }
 
     const task = await prisma.task.create({
@@ -68,6 +76,7 @@ export async function POST(request: NextRequest) {
         status: status || 'TODO',
         priority: priority ?? 0,
         assignee,
+        kind: kind || 'BUILD_CUSTOM',
       },
       include: {
         run: {
